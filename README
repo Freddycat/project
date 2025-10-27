@@ -1,0 +1,19 @@
+# project
+
+Simple C++ project using CMake. Key files:
+- [CMakeLists.txt](CMakeLists.txt)
+- [cpp.cpp](cpp.cpp)
+
+Build on Windows (VScode):
+1. Install Visual Studio with "Desktop development with C++".
+2. git clone https://github.com/Freddycat/project.git
+3. From root folder:
+   mkdir build
+   cd build
+   cmake .. -G "Visual Studio 17 2022" -A x64
+   cmake --build . --config Release
+
+Build on Linux:
+   mkdir build && cd build
+   cmake ..
+   cmake --build . -- -j
