@@ -1,4 +1,3 @@
-#include <SDL3/SDL.h>
 #include <string>
 #include <iostream>
 #include <chrono>
@@ -12,14 +11,14 @@
 
 #include "gui.h"
 
+SDL_Window *window = nullptr;
+
 std::string message = "so this is the message";
 int number = 42;
 bool running = false;
 int frameNumber = 0;
 
 std::chrono::time_point<std::chrono::steady_clock> frame = std::chrono::steady_clock::now();
-
-SDL_Window *window = nullptr;
 
 bool initializeSDL()
 {
@@ -98,20 +97,28 @@ void initializeImgui()
   ImGui_ImplOpenGL3_Init("#version 330");
 }
 
-Dot dot1;
+App app;
+Input input;
+Dot dot;
 
-Dot dot2;
+// Dot dot2;
 
-Dot dot3;
+// Dot dot3;
 
-Dot dot4;
+// Dot dot4;
 
-std::vector<Dot> dots;
+// std::vector<Dot> dots;
 
 bool imgui_on = true;
 
-void initializeDots()
+void initializeWorld()
 {
+
+  dot.posX = 0.0f;
+  dot.posY = 0.0f;
+  app.checkSize();
+
+  /*
   dot2.posX = 380.0f;
   dot2.posY = 300.0f;
   dot3.posX = 420.0f;
@@ -122,13 +129,56 @@ void initializeDots()
   dots.push_back(dot1);
   dots.push_back(dot2);
   dots.push_back(dot3);
-  dots.push_back(dot4);
+  dots.push_back(dot4); */
+}
+
+// Call once per frame before drawing anything
+void applyCamera()
+{
+
+  float zoom_amount = 0.3f;
+
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+
+  float mouse_offset_x = input.mouse_pos_x - app.window_center_x;
+  float mouse_offset_y = input.mouse_pos_y - app.window_center_y;
+
+  float mid_x = dot.posX + mouse_offset_x * zoom_amount;
+  float mid_y = dot.posY + mouse_offset_y * zoom_amount;
+
+  app.cam_point_x = mid_x - app.window_center_x;
+  app.cam_point_y = mid_y - app.window_center_y;
+
+  glTranslatef(-app.cam_point_x, -app.cam_point_y, 0); // move the "view"
+}
+
+/*
+// Update camera position based on input
+void updateCamera(float dx, float dy) {
+    cameraX += dx;
+    cameraY += dy;
+} */
+
+void drawBlast()
+{
+  int segments = 32;
+  glColor3f(1.0f, 0.0f, 0.0f);
+  glBegin(GL_LINE_LOOP);
+
+  for (int i = 0; i < segments; i++)
+  {
+    float theta = 2.0f * 3.1415926f * float(i) / float(segments);
+    float x = dot.weapon.blast_size * 10.0f * cosf(theta);
+    float y = dot.weapon.blast_size * 10.0f * sinf(theta);
+    glVertex2f(input.mouse_pos_x + x, input.mouse_pos_y + y);
+  }
+
+  glEnd();
 }
 
 void gameLoop()
 {
-
-  initializeDots();
 
   std::cout << message << std::endl;
   std::cout << number << std::endl;
@@ -153,6 +203,8 @@ void gameLoop()
 
   std::cout << "ImGui initialized." << std::endl;
 
+  initializeWorld();
+
   running = true;
 
   SDL_Event event;
@@ -175,7 +227,10 @@ void gameLoop()
       }
     }
 
-    input(dots);
+    applyCamera(); // apply camera offset
+
+    input.inputMouse();
+    input.inputKeyboard(dot);
 
     // frame += std::chrono::milliseconds(1000);
     SDL_Delay(16);
@@ -196,29 +251,58 @@ void gameLoop()
 
     // square
 
-    glColor3f(1.0f, 0.8f, 1.0f); // White
+    /*     glColor3f(1.0f, 0.8f, 1.0f); // White
+        glBegin(GL_QUADS);
+        glVertex2f(100.0f, 50.0f);  // Top-left
+        glVertex2f(700.0f, 50.0f);  // Top-right
+        glVertex2f(700.0f, 550.0f); // Bottom-right
+        glVertex2f(100.0f, 550.0f); // Bottom-left
+        glEnd();
+    */
+    glColor3f(0.8f, 0.0f, 0.0f); // purp(bottom-right)
     glBegin(GL_QUADS);
-    glVertex2f(100.0f, 50.0f);  // Top-left
-    glVertex2f(700.0f, 50.0f);  // Top-right
-    glVertex2f(700.0f, 550.0f); // Bottom-right
-    glVertex2f(100.0f, 550.0f); // Bottom-left
+    glVertex2f(0.0f, 0.0f);     // Top-left
+    glVertex2f(800.0f, 0.0f);   // Top-right
+    glVertex2f(800.0f, 600.0f); // Bottom-right
+    glVertex2f(0.0f, 600.0f);   // Bottom-left
     glEnd();
 
-    glColor3f(0.8f, 0.0f, 1.0f); // purp
+    glColor3f(0.0f, 0.8f, 0.0f); // green (bottom-left)
     glBegin(GL_QUADS);
-    glVertex2f(200.0f, 100.0f); // Top-left
-    glVertex2f(600.0f, 100.0f); // Top-right
-    glVertex2f(600.0f, 500.0f); // Bottom-right
-    glVertex2f(200.0f, 500.0f); // Bottom-left
+    glVertex2f(-800.0f, 0.0f);   // Top-left
+    glVertex2f(0.0f, 0.0f);      // Top-right
+    glVertex2f(0.0f, 600.0f);    // Bottom-right
+    glVertex2f(-800.0f, 600.0f); // Bottom-left
     glEnd();
 
-    for (auto &dot : dots)
-    {
-      dot.draw();
-      // dot->draw();
-      dot.checkEdge();
-      // dot->checkEdge();
-    }
+    glColor3f(0.0f, 0.0f, 0.8f); // blue (top-left)
+    glBegin(GL_QUADS);
+    glVertex2f(-800.0f, -600.0f); // Top-left
+    glVertex2f(0.0f, -600.0f);    // Top-right
+    glVertex2f(0.0f, 0.0f);       // Bottom-right
+    glVertex2f(-800.0f, 0.0f);    // Bottom-left
+    glEnd();
+
+    glColor3f(0.8f, 0.8f, 0.8f); // white (top right)
+    glBegin(GL_QUADS);
+    glVertex2f(0.0f, -600.0f);   // Top-left
+    glVertex2f(800.0f, -600.0f); // Top-right
+    glVertex2f(800.0f, 0.0f);    // Bottom-right
+    glVertex2f(0.0f, 0.0f);      // Bottom-left
+    glEnd();
+
+    // updateCamera();
+    dot.drawDot();
+
+    drawBlast();
+
+    // dot.checkEdge();
+    /*
+        for (auto &dot : dots)
+        {
+          // dot->draw();
+          // dot->checkEdge();
+        } */
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
