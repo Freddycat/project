@@ -141,14 +141,11 @@ void applyCamera()
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
-  float mouse_offset_x = input.mouse_pos_x - app.window_center_x;
-  float mouse_offset_y = input.mouse_pos_y - app.window_center_y;
+  float midPoint_x = dot.posX + input.m_world_pos_x * zoom_amount;
+  float midPoint_y = dot.posY + input.m_world_pos_y * zoom_amount;
 
-  float mid_x = dot.posX + mouse_offset_x * zoom_amount;
-  float mid_y = dot.posY + mouse_offset_y * zoom_amount;
-
-  app.cam_point_x = mid_x - app.window_center_x;
-  app.cam_point_y = mid_y - app.window_center_y;
+  app.cam_point_x = midPoint_x - app.window_center_x;
+  app.cam_point_y = midPoint_y - app.window_center_y;
 
   glTranslatef(-app.cam_point_x, -app.cam_point_y, 0); // move the "view"
 }
@@ -171,7 +168,8 @@ void drawBlast()
     float theta = 2.0f * 3.1415926f * float(i) / float(segments);
     float x = dot.weapon.blast_size * 10.0f * cosf(theta);
     float y = dot.weapon.blast_size * 10.0f * sinf(theta);
-    glVertex2f(input.mouse_pos_x + x, input.mouse_pos_y + y);
+    glVertex2f(input.m_screen_pos_x + app.cam_point_x + x,
+               input.m_screen_pos_y + app.cam_point_y + y);
   }
 
   glEnd();
@@ -227,10 +225,10 @@ void gameLoop()
       }
     }
 
-    applyCamera(); // apply camera offset
-
-    input.inputMouse();
     input.inputKeyboard(dot);
+    input.inputMouse(app);
+
+    applyCamera(); // apply camera offset
 
     // frame += std::chrono::milliseconds(1000);
     SDL_Delay(16);

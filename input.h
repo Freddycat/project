@@ -7,12 +7,17 @@
 struct Input
 {
 
-  float mouse_pos_x;
-  float mouse_pos_y;
+  float m_screen_pos_x;
+  float m_screen_pos_y;
+  float m_world_pos_x;
+  float m_world_pos_y;
 
-  void inputMouse()
+  void inputMouse(App &app)
   {
-    SDL_GetMouseState(&mouse_pos_x, &mouse_pos_y);
+    SDL_GetMouseState(&m_screen_pos_x, &m_screen_pos_y);
+
+    m_world_pos_x = m_screen_pos_x - app.window_center_x;
+    m_world_pos_y = m_screen_pos_y - app.window_center_y;
   }
 
   void inputKeyboard(Dot &dot)
