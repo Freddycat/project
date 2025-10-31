@@ -3,18 +3,18 @@
 #include "camera.h"
 #include <SDL3/SDL.h>
 
-void Input::getMouseInput(App &app, Camera &cam)
+void Input::getMouseInput()
 {
   SDL_GetMouseState(&m_screen_pos_x, &m_screen_pos_y);
 
-  cam.m_camera_delta_x = m_screen_pos_x - app.window_center_x;
-  cam.m_camera_delta_y = m_screen_pos_y - app.window_center_y;
+  app_ptr->cam.m_camera_delta_x = m_screen_pos_x - app_ptr->window_center_x;
+  app_ptr->cam.m_camera_delta_y = m_screen_pos_y - app_ptr->window_center_y;
 }
 
-void Input::getMouseWorldPos(App &app, Camera &cam)
+void Input::getMouseWorldPos()
 {
-  m_world_pos_x = cam.cam_pos_x + m_screen_pos_x;
-  m_world_pos_y = cam.cam_pos_y + m_screen_pos_y;
+  m_world_pos_x = app_ptr->cam.cam_pos_x + m_screen_pos_x;
+  m_world_pos_y = app_ptr->cam.cam_pos_y + m_screen_pos_y;
 }
 
 void Input::inputKeyboard(Dot &dot)

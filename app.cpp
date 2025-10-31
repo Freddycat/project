@@ -118,8 +118,8 @@ void drawBlast()
     float theta = 2.0f * 3.1415926f * float(i) / float(segments);
     float x = dot.weapon.blast_size * 10.0f * cosf(theta);
     float y = dot.weapon.blast_size * 10.0f * sinf(theta);
-    glVertex2f(input.m_world_pos_x + x,
-               input.m_world_pos_y + y);
+    glVertex2f(app.input.m_world_pos_x + x,
+               app.input.m_world_pos_y + y);
   }
 
   glEnd();
@@ -175,15 +175,14 @@ void gameLoop()
       }
     }
 
-    input.inputKeyboard(dot);
+    app.input.inputKeyboard(dot);
 
-    input.getMouseInput(app, cam);
+    app.input.getMouseInput();
 
-    cam.centerCam(app, dot, input); // apply camera offset
+    app.cam.centerCam(dot); // apply camera offset
 
-    input.getMouseWorldPos(app, cam);
+    app.input.getMouseWorldPos();
 
-    // frame += std::chrono::milliseconds(1000);
     SDL_Delay(16);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -197,7 +196,8 @@ void gameLoop()
 
     if (imgui_on)
     {
-      drawWindow();
+      app.gui.drawWindow();
+      app.gui.drawPoints();
     }
 
     // square

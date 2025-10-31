@@ -9,6 +9,8 @@
 #include "camera.h"
 
 extern SDL_Window *window;
+struct Input;
+struct Camera;
 
 struct Dot
 {
@@ -36,6 +38,10 @@ struct Dot
 struct App
 {
 
+  Input input;
+  Camera cam;
+  Gui gui;
+
   int window_width;
   int window_height;
 
@@ -49,6 +55,13 @@ struct App
     // Center coordinates
     window_center_x = window_width / 2.0f;
     window_center_y = window_height / 2.0f;
+  }
+
+  App()
+  {
+    input.setApp(*this);
+    cam.setApp(*this);
+    gui.setApp(*this);
   }
 };
 

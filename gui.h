@@ -6,6 +6,19 @@
 #include <imgui_impl_opengl3.h>
 #include "imgui_internal.h"
 
-void drawWindow();
+struct App;
+
+struct Gui
+{
+
+  App *app_ptr;
+  void setApp(App &app)
+  {
+    app_ptr = &app;
+  };
+
+  void drawWindow();
+  void drawPoints();
+};
 
 #endif
