@@ -7,10 +7,6 @@
 
 #include "app.h"
 
-#include "input.h"
-
-#include "gui.h"
-
 SDL_Window *window = nullptr;
 
 std::string message = "so this is the message";
@@ -100,62 +96,16 @@ void initializeImgui()
 App app;
 Input input;
 Dot dot;
-
-// Dot dot2;
-
-// Dot dot3;
-
-// Dot dot4;
-
-// std::vector<Dot> dots;
+Camera cam;
 
 bool imgui_on = true;
 
 void initializeWorld()
 {
-
   dot.posX = 0.0f;
   dot.posY = 0.0f;
   app.checkSize();
-
-  /*
-  dot2.posX = 380.0f;
-  dot2.posY = 300.0f;
-  dot3.posX = 420.0f;
-  dot3.posY = 300.0f;
-  dot4.posX = 400.0f;
-  dot4.posY = 320.0f;
-
-  dots.push_back(dot1);
-  dots.push_back(dot2);
-  dots.push_back(dot3);
-  dots.push_back(dot4); */
 }
-
-// Call once per frame before drawing anything
-void applyCamera()
-{
-
-  float zoom_amount = 0.3f;
-
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-
-  float midPoint_x = dot.posX + input.m_world_pos_x * zoom_amount;
-  float midPoint_y = dot.posY + input.m_world_pos_y * zoom_amount;
-
-  app.cam_point_x = midPoint_x - app.window_center_x;
-  app.cam_point_y = midPoint_y - app.window_center_y;
-
-  glTranslatef(-app.cam_point_x, -app.cam_point_y, 0); // move the "view"
-}
-
-/*
-// Update camera position based on input
-void updateCamera(float dx, float dy) {
-    cameraX += dx;
-    cameraY += dy;
-} */
 
 void drawBlast()
 {
@@ -168,8 +118,8 @@ void drawBlast()
     float theta = 2.0f * 3.1415926f * float(i) / float(segments);
     float x = dot.weapon.blast_size * 10.0f * cosf(theta);
     float y = dot.weapon.blast_size * 10.0f * sinf(theta);
-    glVertex2f(input.m_screen_pos_x + app.cam_point_x + x,
-               input.m_screen_pos_y + app.cam_point_y + y);
+    glVertex2f(input.m_world_pos_x + x,
+               input.m_world_pos_y + y);
   }
 
   glEnd();
@@ -226,9 +176,12 @@ void gameLoop()
     }
 
     input.inputKeyboard(dot);
-    input.inputMouse(app);
 
-    applyCamera(); // apply camera offset
+    input.getMouseInput(app, cam);
+
+    cam.centerCam(app, dot, input); // apply camera offset
+
+    input.getMouseWorldPos(app, cam);
 
     // frame += std::chrono::milliseconds(1000);
     SDL_Delay(16);
@@ -249,15 +202,7 @@ void gameLoop()
 
     // square
 
-    /*     glColor3f(1.0f, 0.8f, 1.0f); // White
-        glBegin(GL_QUADS);
-        glVertex2f(100.0f, 50.0f);  // Top-left
-        glVertex2f(700.0f, 50.0f);  // Top-right
-        glVertex2f(700.0f, 550.0f); // Bottom-right
-        glVertex2f(100.0f, 550.0f); // Bottom-left
-        glEnd();
-    */
-    glColor3f(0.8f, 0.0f, 0.0f); // purp(bottom-right)
+    glColor3f(0.8f, 0.2f, 0.2f); // red (bottom-right)
     glBegin(GL_QUADS);
     glVertex2f(0.0f, 0.0f);     // Top-left
     glVertex2f(800.0f, 0.0f);   // Top-right
@@ -265,7 +210,7 @@ void gameLoop()
     glVertex2f(0.0f, 600.0f);   // Bottom-left
     glEnd();
 
-    glColor3f(0.0f, 0.8f, 0.0f); // green (bottom-left)
+    glColor3f(0.2f, 0.8f, 0.2f); // green (bottom-left)
     glBegin(GL_QUADS);
     glVertex2f(-800.0f, 0.0f);   // Top-left
     glVertex2f(0.0f, 0.0f);      // Top-right
@@ -273,7 +218,7 @@ void gameLoop()
     glVertex2f(-800.0f, 600.0f); // Bottom-left
     glEnd();
 
-    glColor3f(0.0f, 0.0f, 0.8f); // blue (top-left)
+    glColor3f(0.2f, 0.2f, 0.8f); // blue (top-left)
     glBegin(GL_QUADS);
     glVertex2f(-800.0f, -600.0f); // Top-left
     glVertex2f(0.0f, -600.0f);    // Top-right
@@ -289,19 +234,10 @@ void gameLoop()
     glVertex2f(0.0f, 0.0f);      // Bottom-left
     glEnd();
 
-    // updateCamera();
     dot.drawDot();
 
     drawBlast();
-
-    // dot.checkEdge();
-    /*
-        for (auto &dot : dots)
-        {
-          // dot->draw();
-          // dot->checkEdge();
-        } */
-
+    
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

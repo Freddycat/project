@@ -7,8 +7,5 @@ void drawWindow()
     ImGui::TreeNode("Sheeit");
     ImGui::Button("Name");
     ImGui::End();
-
-    ImGui::Begin("Yo2...");
-    ImGui::End();
-
+    
 }

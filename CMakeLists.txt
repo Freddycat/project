@@ -27,6 +27,7 @@ add_executable(
   app.cpp
   input.cpp
   gui.cpp
+  camera.cpp
   glad.c
   include/imgui/imgui.cpp
   include/imgui/imgui_draw.cpp
