@@ -12,11 +12,15 @@ add_subdirectory(
   include/imgui
 )
 
+find_package(OpenGL REQUIRED)
+
 include_directories(
   ${CMAKE_SOURCE_DIR}/include
   ${CMAKE_SOURCE_DIR}/include/imgui
   ${CMAKE_SOURCE_DIR}/include/imgui/backends
 )
+
+
 
 add_executable(
   project
@@ -41,6 +45,5 @@ target_include_directories(
 
 target_link_libraries(project PRIVATE
   SDL3::SDL3
-  opengl32
-  # imgui
+  OpenGL::GL
 )
