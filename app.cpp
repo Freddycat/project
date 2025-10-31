@@ -11,7 +11,6 @@ SDL_Window *window = nullptr;
 
 std::string message = "so this is the message";
 int number = 42;
-bool running = false;
 int frameNumber = 0;
 
 std::chrono::time_point<std::chrono::steady_clock> frame = std::chrono::steady_clock::now();
@@ -153,11 +152,11 @@ void gameLoop()
 
   initializeWorld();
 
-  running = true;
+  app.running = true;
 
   SDL_Event event;
 
-  while (running == true)
+  while (app.running)
 
   {
 
@@ -166,7 +165,7 @@ void gameLoop()
       ImGui_ImplSDL3_ProcessEvent(&event);
       if (event.type == SDL_EVENT_QUIT)
       {
-        running = false;
+        app.running = false;
       }
 
       if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_X)
@@ -247,7 +246,7 @@ void gameLoop()
 
     if (frameNumber > 10000)
     {
-      running = false;
+      app.running = false;
     }
   }
 }

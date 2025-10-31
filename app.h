@@ -42,6 +42,8 @@ struct App
   Camera cam;
   Gui gui;
 
+  bool running = false;
+
   int window_width;
   int window_height;
 
