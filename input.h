@@ -4,7 +4,7 @@
 #include <vector>
 
 struct App;
-struct Dot;
+struct Player;
 struct Camera;
 
 struct Input
@@ -21,7 +21,7 @@ struct Input
 
   void getMouseWorldPos();
 
-  void inputKeyboard(Dot &dot);
+  void inputKeyboard(Player &player);
 
   void setApp(App &app)
   {

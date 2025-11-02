@@ -4,7 +4,7 @@
 void Gui::drawWindow()
 {
   ImGui::Begin("Yo...");
-  ImGui::Text("Sup, bitch");
+  ImGui::Text("Give Up?");
 
   if (ImGui::Button("Sheeit"))
   {

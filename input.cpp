@@ -17,24 +17,24 @@ void Input::getMouseWorldPos()
   m_world_pos_y = app_ptr->cam.cam_pos_y + m_screen_pos_y;
 }
 
-void Input::inputKeyboard(Dot &dot)
+void Input::inputKeyboard(Player &player)
 {
 
   const bool *keyboard = SDL_GetKeyboardState(nullptr);
 
   if (keyboard[SDL_SCANCODE_W])
 
-    dot.posY -= dot.speed;
+    player.posY -= player.speed;
 
   if (keyboard[SDL_SCANCODE_S])
 
-    dot.posY += dot.speed;
+    player.posY += player.speed;
 
   if (keyboard[SDL_SCANCODE_A])
 
-    dot.posX -= dot.speed;
+    player.posX -= player.speed;
 
   if (keyboard[SDL_SCANCODE_D])
 
-    dot.posX += dot.speed;
+    player.posX += player.speed;
 }

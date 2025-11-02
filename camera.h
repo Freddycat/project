@@ -2,7 +2,7 @@
 #define CAMERA_H
 
 struct App;
-struct Dot;
+struct Player;
 struct Input;
 
 struct Camera
@@ -14,7 +14,7 @@ struct Camera
   float cam_pos_y;
   float cam_zoom_amount = 0.3f;
 
-  void centerCam(Dot &dot);
+  void centerCam(Player &player);
 
   void setApp(App &app)
   {

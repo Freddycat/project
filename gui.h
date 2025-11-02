@@ -11,7 +11,8 @@ struct App;
 struct Gui
 {
 
-  App *app_ptr;
+  App *app_ptr = nullptr;
+
   void setApp(App &app)
   {
     app_ptr = &app;

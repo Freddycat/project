@@ -3,37 +3,14 @@
 
 #include <SDL3/SDL.h>
 #include <glad/glad.h>
+#include <chrono>
 
 #include "input.h"
 #include "gui.h"
 #include "camera.h"
+#include "player.h"
 
 extern SDL_Window *window;
-struct Input;
-struct Camera;
-
-struct Dot
-{
-  float posX = 0.0f;
-  float posY = 0.0f;
-  float speed = 6.0f;
-
-  struct Weapon
-  {
-    float blast_size = 15.0f;
-    float blast_speed = 6.0f;
-    float rate = 9.0f;
-  } weapon;
-
-  void drawDot()
-  {
-    glColor3f(0.6f, 0.0f, 0.6f);
-    glPointSize(8.0f);
-    glBegin(GL_POINTS);
-    glVertex2f(posX, posY);
-    glEnd();
-  }
-};
 
 struct App
 {
@@ -41,6 +18,7 @@ struct App
   Input input;
   Camera cam;
   Gui gui;
+  Player player;
 
   bool running = false;
 
@@ -49,6 +27,12 @@ struct App
 
   float window_center_x;
   float window_center_y;
+
+  std::chrono::duration<double> game_time;
+
+  int target_framerate = 60;
+
+  std::chrono::duration<double> delta;
 
   void checkSize()
   {
@@ -64,6 +48,7 @@ struct App
     input.setApp(*this);
     cam.setApp(*this);
     gui.setApp(*this);
+    player.setApp(*this);
   }
 };
 

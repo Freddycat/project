@@ -13,8 +13,6 @@ std::string message = "so this is the message";
 int number = 42;
 int frameNumber = 0;
 
-std::chrono::time_point<std::chrono::steady_clock> frame = std::chrono::steady_clock::now();
-
 bool initializeSDL()
 {
 
@@ -92,39 +90,121 @@ void initializeImgui()
   ImGui_ImplOpenGL3_Init("#version 330");
 }
 
+//Input input;
+//Camera cam;
+//Player player;
 App app;
-Input input;
-Dot dot;
-Camera cam;
 
 bool imgui_on = true;
 
 void initializeWorld()
 {
-  dot.posX = 0.0f;
-  dot.posY = 0.0f;
+  app.player.posX = 0.0f;
+  app.player.posY = 0.0f;
   app.checkSize();
 }
 
-void drawBlast()
-{
-  int segments = 32;
-  glColor3f(1.0f, 0.0f, 0.0f);
-  glBegin(GL_LINE_LOOP);
+auto frame_start = std::chrono::steady_clock::now();
+auto frame_end = std::chrono::steady_clock::now();
+auto target_frametime = std::chrono::milliseconds(int(1000 / app.target_framerate));
+auto next_frametime = std::chrono::steady_clock::now() + target_frametime;
 
-  for (int i = 0; i < segments; i++)
+void gameLoop(SDL_Event &event)
+{
+
+  frame_start = std::chrono::steady_clock::now();
+
+  app.delta = (frame_start - frame_end);
+
+  while (SDL_PollEvent(&event))
   {
-    float theta = 2.0f * 3.1415926f * float(i) / float(segments);
-    float x = dot.weapon.blast_size * 10.0f * cosf(theta);
-    float y = dot.weapon.blast_size * 10.0f * sinf(theta);
-    glVertex2f(app.input.m_world_pos_x + x,
-               app.input.m_world_pos_y + y);
+    ImGui_ImplSDL3_ProcessEvent(&event);
+    if (event.type == SDL_EVENT_QUIT)
+    {
+      app.running = false;
+    }
+
+    if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_X)
+    {
+      imgui_on = !imgui_on;
+    }
   }
 
+  app.input.inputKeyboard(app.player);
+
+  app.input.getMouseInput();
+
+  app.cam.centerCam(app.player); // apply camera offset
+
+  app.input.getMouseWorldPos();
+
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  ImGui_ImplOpenGL3_NewFrame();
+  ImGui_ImplSDL3_NewFrame();
+  ImGui::NewFrame();
+
+  // ImGui stuff can go in here
+
+  if (imgui_on)
+  {
+    app.gui.drawWindow();
+    app.gui.drawPoints();
+  }
+
+  // square
+
+  glColor3f(0.8f, 0.2f, 0.2f); // red (bottom-right)
+  glBegin(GL_QUADS);
+  glVertex2f(0.0f, 0.0f);     // Top-left
+  glVertex2f(800.0f, 0.0f);   // Top-right
+  glVertex2f(800.0f, 600.0f); // Bottom-right
+  glVertex2f(0.0f, 600.0f);   // Bottom-left
   glEnd();
+
+  glColor3f(0.2f, 0.8f, 0.2f); // green (bottom-left)
+  glBegin(GL_QUADS);
+  glVertex2f(-800.0f, 0.0f);   // Top-left
+  glVertex2f(0.0f, 0.0f);      // Top-right
+  glVertex2f(0.0f, 600.0f);    // Bottom-right
+  glVertex2f(-800.0f, 600.0f); // Bottom-left
+  glEnd();
+
+  glColor3f(0.2f, 0.2f, 0.8f); // blue (top-left)
+  glBegin(GL_QUADS);
+  glVertex2f(-800.0f, -600.0f); // Top-left
+  glVertex2f(0.0f, -600.0f);    // Top-right
+  glVertex2f(0.0f, 0.0f);       // Bottom-right
+  glVertex2f(-800.0f, 0.0f);    // Bottom-left
+  glEnd();
+
+  glColor3f(0.8f, 0.8f, 0.8f); // white (top right)
+  glBegin(GL_QUADS);
+  glVertex2f(0.0f, -600.0f);   // Top-left
+  glVertex2f(800.0f, -600.0f); // Top-right
+  glVertex2f(800.0f, 0.0f);    // Bottom-right
+  glVertex2f(0.0f, 0.0f);      // Bottom-left
+  glEnd();
+
+  app.player.drawPlayer();
+  app.player.drawCrosshair();
+  app.player.drawBlast();
+  
+
+  ImGui::Render();
+  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+  SDL_GL_SwapWindow(window);
+
+  frameNumber++;
+
+  std::this_thread::sleep_until(next_frametime);
+  next_frametime += target_frametime;
+  app.game_time += app.delta;
 }
 
-void gameLoop()
+void gameStart()
 {
 
   std::cout << message << std::endl;
@@ -155,106 +235,15 @@ void gameLoop()
   app.running = true;
 
   SDL_Event event;
-
   while (app.running)
-
   {
-
-    while (SDL_PollEvent(&event))
-    {
-      ImGui_ImplSDL3_ProcessEvent(&event);
-      if (event.type == SDL_EVENT_QUIT)
-      {
-        app.running = false;
-      }
-
-      if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_X)
-      {
-        imgui_on = !imgui_on;
-      }
-    }
-
-    app.input.inputKeyboard(dot);
-
-    app.input.getMouseInput();
-
-    app.cam.centerCam(dot); // apply camera offset
-
-    app.input.getMouseWorldPos();
-
-    SDL_Delay(16);
-
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL3_NewFrame();
-    ImGui::NewFrame();
-
-    // ImGui stuff can go in here
-
-    if (imgui_on)
-    {
-      app.gui.drawWindow();
-      app.gui.drawPoints();
-    }
-
-    // square
-
-    glColor3f(0.8f, 0.2f, 0.2f); // red (bottom-right)
-    glBegin(GL_QUADS);
-    glVertex2f(0.0f, 0.0f);     // Top-left
-    glVertex2f(800.0f, 0.0f);   // Top-right
-    glVertex2f(800.0f, 600.0f); // Bottom-right
-    glVertex2f(0.0f, 600.0f);   // Bottom-left
-    glEnd();
-
-    glColor3f(0.2f, 0.8f, 0.2f); // green (bottom-left)
-    glBegin(GL_QUADS);
-    glVertex2f(-800.0f, 0.0f);   // Top-left
-    glVertex2f(0.0f, 0.0f);      // Top-right
-    glVertex2f(0.0f, 600.0f);    // Bottom-right
-    glVertex2f(-800.0f, 600.0f); // Bottom-left
-    glEnd();
-
-    glColor3f(0.2f, 0.2f, 0.8f); // blue (top-left)
-    glBegin(GL_QUADS);
-    glVertex2f(-800.0f, -600.0f); // Top-left
-    glVertex2f(0.0f, -600.0f);    // Top-right
-    glVertex2f(0.0f, 0.0f);       // Bottom-right
-    glVertex2f(-800.0f, 0.0f);    // Bottom-left
-    glEnd();
-
-    glColor3f(0.8f, 0.8f, 0.8f); // white (top right)
-    glBegin(GL_QUADS);
-    glVertex2f(0.0f, -600.0f);   // Top-left
-    glVertex2f(800.0f, -600.0f); // Top-right
-    glVertex2f(800.0f, 0.0f);    // Bottom-right
-    glVertex2f(0.0f, 0.0f);      // Bottom-left
-    glEnd();
-
-    dot.drawDot();
-
-    drawBlast();
-    
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-    SDL_GL_SwapWindow(window);
-
-    frameNumber++;
-
-    if (frameNumber > 10000)
-    {
-      app.running = false;
-    }
+    gameLoop(event);
   }
 }
 
 int main()
 {
-  gameLoop();
-
+  gameStart();
   SDL_GL_DestroyContext(glContext);
   SDL_DestroyWindow(window);
   SDL_Quit();
