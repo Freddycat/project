@@ -119,7 +119,7 @@ void gameLoop(SDL_Event &event)
       imgui_on = !imgui_on;
     }
   }
-
+  
   app.input.inputKeyboard(app.player);
 
   app.input.getMouseInput();
@@ -177,6 +177,8 @@ void gameStart()
     std::cerr << "SDL initialization failed. Exiting." << std::endl;
     return;
   }
+
+  SDL_SetWindowRelativeMouseMode(window, true);
 
   std::cout << "SDL initialized." << std::endl;
 
