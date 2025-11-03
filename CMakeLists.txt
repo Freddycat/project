@@ -26,6 +26,7 @@ add_executable(
   project
   app.cpp
   input.cpp
+  world.cpp
   gui.cpp
   camera.cpp
   player.cpp

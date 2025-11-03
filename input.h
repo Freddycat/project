@@ -2,6 +2,7 @@
 #define INPUT_H
 
 #include <vector>
+#include <glm/glm.hpp>
 
 struct App;
 struct Player;
@@ -11,11 +12,17 @@ struct Input
 {
 
   App *app_ptr = nullptr;
-  float m_screen_pos_x;
-  float m_screen_pos_y;
 
-  float m_world_pos_x;
-  float m_world_pos_y;
+  glm::vec2 mouse_screen_pos;
+  float mouse_screen_pos_x;
+  float mouse_screen_pos_y;
+
+  float mouse_to_center_pos_x;
+  float mouse_to_center_pos_y;
+
+  glm::vec2 mouse_world_pos;
+  float mouse_world_pos_x;
+  float mouse_world_pos_y;
 
   void getMouseInput();
 

@@ -90,31 +90,21 @@ void initializeImgui()
   ImGui_ImplOpenGL3_Init("#version 330");
 }
 
-//Input input;
-//Camera cam;
-//Player player;
+// Input input;
+// Camera cam;
+// Player player;
 App app;
 
 bool imgui_on = true;
 
-void initializeWorld()
-{
-  app.player.posX = 0.0f;
-  app.player.posY = 0.0f;
-  app.checkSize();
-}
-
-auto frame_start = std::chrono::steady_clock::now();
-auto frame_end = std::chrono::steady_clock::now();
-auto target_frametime = std::chrono::milliseconds(int(1000 / app.target_framerate));
-auto next_frametime = std::chrono::steady_clock::now() + target_frametime;
-
 void gameLoop(SDL_Event &event)
 {
 
-  frame_start = std::chrono::steady_clock::now();
+  app.frame_now = std::chrono::steady_clock::now();
 
-  app.delta = (frame_start - frame_end);
+  app.delta = std::chrono::duration<double>(app.frame_now - app.frame_last).count();
+
+  app.frame_last = std::chrono::steady_clock::now();
 
   while (SDL_PollEvent(&event))
   {
@@ -134,7 +124,7 @@ void gameLoop(SDL_Event &event)
 
   app.input.getMouseInput();
 
-  app.cam.centerCam(app.player); // apply camera offset
+  app.cam.centerCam(app.input, app.player); // apply camera offset
 
   app.input.getMouseWorldPos();
 
@@ -149,58 +139,30 @@ void gameLoop(SDL_Event &event)
 
   if (imgui_on)
   {
-    app.gui.drawWindow();
+    app.gui.drawWindow(app.input, app.cam, app.world, app.player);
     app.gui.drawPoints();
   }
-
-  // square
-
-  glColor3f(0.8f, 0.2f, 0.2f); // red (bottom-right)
-  glBegin(GL_QUADS);
-  glVertex2f(0.0f, 0.0f);     // Top-left
-  glVertex2f(800.0f, 0.0f);   // Top-right
-  glVertex2f(800.0f, 600.0f); // Bottom-right
-  glVertex2f(0.0f, 600.0f);   // Bottom-left
-  glEnd();
-
-  glColor3f(0.2f, 0.8f, 0.2f); // green (bottom-left)
-  glBegin(GL_QUADS);
-  glVertex2f(-800.0f, 0.0f);   // Top-left
-  glVertex2f(0.0f, 0.0f);      // Top-right
-  glVertex2f(0.0f, 600.0f);    // Bottom-right
-  glVertex2f(-800.0f, 600.0f); // Bottom-left
-  glEnd();
-
-  glColor3f(0.2f, 0.2f, 0.8f); // blue (top-left)
-  glBegin(GL_QUADS);
-  glVertex2f(-800.0f, -600.0f); // Top-left
-  glVertex2f(0.0f, -600.0f);    // Top-right
-  glVertex2f(0.0f, 0.0f);       // Bottom-right
-  glVertex2f(-800.0f, 0.0f);    // Bottom-left
-  glEnd();
-
-  glColor3f(0.8f, 0.8f, 0.8f); // white (top right)
-  glBegin(GL_QUADS);
-  glVertex2f(0.0f, -600.0f);   // Top-left
-  glVertex2f(800.0f, -600.0f); // Top-right
-  glVertex2f(800.0f, 0.0f);    // Bottom-right
-  glVertex2f(0.0f, 0.0f);      // Bottom-left
-  glEnd();
-
+  app.world.drawWorld();
   app.player.drawPlayer();
-  app.player.drawCrosshair();
-  app.player.drawBlast();
-  
+  app.player.drawCrosshair(app.input);
+
+  for (auto &weapon : app.player.weapons)
+    weapon.updateWeapon(app.input, app.world, app.delta, WeaponType::Blast);
+
+  for (auto &blast : app.world.blasts)
+    blast.drawBlast(app.delta);
 
   ImGui::Render();
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
   SDL_GL_SwapWindow(window);
 
+  app.world.eraseBlasts();
+
   frameNumber++;
 
-  std::this_thread::sleep_until(next_frametime);
-  next_frametime += target_frametime;
+  app.next_frametime = app.target_frametime + app.frame_now;
+  std::this_thread::sleep_until(app.next_frametime);
   app.game_time += app.delta;
 }
 
@@ -230,7 +192,9 @@ void gameStart()
 
   std::cout << "ImGui initialized." << std::endl;
 
-  initializeWorld();
+  app.checkSize();
+
+  app.world.initializeWorld();
 
   app.running = true;
 

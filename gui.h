@@ -7,6 +7,11 @@
 #include "imgui_internal.h"
 
 struct App;
+struct Input;
+struct Weapon;
+struct Camera;
+struct Player;
+struct World;
 
 struct Gui
 {
@@ -18,7 +23,12 @@ struct Gui
     app_ptr = &app;
   };
 
-  void drawWindow();
+  void drawWindow(Input &input, Camera &camera, World &world, Player &player);
+  void mouseInfo(Input &input);
+  void camInfo(Camera &cam);
+  void playerInfo(Player &player);
+  void worldInfo(World &world);
+  void weaponInfo(Weapon &weapon);
   void drawPoints();
 };
 

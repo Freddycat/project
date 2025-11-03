@@ -8,13 +8,13 @@ struct Input;
 struct Camera
 {
   App *app_ptr = nullptr;
-  float m_camera_delta_x;
-  float m_camera_delta_y;
-  float cam_pos_x;
-  float cam_pos_y;
-  float cam_zoom_amount = 0.3f;
+  float center_x;
+  float center_y;
+  float origin_x;
+  float origin_y;
+  float zoom_amount = 0.3f;
 
-  void centerCam(Player &player);
+  void centerCam(Input &input, Player &player);
 
   void setApp(App &app)
   {

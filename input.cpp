@@ -1,3 +1,6 @@
+
+// input.cpp
+
 #include "input.h"
 #include "app.h"
 #include "camera.h"
@@ -5,16 +8,13 @@
 
 void Input::getMouseInput()
 {
-  SDL_GetMouseState(&m_screen_pos_x, &m_screen_pos_y);
-
-  app_ptr->cam.m_camera_delta_x = m_screen_pos_x - app_ptr->window_center_x;
-  app_ptr->cam.m_camera_delta_y = m_screen_pos_y - app_ptr->window_center_y;
+  SDL_GetMouseState(&mouse_screen_pos_x, &mouse_screen_pos_y);
 }
 
 void Input::getMouseWorldPos()
 {
-  m_world_pos_x = app_ptr->cam.cam_pos_x + m_screen_pos_x;
-  m_world_pos_y = app_ptr->cam.cam_pos_y + m_screen_pos_y;
+  mouse_world_pos_x = app_ptr->cam.origin_x + mouse_screen_pos_x;
+  mouse_world_pos_y = app_ptr->cam.origin_y + mouse_screen_pos_y;
 }
 
 void Input::inputKeyboard(Player &player)
@@ -24,17 +24,17 @@ void Input::inputKeyboard(Player &player)
 
   if (keyboard[SDL_SCANCODE_W])
 
-    player.posY -= player.speed;
+    player.pos_y -= player.speed;
 
   if (keyboard[SDL_SCANCODE_S])
 
-    player.posY += player.speed;
+    player.pos_y += player.speed;
 
   if (keyboard[SDL_SCANCODE_A])
 
-    player.posX -= player.speed;
+    player.pos_x -= player.speed;
 
   if (keyboard[SDL_SCANCODE_D])
 
-    player.posX += player.speed;
+    player.pos_x += player.speed;
 }

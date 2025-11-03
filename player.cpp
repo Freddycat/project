@@ -3,47 +3,57 @@
 #include <chrono>
 #include "player.h"
 #include "app.h"
+#include "world.h"
+
+#include <iostream>
 
 void Player::drawPlayer()
 {
   glColor3f(0.6f, 0.0f, 0.6f);
   glPointSize(8.0f);
   glBegin(GL_POINTS);
-  glVertex2f(posX, posY);
+  glVertex2f(pos_x, pos_y);
   glEnd();
 }
 
-void Player::drawCrosshair()
+void Player::drawCrosshair(Input &input)
 {
-
-  if (!app_ptr)
-    return;
 
   glColor3f(1.0f, 0.0f, 0.0f);
   glPointSize(4.0f);
   glBegin(GL_POINTS);
-  glVertex2f(app_ptr->input.m_world_pos_x, app_ptr->input.m_world_pos_y);
+  glVertex2f(input.mouse_world_pos_x,
+             input.mouse_world_pos_y);
   glEnd();
 }
 
-void Player::drawBlast()
+void Weapon::updateWeapon(Input &input, World &world, double delta, WeaponType type)
 {
-  
-  if (!app_ptr)
-    return;
-  
-  int segments = 32;
-  glColor3f(1.0f, 0.0f, 0.0f);
-  glBegin(GL_LINE_LOOP);
+  fire_cooldown -= delta;
 
-  for (int i = 0; i < segments; i++)
+  if (fire_cooldown <= 0.0)
   {
-    float theta = 2.0f * 3.1415926f * float(i) / float(segments);
-    float x = weapon.blast_size * 10.0f * cosf(theta);
-    float y = weapon.blast_size * 10.0f * sinf(theta);
-    glVertex2f(app_ptr->input.m_world_pos_x + x,
-               app_ptr->input.m_world_pos_y + y);
+    fire_cooldown = fire_rate;
+    switch (type)
+    {
+    case WeaponType::Deagle:
+      // Implement Deagle firing logic
+      break;
+    case WeaponType::Blast:
+      doBlast(input, world);
+      break;
+    }
+    std::cout << "Weapon fired" << std::endl;
   }
+}
 
-  glEnd();
+void Weapon::doBlast(Input &input, World &world)
+{
+  Blast blast;
+  blast.time = blast_rate;
+  blast.rate = blast_rate;
+  blast.pos_x = input.mouse_world_pos_x;
+  blast.pos_y = input.mouse_world_pos_y;
+  blast.radius = blast_radius;
+  world.blasts.push_back(blast);
 }

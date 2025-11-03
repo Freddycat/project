@@ -3,17 +3,20 @@
 #include "app.h"
 #include "input.h"
 
-void Camera::centerCam(Player &player)
+void Camera::centerCam(Input &input, Player &player)
 {
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
-  float midPoint_x = player.posX + m_camera_delta_x * cam_zoom_amount;
-  float midPoint_y = player.posY + m_camera_delta_y * cam_zoom_amount;
+  float window_offset_x = input.mouse_screen_pos_x - app_ptr->window_center_x;
+  float window_offset_y = input.mouse_screen_pos_y - app_ptr->window_center_y;
 
-  cam_pos_x = midPoint_x - app_ptr->window_center_x;
-  cam_pos_y = midPoint_y - app_ptr->window_center_y;
+  center_x = player.pos_x + window_offset_x * zoom_amount;
+  center_y = player.pos_y + window_offset_y * zoom_amount;
 
-  glTranslatef(-cam_pos_x, -cam_pos_y, 0); // move the "view"
+  origin_x = center_x - app_ptr->window_center_x;
+  origin_y = center_y - app_ptr->window_center_y;
+
+  glTranslatef(-origin_x, -origin_y, 0); // move the "view"
 }

@@ -8,6 +8,7 @@
 #include "input.h"
 #include "gui.h"
 #include "camera.h"
+#include "world.h"
 #include "player.h"
 
 extern SDL_Window *window;
@@ -19,6 +20,7 @@ struct App
   Camera cam;
   Gui gui;
   Player player;
+  World world;
 
   bool running = false;
 
@@ -28,11 +30,18 @@ struct App
   float window_center_x;
   float window_center_y;
 
-  std::chrono::duration<double> game_time;
+  double game_time;
 
   int target_framerate = 60;
 
-  std::chrono::duration<double> delta;
+  double delta;
+
+  std::chrono::milliseconds target_frametime = std::chrono::milliseconds(int(1000 / target_framerate));
+
+  std::chrono::steady_clock::time_point frame_last;
+  std::chrono::steady_clock::time_point frame_now;
+  
+  std::chrono::steady_clock::time_point next_frametime;
 
   void checkSize()
   {
@@ -48,6 +57,7 @@ struct App
     input.setApp(*this);
     cam.setApp(*this);
     gui.setApp(*this);
+    world.setApp(*this);
     player.setApp(*this);
   }
 };
