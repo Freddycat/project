@@ -5,6 +5,7 @@
 
 struct App;
 struct Blast;
+struct Bullet;
 
 struct World
 {
@@ -16,10 +17,12 @@ struct World
   float grid_square_size = 64.0f;
 
   std::vector<Blast> blasts;
+  std::vector<Bullet> bullets;
 
   void initializeWorld();
   void drawWorld();
   void eraseBlasts();
+  void eraseBullets();
 
   void setApp(App &app)
   {
@@ -39,6 +42,17 @@ struct Blast
   float pos_x;
   float pos_y;
   void drawBlast(double delta);
+};
+
+struct Bullet
+{
+  float size;
+  double time;
+  float start_pos_x;
+  float start_pos_y;
+  float pos_x;
+  float pos_y;
+  void drawBullet(double delta);
 };
 
 #endif

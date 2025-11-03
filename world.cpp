@@ -9,50 +9,26 @@
 
 void World::initializeWorld()
 {
+  Weapon deagle;
   Weapon blast;
+
+  blast.type = WeaponType::Blast;
+  deagle.type = WeaponType::Deagle;
+
   app_ptr->player.pos_x = 0.0f;
   app_ptr->player.pos_y = 0.0f;
+
   app_ptr->player.weapons.push_back(blast);
+  app_ptr->player.weapons.push_back(deagle);
 }
 
 void World::drawWorld()
 {
-  drawGrid(grid_pos_x, grid_pos_y,
-           (int)grid_squares, (int)grid_squares, grid_square_size);
-
-  /*
-    glColor3f(0.8f, 0.2f, 0.2f); // red (bottom-right)
-    glBegin(GL_QUADS);
-    glVertex2f(0.0f, 0.0f);     // Top-left
-    glVertex2f(800.0f, 0.0f);   // Top-right
-    glVertex2f(800.0f, 600.0f); // Bottom-right
-    glVertex2f(0.0f, 600.0f);   // Bottom-left
-    glEnd();
-
-    glColor3f(0.2f, 0.8f, 0.2f); // green (bottom-left)
-    glBegin(GL_QUADS);
-    glVertex2f(-800.0f, 0.0f);   // Top-left
-    glVertex2f(0.0f, 0.0f);      // Top-right
-    glVertex2f(0.0f, 600.0f);    // Bottom-right
-    glVertex2f(-800.0f, 600.0f); // Bottom-left
-    glEnd();
-
-    glColor3f(0.2f, 0.2f, 0.8f); // blue (top-left)
-    glBegin(GL_QUADS);
-    glVertex2f(-800.0f, -600.0f); // Top-left
-    glVertex2f(0.0f, -600.0f);    // Top-right
-    glVertex2f(0.0f, 0.0f);       // Bottom-right
-    glVertex2f(-800.0f, 0.0f);    // Bottom-left
-    glEnd();
-
-    glColor3f(0.8f, 0.8f, 0.8f); // white (top right)
-    glBegin(GL_QUADS);
-    glVertex2f(0.0f, -600.0f);   // Top-left
-    glVertex2f(800.0f, -600.0f); // Top-right
-    glVertex2f(800.0f, 0.0f);    // Bottom-right
-    glVertex2f(0.0f, 0.0f);      // Bottom-left
-    glEnd();
-    */
+  drawGrid(grid_pos_x,
+           grid_pos_y,
+           (int)grid_squares,
+           (int)grid_squares,
+           grid_square_size);
 }
 
 void drawCell(float x, float y, float cellSize)
@@ -106,6 +82,15 @@ void World::eraseBlasts()
       blasts.end());
 }
 
+void World::eraseBullets()
+{
+  bullets.erase(
+      std::remove_if(bullets.begin(), bullets.end(),
+                     [](const Bullet &b)
+                     { return b.time <= 0.0f; }),
+      bullets.end());
+}
+
 void Blast::drawBlast(double delta)
 {
   std::cout << "Drawing blast" << std::endl;
@@ -132,6 +117,25 @@ void Blast::drawBlast(double delta)
     glVertex2f(pos_x + x,
                pos_y + y);
   }
+  glEnd();
+}
 
+void Bullet::drawBullet(double delta)
+{
+
+  if (time > 0.0f)
+  {
+    time -= delta;
+    if (time < 0.0f)
+      time = 0.0f;
+  }
+
+  float lineWidth = 1.0f;
+  glLineWidth(lineWidth);
+  glColor3f(1.0f, 0.2f, 0.2f);
+
+  glBegin(GL_LINES);
+  glVertex2f(start_pos_x, start_pos_y);
+  glVertex2f(pos_x, pos_y);
   glEnd();
 }

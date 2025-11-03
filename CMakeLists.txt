@@ -44,6 +44,7 @@ target_include_directories(
   PRIVATE
   include
   ${CMAKE_CURRENT_SOURCE_DIR}
+  include/glm
 )
 
 target_link_libraries(project PRIVATE

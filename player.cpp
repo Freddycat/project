@@ -27,7 +27,7 @@ void Player::drawCrosshair(Input &input)
   glEnd();
 }
 
-void Weapon::updateWeapon(Input &input, World &world, double delta, WeaponType type)
+void Weapon::updateWeapon(Input &input, World &world, Player &player, double delta, WeaponType type)
 {
   fire_cooldown -= delta;
 
@@ -37,7 +37,7 @@ void Weapon::updateWeapon(Input &input, World &world, double delta, WeaponType t
     switch (type)
     {
     case WeaponType::Deagle:
-      // Implement Deagle firing logic
+      doBullet(input, player, world);
       break;
     case WeaponType::Blast:
       doBlast(input, world);
@@ -56,4 +56,15 @@ void Weapon::doBlast(Input &input, World &world)
   blast.pos_y = input.mouse_world_pos_y;
   blast.radius = blast_radius;
   world.blasts.push_back(blast);
+}
+
+void Weapon::doBullet(Input &input, Player &player, World &world)
+{
+  Bullet bullet;
+  bullet.time = bullet_live;
+  bullet.start_pos_x = player.pos_x;
+  bullet.start_pos_y = player.pos_y;
+  bullet.pos_x = input.mouse_world_pos_x;
+  bullet.pos_y = input.mouse_world_pos_y;
+  world.bullets.push_back(bullet);
 }

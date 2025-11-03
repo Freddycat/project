@@ -147,10 +147,13 @@ void gameLoop(SDL_Event &event)
   app.player.drawCrosshair(app.input);
 
   for (auto &weapon : app.player.weapons)
-    weapon.updateWeapon(app.input, app.world, app.delta, WeaponType::Blast);
+    weapon.updateWeapon(app.input, app.world, app.player, app.delta, weapon.type);
 
   for (auto &blast : app.world.blasts)
     blast.drawBlast(app.delta);
+
+  for (auto &bullet : app.world.bullets)
+    bullet.drawBullet(app.delta);
 
   ImGui::Render();
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -158,6 +161,7 @@ void gameLoop(SDL_Event &event)
   SDL_GL_SwapWindow(window);
 
   app.world.eraseBlasts();
+  app.world.eraseBullets();
 
   frameNumber++;
 

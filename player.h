@@ -7,6 +7,7 @@ struct App;
 struct Input;
 struct World;
 struct Blast;
+struct Player;
 
 enum class WeaponType
 {
@@ -18,12 +19,21 @@ enum class WeaponType
 struct Weapon
 {
   float blast_radius = 15.0f;
+
   double blast_rate = 0.5f;
   double blast_time = 0.0f;
+
+  double bullet_live = 0.3f;
+  double bullet_time = 0.0f;
+
   double fire_rate = 0.9f;
   double fire_cooldown = 0.0f;
-  void updateWeapon(Input &input, World &world, double delta, WeaponType type);
+
+  WeaponType type;
+
+  void updateWeapon(Input &input, World &world, Player &player, double delta, WeaponType type);
   void doBlast(Input &input, World &world);
+  void doBullet(Input &input, Player &player, World &world);
 };
 
 struct Player
