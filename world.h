@@ -21,6 +21,7 @@ struct World
 
   void initializeWorld();
   void drawWorld();
+  void drawXYZ();
   void eraseBlasts();
   void eraseBullets();
 

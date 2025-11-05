@@ -1,11 +1,35 @@
 #include <SDL3/SDL.h>
 #include <glad/glad.h>
 #include <chrono>
+#include <glm/glm.hpp>
 #include "player.h"
 #include "app.h"
 #include "world.h"
 
 #include <iostream>
+
+void Player::movePlayer()
+{
+
+  float theta = glm::radians(orientation); // -45 degrees
+
+  // Rotate velocity vector by orientation
+  float rotated_vx = velocity_x * cos(theta) - velocity_y * sin(theta);
+  float rotated_vy = velocity_x * sin(theta) + velocity_y * cos(theta);
+
+  pos_x += rotated_vx;
+  pos_y += rotated_vy;
+
+  // Apply friction to gradually stop the player
+  velocity_x *= 0.8f; // Friction factor for x
+  velocity_y *= 0.8f; // Friction factor for y
+
+  // If velocity is very small, set it to zero to prevent drifting
+  if (std::abs(velocity_x) < 0.1f)
+    velocity_x = 0.0f;
+  if (std::abs(velocity_y) < 0.1f)
+    velocity_y = 0.0f;
+}
 
 void Player::drawPlayer()
 {

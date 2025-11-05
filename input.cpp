@@ -24,17 +24,17 @@ void Input::inputKeyboard(Player &player)
 
   if (keyboard[SDL_SCANCODE_W])
 
-    player.pos_y -= player.speed;
+    player.velocity_y -= player.speed;
 
   if (keyboard[SDL_SCANCODE_S])
 
-    player.pos_y += player.speed;
+    player.velocity_y += player.speed;
 
   if (keyboard[SDL_SCANCODE_A])
 
-    player.pos_x -= player.speed;
+    player.velocity_x -= player.speed;
 
   if (keyboard[SDL_SCANCODE_D])
 
-    player.pos_x += player.speed;
+    player.velocity_x += player.speed;
 }

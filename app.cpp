@@ -63,7 +63,7 @@ bool initializeGL()
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
 
-  glOrtho(0, 800, 600, 0, -1, 1);
+  glOrtho(0, 800, 600, 0, -1000, 2000);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glEnable(GL_POINT_SMOOTH);
@@ -119,14 +119,16 @@ void gameLoop(SDL_Event &event)
       imgui_on = !imgui_on;
     }
   }
-  
+
   app.input.inputKeyboard(app.player);
 
   app.input.getMouseInput();
 
-  app.cam.centerCam(app.input, app.player); // apply camera offset
+  app.cam.centerCam(app.input, app.player);
+  //app.cam.isoCam(); // apply camera offset
 
   app.input.getMouseWorldPos();
+
 
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -143,7 +145,9 @@ void gameLoop(SDL_Event &event)
     app.gui.drawPoints();
   }
   app.world.drawWorld();
+  app.player.movePlayer();
   app.player.drawPlayer();
+  /* 
   app.player.drawCrosshair(app.input);
 
   for (auto &weapon : app.player.weapons)
@@ -154,7 +158,7 @@ void gameLoop(SDL_Event &event)
 
   for (auto &bullet : app.world.bullets)
     bullet.drawBullet(app.delta);
-
+ */
   ImGui::Render();
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -182,7 +186,7 @@ void gameStart()
     return;
   }
 
-  SDL_SetWindowRelativeMouseMode(window, true);
+  //SDL_SetWindowRelativeMouseMode(window, true);
 
   std::cout << "SDL initialized." << std::endl;
 

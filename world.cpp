@@ -29,6 +29,35 @@ void World::drawWorld()
            (int)grid_squares,
            (int)grid_squares,
            grid_square_size);
+
+  drawXYZ();
+}
+
+void World::drawXYZ()
+{
+  float lineWidth = 2.0f;
+  glLineWidth(lineWidth);
+
+  // X axis - red
+  glColor3f(1.0f, 0.0f, 0.0f);
+  glBegin(GL_LINES);
+  glVertex3f(0.0f, 0.0f, 0.0f);
+  glVertex3f(100.0f, 0.0f, 0.0f);
+  glEnd();
+
+  // Y axis - green
+  glColor3f(0.0f, 1.0f, 0.0f);
+  glBegin(GL_LINES);
+  glVertex3f(0.0f, 0.0f, 0.0f);
+  glVertex3f(0.0f, 100.0f, 0.0f);
+  glEnd();
+
+  // Z axis - blue
+  glColor3f(0.0f, 0.0f, 1.0f);
+  glBegin(GL_LINES);
+  glVertex3f(0.0f, 0.0f, 0.0f);
+  glVertex3f(0.0f, 0.0f, 100.0f);
+  glEnd();
 }
 
 void drawCell(float x, float y, float cellSize)
