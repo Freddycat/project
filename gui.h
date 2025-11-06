@@ -14,25 +14,18 @@ struct Weapon;
 struct Camera;
 struct Player;
 struct World;
+struct State;
 
 struct Gui
 {
-
-  App *app_ptr = nullptr;
-
-  void setApp(App &app)
-  {
-    app_ptr = &app;
-  };
-
-  void drawWindow(Input &input, Camera &camera, World &world, Player &player, std::string &time);
-  void appTime(std::string &time);
-  void mouseInfo(Input &input);
-  void camInfo(Camera &cam);
-  void playerInfo(Player &player);
-  void worldInfo(World &world);
-  void weaponInfo(Weapon &weapon);
-  void drawPoints();
+  void DrawWindow(State &state, Input &input, Camera &camera, World &world, Player &player, std::string &time);
+  void AppTime(std::string &time);
+  void MouseInfo(Input &input);
+  void CamInfo(Camera &cam);
+  void PlayerInfo(Player &player);
+  void WorldInfo(World &world);
+  void WeaponInfo(Weapon &weapon);
+  void DrawPoints(State &state, Input &input);
 };
 
 #endif

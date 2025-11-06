@@ -6,17 +6,17 @@
 #include "camera.h"
 #include <SDL3/SDL.h>
 
-void Input::getMouseInput()
+void Input::GetMouseInput()
 {
   SDL_GetMouseState(&mouse_screen_pos.x, &mouse_screen_pos.y);
   mouse_center_pos = mouse_screen_pos - window_center;
 }
 
-void Input::getMouseWorldPos()
+void Input::GetMouseWorldPos(State &state, Camera &cam)
 {
-  inverse_view = glm::inverse(app_ptr->cam.projection * app_ptr->cam.view);
-  float ndc_x = (2.0f * mouse_screen_pos.x) / app_ptr->window_width - 1.0f;
-  float ndc_y = 1.0f - (2.0f * mouse_screen_pos.y) / app_ptr->window_height;
+  inverse_view = glm::inverse(cam.projection * cam.view);
+  float ndc_x = (2.0f * mouse_screen_pos.x) / state.window_width - 1.0f;
+  float ndc_y = 1.0f - (2.0f * mouse_screen_pos.y) / state.window_height;
 
   glm::vec4 ray_clip(ndc_x, ndc_y, -1.0f, 1.0f);
   glm::vec4 ray_far_clip(ndc_x, ndc_y, 1.0f, 1.0f);
@@ -34,7 +34,7 @@ void Input::getMouseWorldPos()
   mouse_world_pos.y = world_pos.y;
 }
 
-void Input::inputKeyboard(Player &player)
+void Input::InputKeyboard(Player &player)
 {
 
   const bool *keyboard = SDL_GetKeyboardState(nullptr);

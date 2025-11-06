@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-void Player::movePlayer()
+void Player::MovePlayer()
 {
 
   float theta = glm::radians(orientation); // -45 degrees
@@ -31,7 +31,7 @@ void Player::movePlayer()
     velocity_y = 0.0f;
 }
 
-void Player::drawPlayer()
+void Player::DrawPlayer()
 {
   glColor3f(0.6f, 0.0f, 0.6f);
   glPointSize(8.0f);
@@ -40,7 +40,7 @@ void Player::drawPlayer()
   glEnd();
 }
 
-void Player::drawCrosshair(Input &input)
+void Player::DrawCrosshair(Input &input)
 {
 
   glColor3f(1.0f, 0.0f, 0.0f);
@@ -51,7 +51,7 @@ void Player::drawCrosshair(Input &input)
   glEnd();
 }
 
-void Weapon::updateWeapon(Input &input, World &world, Player &player, double delta, WeaponType type)
+void Weapon::UpdateWeapon(Input &input, World &world, Player &player, double delta, WeaponType type)
 {
   fire_cooldown -= delta;
 
@@ -61,17 +61,17 @@ void Weapon::updateWeapon(Input &input, World &world, Player &player, double del
     switch (type)
     {
     case WeaponType::Deagle:
-      doBullet(input, player, world);
+      DoBullet(input, player, world);
       break;
     case WeaponType::Blast:
-      doBlast(input, world);
+      DoBlast(input, world);
       break;
     }
     //std::cout << "Weapon fired" << std::endl;
   }
 }
 
-void Weapon::doBlast(Input &input, World &world)
+void Weapon::DoBlast(Input &input, World &world)
 {
   Blast blast;
   blast.time = blast_rate;
@@ -82,7 +82,7 @@ void Weapon::doBlast(Input &input, World &world)
   world.blasts.push_back(blast);
 }
 
-void Weapon::doBullet(Input &input, Player &player, World &world)
+void Weapon::DoBullet(Input &input, Player &player, World &world)
 {
   Bullet bullet;
   bullet.time = bullet_live;

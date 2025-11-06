@@ -7,14 +7,11 @@
 struct App;
 struct Player;
 struct Input;
+struct State;
 
 struct Camera
 {
-  App *app_ptr = nullptr;
-
-  float handle_x =  0.0f;
-
-  float handle_y =  0.0f;
+  glm::vec3 handle; // if we want to manually move the camera later
 
   glm::vec2 window_center = glm::vec2(0.0f, 0.0f);
   
@@ -32,13 +29,8 @@ struct Camera
   float origin_y;
   float zoom_amount = 0.3f;
 
-  void centerCam(Input &input, Player &player);
-  void isoCam();
-
-  void setApp(App &app)
-  {
-    app_ptr = &app;
-  }
+  void SetCam();
+  void CenterCam(Input &input, Player &player);
 };
 
 #endif

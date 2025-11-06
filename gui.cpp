@@ -1,9 +1,13 @@
 #include "gui.h"
-#include "app.h"
+#include "input.h"
+#include "camera.h"
+#include "player.h"
+#include "world.h"
+#include "app_state.h"
 
 ImGuiChildFlags flags = ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Border;
 
-void Gui::drawWindow(Input &input, Camera &camera, World &world, Player &player, std::string &time)
+void Gui::DrawWindow(State &state, Input &input, Camera &camera, World &world, Player &player, std::string &time)
 {
   ImGui::Begin("Yo...");
 
@@ -11,20 +15,20 @@ void Gui::drawWindow(Input &input, Camera &camera, World &world, Player &player,
 
   if (ImGui::Button("Sheeit"))
   {
-    app_ptr->running = !app_ptr->running;
+    state.running = !state.running;
   }
 
-  appTime(time);
-  mouseInfo(input);
-  camInfo(camera);
-  weaponInfo(player.weapons[0]);
-  playerInfo(player);
-  worldInfo(world);
+  AppTime(time);
+  MouseInfo(input);
+  CamInfo(camera);
+  WeaponInfo(player.weapons[0]);
+  PlayerInfo(player);
+  WorldInfo(world);
 
   ImGui::End();
 }
 
-void Gui::appTime(std::string &time)
+void Gui::AppTime(std::string &time)
 {
   ImGui::BeginChild("app time", ImVec2(0.0f, 0.0f), flags);
   ImGui::Text("Time:");
@@ -34,7 +38,7 @@ void Gui::appTime(std::string &time)
   ImGui::EndChild();
 }
 
-void Gui::mouseInfo(Input &input)
+void Gui::MouseInfo(Input &input)
 {
   ImGui::BeginChild("mouse info", ImVec2(0.0f, 0.0f), flags);
   ImGui::Text("Mouse Info:");
@@ -45,7 +49,7 @@ void Gui::mouseInfo(Input &input)
   ImGui::EndChild();
 }
 
-void Gui::camInfo(Camera &cam)
+void Gui::CamInfo(Camera &cam)
 {
   ImGui::BeginChild("cam info", ImVec2(0.0f, 0.0f), flags);
   ImGui::Text("Camera Info:");
@@ -80,7 +84,7 @@ void Gui::camInfo(Camera &cam)
   ImGui::EndChild();
 }
 
-void Gui::weaponInfo(Weapon &weapon)
+void Gui::WeaponInfo(Weapon &weapon)
 {
   ImGui::BeginChild("Weapon info", ImVec2(0.0f, 0.0f), flags);
   ImGui::Text("Weapon Info:");
@@ -90,7 +94,7 @@ void Gui::weaponInfo(Weapon &weapon)
   ImGui::EndChild();
 }
 
-void Gui::worldInfo(World &world)
+void Gui::WorldInfo(World &world)
 {
   ImGui::BeginChild("World info", ImVec2(0.0f, 0.0f), flags);
   ImGui::Text("World Info:");
@@ -107,7 +111,7 @@ void Gui::worldInfo(World &world)
   ImGui::EndChild();
 }
 
-void Gui::playerInfo(Player &player)
+void Gui::PlayerInfo(Player &player)
 {
   ImGui::BeginChild("Player info", ImVec2(0.0f, 0.0f), flags);
   ImGui::Text("Player Info:");
@@ -117,16 +121,14 @@ void Gui::playerInfo(Player &player)
   ImGui::EndChild();
 }
 
-void Gui::drawPoints()
+void Gui::DrawPoints(State &state, Input &input)
 {
   ImDrawList *draw_list = ImGui::GetBackgroundDrawList();
 
-  ImVec2 windowCenter(app_ptr->window_center.x, app_ptr->window_center.y);
+  ImVec2 window_center(state.window_center.x, state.window_center.y);
 
-  ImVec2 xhairCenter(
-      app_ptr->input.mouse_screen_pos.x,
-      app_ptr->input.mouse_screen_pos.y);
+  ImVec2 screen_pos(input.mouse_screen_pos.x, input.mouse_screen_pos.y);
 
-  draw_list->AddText(windowCenter, IM_COL32(255, 255, 255, 255), "Window Center");
-  draw_list->AddText(xhairCenter, IM_COL32(0, 255, 255, 255), "Crosshair");
+  draw_list->AddText(window_center, IM_COL32(255, 255, 255, 255), "Window Center");
+  draw_list->AddText(screen_pos, IM_COL32(0, 255, 255, 255), "Screen pos");
 }

@@ -7,7 +7,7 @@
 #include "world.h"
 #include "player.h"
 
-void World::initializeWorld()
+void World::InitializeWorld(Player &player, Camera &cam)
 {
   Weapon deagle;
   Weapon blast;
@@ -15,25 +15,27 @@ void World::initializeWorld()
   blast.type = WeaponType::Blast;
   deagle.type = WeaponType::Deagle;
 
-  app_ptr->player.pos_x = 0.0f;
-  app_ptr->player.pos_y = 0.0f;
+  cam.SetCam();
 
-  app_ptr->player.weapons.push_back(blast);
-  app_ptr->player.weapons.push_back(deagle);
+  player.pos_x = 0.0f;
+  player.pos_y = 0.0f;
+
+  player.weapons.push_back(blast);
+  player.weapons.push_back(deagle);
 }
 
-void World::drawWorld()
+void World::DrawWorld()
 {
-  drawGrid(grid_pos_x,
+  DrawGrid(grid_pos_x,
            grid_pos_y,
            (int)grid_squares,
            (int)grid_squares,
            grid_square_size);
 
-  drawCompas();
+  DrawCompas();
 }
 
-void World::drawCompas()
+void World::DrawCompas()
 {
   float lineWidth = 2.0f;
   glLineWidth(lineWidth);
@@ -60,7 +62,7 @@ void World::drawCompas()
   glEnd();
 }
 
-void drawCell(float x, float y, float cellSize)
+void DrawCell(float x, float y, float cellSize)
 {
   glBegin(GL_QUADS);
   glVertex2f(x, y);
@@ -71,10 +73,13 @@ void drawCell(float x, float y, float cellSize)
 }
 
 // draw filled grid cells (row/col), origin at top-left or world origin
-void drawGrid(float originX, float originY,
+void DrawGrid(float originX, float originY,
               int cols, int rows,
               float cellSize)
 {
+  float startX = originX - (cols * cellSize) / 2.0f;
+  float startY = originY - (rows * cellSize) / 2.0f;
+
   float lineWidth = 1.0f;
   glLineWidth(lineWidth);
   glColor3f(0.2f, 0.2f, 0.2f);
@@ -102,7 +107,7 @@ void drawGrid(float originX, float originY,
   // drawCell(originX, originY, cellSize);
 }
 
-void World::eraseBlasts()
+void World::EraseBlasts()
 {
   blasts.erase(
       std::remove_if(blasts.begin(), blasts.end(),
@@ -111,7 +116,7 @@ void World::eraseBlasts()
       blasts.end());
 }
 
-void World::eraseBullets()
+void World::EraseBullets()
 {
   bullets.erase(
       std::remove_if(bullets.begin(), bullets.end(),
@@ -120,9 +125,9 @@ void World::eraseBullets()
       bullets.end());
 }
 
-void Blast::drawBlast(double delta)
+void Blast::DrawBlast(double delta)
 {
-  //std::cout << "Drawing blast" << std::endl;
+  // std::cout << "Drawing blast" << std::endl;
   int segments = 16;
   float size = 0.0f;
   if (time > 0.0f)
@@ -149,7 +154,7 @@ void Blast::drawBlast(double delta)
   glEnd();
 }
 
-void Bullet::drawBullet(double delta)
+void Bullet::DrawBullet(double delta)
 {
 
   if (time > 0.0f)

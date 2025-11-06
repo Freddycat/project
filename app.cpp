@@ -82,18 +82,18 @@ void initializeImgui()
   ImGui_ImplOpenGL3_Init("#version 330");
 }
 
-// Input input;
-// Camera cam;
-// Player player;
 App app;
-
 bool imgui_on = true;
+
+auto & time_elapsed = app.state.time;
+auto & game_time = app.state.game_time;
+auto & state = app.state;
 
 void gameLoop(SDL_Event &event)
 {
   app.frame_now = std::chrono::steady_clock::now();
 
-  app.delta = std::chrono::duration<double>(app.frame_now - app.frame_last).count();
+  time_elapsed = std::chrono::duration<double>(app.frame_now - app.frame_last).count();
 
   app.frame_last = app.frame_now;
 
@@ -111,15 +111,15 @@ void gameLoop(SDL_Event &event)
     }
   }
 
-  app.input.inputKeyboard(app.player);
+  app.input.InputKeyboard(app.player);
 
-  app.input.getMouseInput();
-  app.player.movePlayer();
-  app.cam.centerCam(app.input, app.player);
-  app.input.getMouseWorldPos();
+  app.input.GetMouseInput();
+  app.player.MovePlayer();
+  app.cam.CenterCam(app.input, app.player);
+  app.input.GetMouseWorldPos(state, app.cam);
 
-  app.game_time += app.delta;
-  std::string time = app.formatTime();
+  game_time += time_elapsed;
+  std::string time_str = app.formatTime();
 
   // -- end updating --
   // -- start render --
@@ -131,33 +131,32 @@ void gameLoop(SDL_Event &event)
   ImGui_ImplSDL3_NewFrame();
   ImGui::NewFrame();
 
-
   if (imgui_on)
   {
-    app.gui.drawWindow(app.input, app.cam, app.world, app.player, time);
-    app.gui.drawPoints();
+    app.gui.DrawWindow(state, app.input, app.cam, app.world, app.player, time_str);
+    app.gui.DrawPoints(state, app.input);
   }
-  
-  app.world.drawWorld();
-  app.player.drawCrosshair(app.input);
-  app.player.drawPlayer();
+
+  app.world.DrawWorld();
+  app.player.DrawCrosshair(app.input);
+  app.player.DrawPlayer();
 
   for (auto &weapon : app.player.weapons)
-    weapon.updateWeapon(app.input, app.world, app.player, app.delta, weapon.type);
+    weapon.UpdateWeapon(app.input, app.world, app.player, time_elapsed, weapon.type);
 
   for (auto &blast : app.world.blasts)
-    blast.drawBlast(app.delta);
+    blast.DrawBlast(time_elapsed);
 
   for (auto &bullet : app.world.bullets)
-    bullet.drawBullet(app.delta);
+    bullet.DrawBullet(time_elapsed);
 
   ImGui::Render();
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
   SDL_GL_SwapWindow(window);
 
-  app.world.eraseBlasts();
-  app.world.eraseBullets();
+  app.world.EraseBlasts();
+  app.world.EraseBullets();
 
   frameNumber++;
 
@@ -193,22 +192,38 @@ void gameStart()
 
   std::cout << "ImGui initialized." << std::endl;
 
-  app.checkSize();
+  app.CheckSize();
 
-  app.world.initializeWorld();
+  std::cout << "Checked size." << std::endl;
+
+  app.world.InitializeWorld(app.player, app.cam);
+
+  std::cout << "Initialized world." << std::endl;
 
   app.frame_last = std::chrono::steady_clock::now();
   app.frame_now = app.frame_last;
-  app.game_time = 0.0;
-  app.delta = 0.0;
+  game_time = 0.0;
+  time_elapsed = 0.0;
 
-  app.running = true;
+  app.state.running = true;
 
   SDL_Event event;
-  while (app.running)
+  while (app.state.running)
   {
     gameLoop(event);
   }
+}
+
+void App::CheckSize()
+{
+  SDL_GetWindowSize(window, &state.window_width, &state.window_height);
+
+  // Center coordinates
+  state.window_center.x = state.window_width / 2.0f;
+  state.window_center.y = state.window_height / 2.0f;
+
+  cam.window_center = state.window_center;
+  input.window_center = state.window_center;
 }
 
 std::string App::formatTime() const
@@ -222,7 +237,7 @@ std::string App::formatTime() const
   int h = total_minutes / 60;
   char buf[64];
   std::snprintf(buf, sizeof(buf), "%02d:%02d:%02d.%03d", h, m, s, ms);
-  //std::cout << "time done:" << buf << std::endl;
+  // std::cout << "time done:" << buf << std::endl;
   return std::string(buf);
 }
 

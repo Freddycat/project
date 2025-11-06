@@ -6,11 +6,11 @@
 struct App;
 struct Blast;
 struct Bullet;
+struct Player;
+struct Camera;
 
 struct World
 {
-  App *app_ptr = nullptr;
-
   float grid_pos_x = -800.0f;
   float grid_pos_y = -600.0f;
   int grid_squares = 64;
@@ -19,19 +19,14 @@ struct World
   std::vector<Blast> blasts;
   std::vector<Bullet> bullets;
 
-  void initializeWorld();
-  void drawWorld();
-  void drawCompas();
-  void eraseBlasts();
-  void eraseBullets();
-
-  void setApp(App &app)
-  {
-    app_ptr = &app;
-  };
+  void InitializeWorld(Player &player, Camera &cam);
+  void DrawWorld();
+  void DrawCompas();
+  void EraseBlasts();
+  void EraseBullets();
 };
 
-void drawGrid(float originX, float originY,
+void DrawGrid(float originX, float originY,
               int cols, int rows,
               float cellSize);
 
@@ -42,7 +37,7 @@ struct Blast
   double time;
   float pos_x;
   float pos_y;
-  void drawBlast(double delta);
+  void DrawBlast(double delta);
 };
 
 struct Bullet
@@ -53,7 +48,7 @@ struct Bullet
   float start_pos_y;
   float pos_x;
   float pos_y;
-  void drawBullet(double delta);
+  void DrawBullet(double delta);
 };
 
 #endif

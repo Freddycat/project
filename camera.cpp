@@ -6,7 +6,24 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
-void Camera::centerCam(Input &input, Player &player)
+void Camera::SetCam()
+{
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+
+  projection = glm::ortho(
+      0.0f, 800.0f,     // left, right
+      600.0f, 0.0f,     // bottom, top
+      -1000.0f, 2000.0f // near, far
+  );
+
+  glOrtho(0, 800, 600, 0, -1000, 2000);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  glEnable(GL_POINT_SMOOTH);
+}
+
+void Camera::CenterCam(Input &input, Player &player)
 {
 
   glm::vec3 mouse_offset_world(input.mouse_center_pos.x * zoom_amount,
@@ -20,29 +37,21 @@ void Camera::centerCam(Input &input, Player &player)
   glm::vec3 forward = glm::normalize(target - position);
   glm::vec3 right = glm::normalize(glm::cross(forward, up_axis));
   glm::vec3 up = glm::normalize(glm::cross(right, forward));
-  glm::vec3 adjusted_offset = right * mouse_offset_world.x + up * mouse_offset_world.y;
+  glm::vec3 up_on_map = glm::vec3(-right.y, right.x, 0.0f);
+  glm::vec3 adjusted_offset = right * mouse_offset_world.x + up_on_map * mouse_offset_world.y;
+  // adjusted_offset.z = 0.0f;
 
   glm::vec3 rotated_center =
       right * window_center.x +
-      up * + window_center.y;
+      up_axis * +window_center.y;
 
   target = target + adjusted_offset - rotated_center;
   position = target + offset;  // Camera position with offset
   view = glm::lookAt(position, // Camera position
                      target,   // Look at target
-                     up);      // World up vector
+                     up_axis); // World up vector
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glLoadMatrixf(glm::value_ptr(view));
 }
-
-/*
-void Camera::isoCam()
-{
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  glTranslatef(0, 0, -500);
-  glRotatef(-45, 1, 0, 0); // tilt up from top-down
-  glRotatef(45, 0, 1, 0);  // view from top-right corner
-} */

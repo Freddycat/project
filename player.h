@@ -13,9 +13,6 @@ struct Weapon;
 
 struct Player
 {
-
-  App *app_ptr = nullptr;
-
   float pos_x = 0.0f;
   float pos_y = 0.0f;
   float velocity_x = 0.0f;
@@ -25,14 +22,9 @@ struct Player
 
   std::vector<Weapon> weapons;
 
-  void movePlayer();
-  void drawPlayer();
-  void drawCrosshair(Input &input);
-
-  void setApp(App &app)
-  {
-    app_ptr = &app;
-  }
+  void MovePlayer();
+  void DrawPlayer();
+  void DrawCrosshair(Input &input);
 };
 
 enum class WeaponType
@@ -57,9 +49,9 @@ struct Weapon
 
   WeaponType type;
 
-  void updateWeapon(Input &input, World &world, Player &player, double delta, WeaponType type);
-  void doBlast(Input &input, World &world);
-  void doBullet(Input &input, Player &player, World &world);
+  void UpdateWeapon(Input &input, World &world, Player &player, double delta, WeaponType type);
+  void DoBlast(Input &input, World &world);
+  void DoBullet(Input &input, Player &player, World &world);
 };
 
 #endif
