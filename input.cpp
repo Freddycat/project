@@ -8,13 +8,30 @@
 
 void Input::getMouseInput()
 {
-  SDL_GetMouseState(&mouse_screen_pos_x, &mouse_screen_pos_y);
+  SDL_GetMouseState(&mouse_screen_pos.x, &mouse_screen_pos.y);
+  mouse_center_pos = mouse_screen_pos - window_center;
 }
 
 void Input::getMouseWorldPos()
 {
-  mouse_world_pos_x = app_ptr->cam.origin_x + mouse_screen_pos_x;
-  mouse_world_pos_y = app_ptr->cam.origin_y + mouse_screen_pos_y;
+  inverse_view = glm::inverse(app_ptr->cam.projection * app_ptr->cam.view);
+  float ndc_x = (2.0f * mouse_screen_pos.x) / app_ptr->window_width - 1.0f;
+  float ndc_y = 1.0f - (2.0f * mouse_screen_pos.y) / app_ptr->window_height;
+
+  glm::vec4 ray_clip(ndc_x, ndc_y, -1.0f, 1.0f);
+  glm::vec4 ray_far_clip(ndc_x, ndc_y, 1.0f, 1.0f);
+
+  glm::vec4 ray_near_world = inverse_view * ray_clip;
+  glm::vec4 ray_far_world = inverse_view * ray_far_clip;
+  ray_near_world /= ray_near_world.w;
+  ray_far_world /= ray_far_world.w;
+
+  glm::vec3 origin = glm::vec3(ray_near_world);
+  glm::vec3 dir = glm::normalize(glm::vec3(ray_far_world - ray_near_world));
+  float t = -origin.z / dir.z;
+  glm::vec3 world_pos = origin + t * dir;
+  mouse_world_pos.x = world_pos.x;
+  mouse_world_pos.y = world_pos.y;
 }
 
 void Input::inputKeyboard(Player &player)

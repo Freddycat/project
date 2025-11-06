@@ -60,14 +60,6 @@ bool initializeGL()
     return false;
   }
 
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-
-  glOrtho(0, 800, 600, 0, -1000, 2000);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  glEnable(GL_POINT_SMOOTH);
-
   return true;
 }
 
@@ -99,12 +91,11 @@ bool imgui_on = true;
 
 void gameLoop(SDL_Event &event)
 {
-
   app.frame_now = std::chrono::steady_clock::now();
 
   app.delta = std::chrono::duration<double>(app.frame_now - app.frame_last).count();
 
-  app.frame_last = std::chrono::steady_clock::now();
+  app.frame_last = app.frame_now;
 
   while (SDL_PollEvent(&event))
   {
@@ -123,12 +114,15 @@ void gameLoop(SDL_Event &event)
   app.input.inputKeyboard(app.player);
 
   app.input.getMouseInput();
-
+  app.player.movePlayer();
   app.cam.centerCam(app.input, app.player);
-  //app.cam.isoCam(); // apply camera offset
-
   app.input.getMouseWorldPos();
 
+  app.game_time += app.delta;
+  std::string time = app.formatTime();
+
+  // -- end updating --
+  // -- start render --
 
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -137,18 +131,16 @@ void gameLoop(SDL_Event &event)
   ImGui_ImplSDL3_NewFrame();
   ImGui::NewFrame();
 
-  // ImGui stuff can go in here
 
   if (imgui_on)
   {
-    app.gui.drawWindow(app.input, app.cam, app.world, app.player);
+    app.gui.drawWindow(app.input, app.cam, app.world, app.player, time);
     app.gui.drawPoints();
   }
+  
   app.world.drawWorld();
-  app.player.movePlayer();
-  app.player.drawPlayer();
-  /* 
   app.player.drawCrosshair(app.input);
+  app.player.drawPlayer();
 
   for (auto &weapon : app.player.weapons)
     weapon.updateWeapon(app.input, app.world, app.player, app.delta, weapon.type);
@@ -158,7 +150,7 @@ void gameLoop(SDL_Event &event)
 
   for (auto &bullet : app.world.bullets)
     bullet.drawBullet(app.delta);
- */
+
   ImGui::Render();
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -171,7 +163,6 @@ void gameLoop(SDL_Event &event)
 
   app.next_frametime = app.target_frametime + app.frame_now;
   std::this_thread::sleep_until(app.next_frametime);
-  app.game_time += app.delta;
 }
 
 void gameStart()
@@ -186,7 +177,7 @@ void gameStart()
     return;
   }
 
-  //SDL_SetWindowRelativeMouseMode(window, true);
+  // SDL_SetWindowRelativeMouseMode(window, true);
 
   std::cout << "SDL initialized." << std::endl;
 
@@ -206,6 +197,11 @@ void gameStart()
 
   app.world.initializeWorld();
 
+  app.frame_last = std::chrono::steady_clock::now();
+  app.frame_now = app.frame_last;
+  app.game_time = 0.0;
+  app.delta = 0.0;
+
   app.running = true;
 
   SDL_Event event;
@@ -213,6 +209,21 @@ void gameStart()
   {
     gameLoop(event);
   }
+}
+
+std::string App::formatTime() const
+{
+  int total_ms = (int)std::floor(game_time * 1000.0);
+  int ms = total_ms % 1000;
+  int total_seconds = total_ms / 1000;
+  int s = total_seconds % 60;
+  int total_minutes = total_seconds / 60;
+  int m = total_minutes % 60;
+  int h = total_minutes / 60;
+  char buf[64];
+  std::snprintf(buf, sizeof(buf), "%02d:%02d:%02d.%03d", h, m, s, ms);
+  //std::cout << "time done:" << buf << std::endl;
+  return std::string(buf);
 }
 
 int main()

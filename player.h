@@ -20,7 +20,7 @@ struct Player
   float pos_y = 0.0f;
   float velocity_x = 0.0f;
   float velocity_y = 0.0f;
-  float speed = 6.0f;
+  float speed = 2.5f;
   float orientation = -45.0f;
 
   std::vector<Weapon> weapons;

@@ -1,6 +1,8 @@
 #ifndef GUI_H
 #define GUI_H
 
+#include <string>
+
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_opengl3.h>
@@ -23,7 +25,8 @@ struct Gui
     app_ptr = &app;
   };
 
-  void drawWindow(Input &input, Camera &camera, World &world, Player &player);
+  void drawWindow(Input &input, Camera &camera, World &world, Player &player, std::string &time);
+  void appTime(std::string &time);
   void mouseInfo(Input &input);
   void camInfo(Camera &cam);
   void playerInfo(Player &player);

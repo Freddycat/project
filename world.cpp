@@ -30,10 +30,10 @@ void World::drawWorld()
            (int)grid_squares,
            grid_square_size);
 
-  drawXYZ();
+  drawCompas();
 }
 
-void World::drawXYZ()
+void World::drawCompas()
 {
   float lineWidth = 2.0f;
   glLineWidth(lineWidth);
@@ -122,7 +122,7 @@ void World::eraseBullets()
 
 void Blast::drawBlast(double delta)
 {
-  std::cout << "Drawing blast" << std::endl;
+  //std::cout << "Drawing blast" << std::endl;
   int segments = 16;
   float size = 0.0f;
   if (time > 0.0f)

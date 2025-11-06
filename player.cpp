@@ -46,8 +46,8 @@ void Player::drawCrosshair(Input &input)
   glColor3f(1.0f, 0.0f, 0.0f);
   glPointSize(4.0f);
   glBegin(GL_POINTS);
-  glVertex2f(input.mouse_world_pos_x,
-             input.mouse_world_pos_y);
+  glVertex2f(input.mouse_world_pos.x,
+             input.mouse_world_pos.y);
   glEnd();
 }
 
@@ -67,7 +67,7 @@ void Weapon::updateWeapon(Input &input, World &world, Player &player, double del
       doBlast(input, world);
       break;
     }
-    std::cout << "Weapon fired" << std::endl;
+    //std::cout << "Weapon fired" << std::endl;
   }
 }
 
@@ -76,8 +76,8 @@ void Weapon::doBlast(Input &input, World &world)
   Blast blast;
   blast.time = blast_rate;
   blast.rate = blast_rate;
-  blast.pos_x = input.mouse_world_pos_x;
-  blast.pos_y = input.mouse_world_pos_y;
+  blast.pos_x = input.mouse_world_pos.x;
+  blast.pos_y = input.mouse_world_pos.y;
   blast.radius = blast_radius;
   world.blasts.push_back(blast);
 }
@@ -88,7 +88,7 @@ void Weapon::doBullet(Input &input, Player &player, World &world)
   bullet.time = bullet_live;
   bullet.start_pos_x = player.pos_x;
   bullet.start_pos_y = player.pos_y;
-  bullet.pos_x = input.mouse_world_pos_x;
-  bullet.pos_y = input.mouse_world_pos_y;
+  bullet.pos_x = input.mouse_world_pos.x;
+  bullet.pos_y = input.mouse_world_pos.y;
   world.bullets.push_back(bullet);
 }
