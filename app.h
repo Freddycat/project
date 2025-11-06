@@ -27,6 +27,7 @@ struct App
   int window_width;
   int window_height;
 
+  glm::vec2 window_center;
   float window_center_x;
   float window_center_y;
 
@@ -50,6 +51,8 @@ struct App
     // Center coordinates
     window_center_x = window_width / 2.0f;
     window_center_y = window_height / 2.0f;
+    window_center.x = window_width / 2.0f;
+    window_center.y = window_height / 2.0f;
   }
 
   App()

@@ -41,6 +41,21 @@ void Gui::camInfo(Camera &cam)
   ImGui::Indent();
   ImGui::Text("Camera Origin: (%.1f, %.1f)", cam.origin_x, cam.origin_y);
   ImGui::Text("Camera Center: (%.1f, %.1f)", cam.center_x, cam.center_y);
+  float offset[3] = {cam.camera_offset.x, cam.camera_offset.y, cam.camera_offset.z};
+  if (ImGui::InputFloat3("Offset X/Y/Z", offset))
+  {
+    cam.camera_offset.x = offset[0];
+    cam.camera_offset.y = offset[1];
+    cam.camera_offset.z = offset[2];
+  }
+
+  float target[3] = {cam.camera_target.x, cam.camera_target.y, cam.camera_target.z};
+  if (ImGui::InputFloat3("Cam up", target))
+  {
+    cam.camera_target.x = target[0];
+    cam.camera_target.y = target[1];
+    cam.camera_target.z = target[2];
+  }
   ImGui::Unindent();
   ImGui::EndChild();
 }
