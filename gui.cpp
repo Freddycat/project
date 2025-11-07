@@ -71,7 +71,7 @@ void Gui::CamInfo(Camera &cam)
     cam.position.y = pos[1];
     cam.position.z = pos[2];
   }
-  /* 
+  
   float target[3] = {cam.target.x, cam.target.y, cam.target.z};
   if (ImGui::InputFloat3("Target", target))
   {
@@ -79,7 +79,7 @@ void Gui::CamInfo(Camera &cam)
     cam.target.y = target[1];
     cam.target.z = target[2];
   } 
-  */
+  
   ImGui::Unindent();
   ImGui::EndChild();
 }

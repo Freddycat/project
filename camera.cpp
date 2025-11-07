@@ -26,27 +26,26 @@ void Camera::SetCam()
 void Camera::CenterCam(Input &input, Player &player)
 {
 
-  glm::vec3 mouse_offset_world(input.mouse_center_pos.x * zoom_amount,
-                               input.mouse_center_pos.y * zoom_amount,
-                               0.0f);
+  glm::vec3 mouse_zoomed(input.mouse_center_pos * zoom_amount, 0.0f);
 
-  glm::vec3 target = glm::vec3(player.pos_x, player.pos_y, 0.0f);
-  target = target;
+  target = glm::vec3(player.pos_x, player.pos_y, 0.0f);
   position = target + offset;
 
-  glm::vec3 forward = glm::normalize(target - position);
-  glm::vec3 right = glm::normalize(glm::cross(forward, up_axis));
-  glm::vec3 up = glm::normalize(glm::cross(right, forward));
-  glm::vec3 up_on_map = glm::vec3(-right.y, right.x, 0.0f);
-  glm::vec3 adjusted_offset = right * mouse_offset_world.x + up_on_map * mouse_offset_world.y;
+  forward = glm::normalize(target - position);
+  right = glm::normalize(glm::cross(forward, up_axis));
+  up = glm::normalize(glm::cross(right, forward));
+  map_up = glm::vec3(-right.y, right.x, 0.0f);
+  map_forward = glm::normalize(glm::vec3(forward.x, forward.y, 0.0f));
+  glm::vec3 rotated_mouse = right * mouse_zoomed.x + up * mouse_zoomed.y;
   // adjusted_offset.z = 0.0f;
 
   glm::vec3 rotated_center =
       right * window_center.x +
-      up_axis * +window_center.y;
+      up * window_center.y;
 
-  target = target + adjusted_offset - rotated_center;
+  target = target + rotated_mouse - rotated_center;
   position = target + offset;  // Camera position with offset
+  
   view = glm::lookAt(position, // Camera position
                      target,   // Look at target
                      up_axis); // World up vector

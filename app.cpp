@@ -133,7 +133,9 @@ void gameLoop(SDL_Event &event)
 
   if (imgui_on)
   {
+    
     app.gui.DrawWindow(state, app.input, app.cam, app.world, app.player, time_str);
+
     app.gui.DrawPoints(state, app.input);
   }
 
