@@ -26,6 +26,7 @@ include_directories(
 add_executable(
   project
   app.cpp
+  app_start.cpp
   input.cpp
   world.cpp
   gui.cpp

@@ -20,9 +20,11 @@ struct Graphics
 
   std::vector<Point> points;
   std::vector<Point> lines;
+
   size_t max_points = 10000;
   size_t max_lines = 10000;
   size_t max_circles = 50;
+  
   std::vector<glm::vec3> base_circle;
 };
 

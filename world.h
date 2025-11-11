@@ -75,6 +75,9 @@ namespace BlastManager
   void UpdateBlasts(double time_elapsed, std::vector<Blast> &blasts, std::vector<Circle> &circles);
 }
 
+void CreateBullet(glm::vec3 player_pos, glm::vec3 mouse_pos, double cooldown, std::vector<Bullet> &bullets, std::vector<Point> &lines);
+void UpdateBullets(double time_elapsed, std::vector<Bullet> &bullets, std::vector<Point> &lines);
+
 struct Blast
 {
   float max_size;
@@ -88,12 +91,10 @@ struct Blast
 
 struct Bullet
 {
-  float size;
-  double time;
-  float start_pos_x;
-  float start_pos_y;
-  float pos_x;
-  float pos_y;
+  glm::vec3 pos_start;
+  glm::vec3 pos_end;
+  double cooldown;
+
   void DrawBullet(double delta);
 };
 

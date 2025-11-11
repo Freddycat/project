@@ -73,6 +73,7 @@ void World::InitWorld(std::vector<Point> &lines)
 
   InitCompas(lines);
 }
+
 void DrawCube(glm::vec3 center, float size)
 {
   // re implement
@@ -174,6 +175,15 @@ void World::EraseBlasts(std::vector<Point> &lines)
       blasts.end());
 }
 
+void CreateBullet(glm::vec3 player_pos, glm::vec3 mouse_pos, double cooldown, std::vector<Bullet> &bullets, std::vector<Point> &lines){
+  Bullet bullet{
+    player_pos,
+    mouse_pos,
+    cooldown
+  };
+  bullets.push_back(bullet);
+}
+
 void BlastManager::CreateBlast(float size, float rate, glm::vec3 pos, std::vector<Blast> &blasts, std::vector<Circle> &circles)
 {
   //std::cout << "Creating blast" << std::endl;
@@ -213,6 +223,37 @@ void BlastManager::UpdateBlasts(double time_elapsed, std::vector<Blast> &blasts,
   }
 }
 
+void UpdateBullets(double time_elapsed, std::vector<Bullet> &bullets, std::vector<Point> &lines)
+{
+  glm::vec3 color = {1.0f,0.0f,0.0f};
+
+  for (auto &bullet : bullets)
+  {
+    if (bullet.cooldown > 0.0f)
+    {
+      bullet.cooldown -= time_elapsed;
+
+      Point start{
+        bullet.pos_start,
+        color
+      };
+      Point end{
+        bullet.pos_end,
+        color
+      };
+
+      lines.push_back(start);
+      lines.push_back(end);
+
+      if (bullet.cooldown < 0.0f)
+        bullet.cooldown = 0.0f;
+    }
+    else
+      bullet.cooldown = 0.0;
+  }
+}
+
+/* 
 void Bullet::DrawBullet(double delta)
 {
 
@@ -222,22 +263,13 @@ void Bullet::DrawBullet(double delta)
     if (time < 0.0f)
       time = 0.0f;
   }
-  /* re implement
-    float lineWidth = 1.0f;
-    glLineWidth(lineWidth);
-    glColor3f(1.0f, 0.2f, 0.2f);
-
-    glBegin(GL_LINES);
-    glVertex2f(start_pos_x, start_pos_y);
-    glVertex2f(pos_x, pos_y);
-    glEnd(); */
-}
+} */
 
 void World::EraseBullets()
 {
   bullets.erase(
       std::remove_if(bullets.begin(), bullets.end(),
                      [](const Bullet &b)
-                     { return b.time <= 0.0f; }),
+                     { return b.cooldown <= 0.0f; }),
       bullets.end());
 }

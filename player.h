@@ -24,6 +24,7 @@ struct Player
   float orientation = -45.0f;
 
   std::vector<Weapon> weapons;
+  
   Point pos_dot;
   Point xhair_dot;
 
@@ -44,10 +45,8 @@ struct Weapon
   float blast_size = 150.0f;
 
   double blast_rate = 0.5f;
-  double blast_time = 0.0f;
 
   double bullet_live = 0.3f;
-  double bullet_time = 0.0f;
 
   double fire_rate = 0.9f;
   double fire_cooldown = 0.0f;
@@ -55,8 +54,8 @@ struct Weapon
   WeaponType type;
 
   void UpdateWeapon(Input &input, World &world, Player &player, double delta, WeaponType type, std::vector<Point> &lines, std::vector<Circle> &circle);
-  void DoBlast(Input &input, World &world);
-  void DoBullet(Input &input, Player &player, World &world);
+  //void DoBlast(Input &input, World &world);
+  //void DoBullet(Input &input, Player &player, World &world);
 };
 
 #endif

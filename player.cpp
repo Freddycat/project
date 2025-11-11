@@ -52,6 +52,11 @@ void Player::DrawCrosshair(std::vector<Point> &points, glm::vec2 pos)
 
 void Weapon::UpdateWeapon(Input &input, World &world, Player &player, double delta, WeaponType type, std::vector<Point> &lines, std::vector<Circle> &circles)
 {
+
+  glm::vec3 pos = {0.0f, 0.0f, 0.0f};
+  pos.x = player.pos_x;
+  pos.y = player.pos_y;
+
   fire_cooldown -= delta;
 
   if (fire_cooldown <= 0.0)
@@ -59,19 +64,23 @@ void Weapon::UpdateWeapon(Input &input, World &world, Player &player, double del
     fire_cooldown = fire_rate;
     switch (type)
     {
-    case WeaponType::Deagle:
-      DoBullet(input, player, world);
-      break;
     case WeaponType::Blast:
+    {
       Weapon blast = player.weapons[0];
       BlastManager::CreateBlast(blast.blast_size, blast.blast_rate, input.mouse_world_pos, world.blasts, circles);
-      //DoBlast(input, world);
       break;
+    }
+    case WeaponType::Deagle:
+    {
+      Weapon deagle = player.weapons[1];
+      CreateBullet(pos, input.mouse_world_pos, deagle.bullet_live, world.bullets, lines);
+      break;
+    }
     }
     // std::cout << "Weapon fired" << std::endl;
   }
 }
-/* 
+/*
 void Weapon::DoBlast(Input &input, World &world)
 {
   Blast blast;
@@ -82,9 +91,9 @@ void Weapon::DoBlast(Input &input, World &world)
   blast.pos.z = 0.0f;
   blast.radius = blast_radius;
   world.blasts.push_back(blast);
-} 
+}
 */
-
+/*
 void Weapon::DoBullet(Input &input, Player &player, World &world)
 {
   Bullet bullet;
@@ -95,3 +104,4 @@ void Weapon::DoBullet(Input &input, Player &player, World &world)
   bullet.pos_y = input.mouse_world_pos.y;
   world.bullets.push_back(bullet);
 }
+ */
