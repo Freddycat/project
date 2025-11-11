@@ -176,7 +176,7 @@ void World::EraseBlasts(std::vector<Point> &lines)
 
 void BlastManager::CreateBlast(float size, float rate, glm::vec3 pos, std::vector<Blast> &blasts, std::vector<Circle> &circles)
 {
-  std::cout << "Creating blast" << std::endl;
+  //std::cout << "Creating blast" << std::endl;
   //int segments = 16;
   //glm::vec3 color = {1.0f, 0.0f, 0.0f};
 

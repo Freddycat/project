@@ -280,7 +280,6 @@ void gameLoop(SDL_Event &event)
   // app.world.DrawHouse();
 
   // clear circles
-
   app.gizmos.circles.clear();
 
   app.player.DrawCrosshair(app.graphics.points, app.input.mouse_world_pos);
@@ -289,11 +288,7 @@ void gameLoop(SDL_Event &event)
   for (auto &weapon : app.player.weapons)
     weapon.UpdateWeapon(app.input, app.world, app.player, time_elapsed, weapon.type, app.graphics.lines, app.gizmos.circles);
 
-  // for (auto &blast : app.world.blasts)
-  //   blast.DrawBlast(time_elapsed, app.graphics.lines);
-
   BlastManager::UpdateBlasts(time_elapsed, app.world.blasts, app.gizmos.circles);
-  // UpdateCircles(time_elapsed, app.gizmos.circles);
 
   for (auto &bullet : app.world.bullets)
     bullet.DrawBullet(time_elapsed);
@@ -331,8 +326,6 @@ void gameLoop(SDL_Event &event)
 
   glDrawArrays(GL_POINTS, 0, app.graphics.points.size());
 
-  // glBindVertexArray(0);
-
   glBindVertexArray(app.graphics.vao_line);
   glBindBuffer(GL_ARRAY_BUFFER, app.graphics.vbo_line);
 
@@ -343,21 +336,16 @@ void gameLoop(SDL_Event &event)
 
   glBindVertexArray(0);
 
-
-
+  // circle render
   glUseProgram(app.graphics.circleID);
-
+  // camera stuff
   GLuint projLocationCirc = glGetUniformLocation(app.graphics.circleID, "uProjection");
   GLuint viewLocationCirc = glGetUniformLocation(app.graphics.circleID, "uView");
   glUniformMatrix4fv(projLocationCirc, 1, GL_FALSE, glm::value_ptr(app.camera.projection));
   glUniformMatrix4fv(viewLocationCirc, 1, GL_FALSE, glm::value_ptr(app.camera.view));
 
-  GLsizei circleCount = app.gizmos.circles.size();
-  std::cout << "Base circle verts: " << app.graphics.base_circle.size() << std::endl;
-  std::cout << "Circle count: " << circleCount << std::endl;
-  std::cout << "VBO size: " << app.gizmos.circles.size() * sizeof(Circle) << std::endl;
-
   glBindVertexArray(app.graphics.vao_circle);
+
   if (!app.gizmos.circles.empty())
   {
     glBindBuffer(GL_ARRAY_BUFFER, app.graphics.vbo_circles);
@@ -373,14 +361,6 @@ void gameLoop(SDL_Event &event)
   while ((err = glGetError()) != GL_NO_ERROR)
     std::cerr << "GL error: " << err << std::endl;
 
-  std::cout << "circles:" << app.gizmos.circles.size() << std::endl;
-  for (auto &circle : app.gizmos.circles)
-    std::cout << "circle size:" << circle.size << std::endl;
-
-  /*
-    glDebugMessageCallback([](GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar *message, const void *)
-                           { std::cerr << "GL: " << message << '\n'; }, nullptr);
-   */
   ImGui::Render();
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
