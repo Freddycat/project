@@ -6,152 +6,211 @@
 #include "app.h"
 #include "world.h"
 #include "player.h"
+#include "gizmos.h"
 
-void World::InitializeWorld(Player &player, Camera &cam)
+void World::InitializeWorld(
+    Player &player,
+    Camera &cam,
+    std::vector<Point> &points,
+    std::vector<Point> &lines,
+    GLuint &shaderID,
+    GLuint &vbo_points,
+    GLuint &vbo_lines)
 {
+  cam.SetCam(shaderID);
+
   Weapon deagle;
   Weapon blast;
 
   blast.type = WeaponType::Blast;
   deagle.type = WeaponType::Deagle;
 
-  cam.SetCam();
-
+  // player
   player.pos_x = 0.0f;
   player.pos_y = 0.0f;
-
   player.weapons.push_back(blast);
   player.weapons.push_back(deagle);
+  points.push_back(player.pos_dot);
+  points.push_back(player.xhair_dot);
+
+  InitWorld(lines);
+
+  cells.reserve(grid_width * grid_width);
+  for (int y = 0; y < grid_width; ++y)
+  {
+    for (int x = 0; x < grid_width; ++x)
+    {
+      Cell cell;
+      cell.id = y * grid_width + x;
+
+      glm::vec2 start = origin - (grid_width * grid_square_size) / 2.0f;
+      cell.pos = start + glm::vec2(x + 0.5f, y + 0.5f) * grid_square_size;
+
+      cells.push_back(cell);
+    }
+  }
+  House house;
+  house.id = 1;
+  house.cell = 1820;
+  structures.push_back(house);
+/* 
+  glBindBuffer(GL_ARRAY_BUFFER, vbo_points);
+  glBufferData(GL_ARRAY_BUFFER,
+               points.size() * sizeof(Point),
+               points.data(),
+               GL_DYNAMIC_DRAW);
+
+  glBindBuffer(GL_ARRAY_BUFFER, vbo_lines);
+  glBufferData(GL_ARRAY_BUFFER,
+               lines.size() * sizeof(Point),
+               lines.data(),
+               GL_DYNAMIC_DRAW); */
 }
 
-void World::DrawWorld()
+void World::InitWorld(std::vector<Point> &lines)
 {
-  DrawGrid(grid_pos_x,
-           grid_pos_y,
-           (int)grid_squares,
-           (int)grid_squares,
-           grid_square_size);
+  InitGrid(lines, glm::vec2(0.0f, 0.0f), grid_width, grid_square_size);
 
-  DrawCompas();
+  InitCompas(lines);
+}
+void DrawCube(glm::vec3 center, float size)
+{
+  // re implement
 }
 
-void World::DrawCompas()
+void World::DrawHouse()
 {
-  float lineWidth = 2.0f;
-  glLineWidth(lineWidth);
+  for (auto &cell : cells)
+    if (cell.id == 1820)
+    {
+      for (auto &house : structures)
+        DrawCube(glm::vec3(cell.pos.x, cell.pos.y, 64.0f), 64.0f);
+    }
+}
+void World::InitCompas(std::vector<Point> &lines)
+{
+  for (auto line : compas.lines)
+  {
+    Point a, b;
+    a.pos = line.start;
+    a.color = line.color;
 
-  // X axis - red
-  glColor3f(1.0f, 0.0f, 0.0f);
-  glBegin(GL_LINES);
-  glVertex3f(0.0f, 0.0f, 0.0f);
-  glVertex3f(100.0f, 0.0f, 0.0f);
-  glEnd();
-
-  // Y axis - green
-  glColor3f(0.0f, 1.0f, 0.0f);
-  glBegin(GL_LINES);
-  glVertex3f(0.0f, 0.0f, 0.0f);
-  glVertex3f(0.0f, 100.0f, 0.0f);
-  glEnd();
-
-  // Z axis - blue
-  glColor3f(0.0f, 0.0f, 1.0f);
-  glBegin(GL_LINES);
-  glVertex3f(0.0f, 0.0f, 0.0f);
-  glVertex3f(0.0f, 0.0f, 100.0f);
-  glEnd();
+    b.pos = line.end;
+    b.color = line.color;
+    lines.push_back(a);
+    lines.push_back(b);
+  }
 }
 
 void DrawCell(float x, float y, float cellSize)
-{
-  glBegin(GL_QUADS);
-  glVertex2f(x, y);
-  glVertex2f(x + cellSize, y);
-  glVertex2f(x + cellSize, y + cellSize);
-  glVertex2f(x, y + cellSize);
-  glEnd();
+{ /* re implement
+   glBegin(GL_QUADS);
+   glVertex2f(x, y);
+   glVertex2f(x + cellSize, y);
+   glVertex2f(x + cellSize, y + cellSize);
+   glVertex2f(x, y + cellSize);
+   glEnd(); */
 }
 
-// draw filled grid cells (row/col), origin at top-left or world origin
-void DrawGrid(float originX, float originY,
-              int cols, int rows,
-              float cellSize)
+void InitGrid(std::vector<Point> &lines, glm::vec2 origin, int width, float cellSize)
 {
-  float startX = originX - (cols * cellSize) / 2.0f;
-  float startY = originY - (rows * cellSize) / 2.0f;
 
-  float lineWidth = 1.0f;
-  glLineWidth(lineWidth);
-  glColor3f(0.2f, 0.2f, 0.2f);
+  glm::vec2 start = origin - (width * cellSize) / 2.0f;
+  glLineWidth(1.0f);
+  glm::vec3 color = {0.2f, 0.2f, 0.2f};
 
-  // draw vertical lines
-  glBegin(GL_LINES);
-  for (int c = 0; c <= cols; ++c)
+  for (int amount = 0; amount <= width; ++amount)
   {
-    float x = originX + c * cellSize;
-    float y0 = originY;
-    float y1 = originY + rows * cellSize;
-    glVertex2f(x, y0);
-    glVertex2f(x, y1);
+    float x = start.x + amount * cellSize;
+    float y_start = start.y;
+    float y_end = start.y + width * cellSize;
+    Point a, b;
+    a.color = color;
+    b.color = color;
+    a.pos = glm::vec3(x, y_start, 0.0);
+    b.pos = glm::vec3(x, y_end, 0.0);
+    lines.push_back(a);
+    lines.push_back(b);
   }
   // draw horizontal lines
-  for (int r = 0; r <= rows; ++r)
+  for (int amount = 0; amount <= width; ++amount)
   {
-    float y = originY + r * cellSize;
-    float x0 = originX;
-    float x1 = originX + cols * cellSize;
-    glVertex2f(x0, y);
-    glVertex2f(x1, y);
+    float y = start.y + amount * cellSize;
+    float x_start = start.x;
+    float x_end = start.x + width * cellSize;
+    Point a, b;
+    a.color = color;
+    b.color = color;
+    a.pos = glm::vec3(x_start, y, 0.0);
+    b.pos = glm::vec3(x_end, y, 0.0);
+    lines.push_back(a);
+    lines.push_back(b);
   }
-  glEnd();
-  // drawCell(originX, originY, cellSize);
 }
 
-void World::EraseBlasts()
+void World::EraseBlasts(std::vector<Point> &lines)
 {
   blasts.erase(
       std::remove_if(blasts.begin(), blasts.end(),
-                     [](const Blast &b)
-                     { return b.time <= 0.0f; }),
+                     [&](Blast &b)
+                     {
+                       if (b.cooldown <= 0.0f)
+                       {
+                         // Remove vertices from the global buffer
+                         if (b.vertex_start + b.vertex_amount <= lines.size())
+                           lines.erase(lines.begin() + b.vertex_start,
+                                       lines.begin() + b.vertex_start + b.vertex_amount);
+
+                         // Update remaining blasts
+                         size_t removed_count = b.vertex_amount;
+                         for (auto &other : blasts)
+                           if (other.vertex_start > b.vertex_start)
+                             other.vertex_start -= removed_count;
+
+                         return true;
+                       }
+                       return false;
+                     }),
       blasts.end());
 }
 
-void World::EraseBullets()
+void BlastManager::CreateBlast(float size, float rate, glm::vec3 pos, std::vector<Blast> &blasts, std::vector<Circle> &circles)
 {
-  bullets.erase(
-      std::remove_if(bullets.begin(), bullets.end(),
-                     [](const Bullet &b)
-                     { return b.time <= 0.0f; }),
-      bullets.end());
+  std::cout << "Creating blast" << std::endl;
+  //int segments = 16;
+  //glm::vec3 color = {1.0f, 0.0f, 0.0f};
+
+  //Circle circle = CreateCircle(size, color, pos, circles);
+  Blast blast{size, rate, rate, pos};
+  blasts.push_back(blast);
+  //std::cout << "Created blast" << std::endl;
 }
 
-void Blast::DrawBlast(double delta)
+void BlastManager::UpdateBlasts(double time_elapsed, std::vector<Blast> &blasts, std::vector<Circle> &circles)
 {
-  // std::cout << "Drawing blast" << std::endl;
-  int segments = 16;
-  float size = 0.0f;
-  if (time > 0.0f)
-  {
-    size = radius * (1.0f - float(time / rate));
-    time -= delta;
-    if (time < 0.0f)
-      time = 0.0f;
-  }
-  else
-    time = 0.0;
+  glm::vec3 color = {1.0f,0.0f,0.0f};
 
-  glColor3f(1.0f, 0.0f, 0.0f);
-  glBegin(GL_LINE_LOOP);
-
-  for (int i = 0; i < segments; i++)
+  for (auto &blast : blasts)
   {
-    float theta = 2.0f * 3.1415926f * float(i) / float(segments);
-    float x = size * 10.0f * cosf(theta);
-    float y = size * 10.0f * sinf(theta);
-    glVertex2f(pos_x + x,
-               pos_y + y);
+    if (blast.cooldown > 0.0f)
+    {
+      blast.cooldown -= time_elapsed;
+
+      blast.size = blast.max_size * (1.0f - float(blast.cooldown / blast.rate));
+
+      Circle circle{ // color, center, size
+        color,
+        blast.pos,
+        blast.size
+      };
+      circles.push_back(circle);
+
+      if (blast.cooldown < 0.0f)
+        blast.cooldown = 0.0f;
+    }
+    else
+      blast.cooldown = 0.0;
   }
-  glEnd();
 }
 
 void Bullet::DrawBullet(double delta)
@@ -163,13 +222,22 @@ void Bullet::DrawBullet(double delta)
     if (time < 0.0f)
       time = 0.0f;
   }
+  /* re implement
+    float lineWidth = 1.0f;
+    glLineWidth(lineWidth);
+    glColor3f(1.0f, 0.2f, 0.2f);
 
-  float lineWidth = 1.0f;
-  glLineWidth(lineWidth);
-  glColor3f(1.0f, 0.2f, 0.2f);
+    glBegin(GL_LINES);
+    glVertex2f(start_pos_x, start_pos_y);
+    glVertex2f(pos_x, pos_y);
+    glEnd(); */
+}
 
-  glBegin(GL_LINES);
-  glVertex2f(start_pos_x, start_pos_y);
-  glVertex2f(pos_x, pos_y);
-  glEnd();
+void World::EraseBullets()
+{
+  bullets.erase(
+      std::remove_if(bullets.begin(), bullets.end(),
+                     [](const Bullet &b)
+                     { return b.time <= 0.0f; }),
+      bullets.end());
 }

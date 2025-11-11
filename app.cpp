@@ -4,10 +4,19 @@
 #include <thread>
 #include <ctime>
 #include <vector>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "app.h"
 
+App app;
+
+auto &time_elapsed = app.state.time;
+auto &game_time = app.state.game_time;
+auto &state = app.state;
+
 SDL_Window *window = nullptr;
+
+bool imgui_on = true;
 
 std::string message = "so this is the message";
 int number = 42;
@@ -44,7 +53,9 @@ SDL_GLContext glContext;
 
 bool initializeGL()
 {
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4.6);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 4.6);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
   glContext = SDL_GL_CreateContext(window);
 
@@ -59,6 +70,140 @@ bool initializeGL()
     std::cerr << "Failed to initialize GLAD\n";
     return false;
   }
+
+  // shader programs
+  app.graphics.vertexID = glGraphics::Shader::InitializeShader("vert.glsl", "frag.glsl");
+  app.graphics.circleID = glGraphics::Shader::InitializeShader("circle.glsl", "frag.glsl");
+
+  if (glIsProgram(app.graphics.vertexID))
+    glUseProgram(app.graphics.vertexID);
+  else
+    std::cerr << "Invalid shader program\n";
+
+  glGraphics::checkGLError("Graphics::Shader::use");
+
+  GLuint projLocation = glGetUniformLocation(app.graphics.vertexID, "uProjection");
+  if (projLocation == -1)
+    std::cerr << "Warning: uProjection uniform not found!\n";
+
+  GLuint viewLocation = glGetUniformLocation(app.graphics.vertexID, "uView");
+  if (viewLocation == -1)
+    std::cerr << "Warning: uView uniform not found!\n";
+
+  glUniformMatrix4fv(projLocation, 1, GL_FALSE, glm::value_ptr(app.camera.projection));
+
+  glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(app.camera.view));
+
+  app.graphics.points.reserve(1000);
+  app.graphics.lines.reserve(1000);
+  app.gizmos.circles.reserve(50);
+
+  app.graphics.max_points = std::max<size_t>(256, app.graphics.points.capacity());
+  app.graphics.max_lines = std::max<size_t>(1024, app.graphics.lines.capacity());
+  app.graphics.max_circles = std::max<size_t>(64, app.gizmos.circles.capacity());
+
+  // app.graphics.max_points = app.graphics.lines.size() * 10000;
+  // app.graphics.max_lines = app.graphics.lines.size() * 10000;
+  // app.graphics.max_circles = app.gizmos.circles.size() * 50;
+
+  // points
+  glGenVertexArrays(1, &app.graphics.vao_point);
+  glBindVertexArray(app.graphics.vao_point);
+  glGenBuffers(1, &app.graphics.vbo_point);
+
+  glBindBuffer(GL_ARRAY_BUFFER, app.graphics.vbo_point);
+  glBufferData(GL_ARRAY_BUFFER, app.graphics.max_points * sizeof(Point), app.graphics.points.data(), GL_DYNAMIC_DRAW);
+
+  // pos
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Point), (void *)offsetof(Point, pos));
+  glEnableVertexAttribArray(0);
+  // color
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Point), (void *)offsetof(Point, color));
+  glEnableVertexAttribArray(1);
+
+  glBindVertexArray(0);
+  // lines
+  glGenVertexArrays(1, &app.graphics.vao_line);
+  glBindVertexArray(app.graphics.vao_line);
+  glGenBuffers(1, &app.graphics.vbo_line);
+
+  glBindBuffer(GL_ARRAY_BUFFER, app.graphics.vbo_line);
+  glBufferData(GL_ARRAY_BUFFER, app.graphics.max_lines * sizeof(Point), app.graphics.lines.data(), GL_DYNAMIC_DRAW);
+
+  // pos
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Point), (void *)offsetof(Point, pos));
+  glEnableVertexAttribArray(0);
+  // color
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Point), (void *)offsetof(Point, color));
+  glEnableVertexAttribArray(1);
+
+  glBindVertexArray(0);
+
+  if (glIsProgram(app.graphics.circleID))
+    glUseProgram(app.graphics.circleID);
+  else
+    std::cerr << "Invalid shader program\n";
+
+  glGraphics::checkGLError("Graphics::Shader::use");
+
+  // circles (static)
+
+  GLuint projLocationCirc = glGetUniformLocation(app.graphics.circleID, "uProjection");
+  if (projLocationCirc == -1)
+    std::cerr << "Warning: uProjection uniform not found!\n";
+
+  GLuint viewLocationCirc = glGetUniformLocation(app.graphics.circleID, "uView");
+  if (viewLocationCirc == -1)
+    std::cerr << "Warning: uView uniform not found!\n";
+
+  glUniformMatrix4fv(projLocation, 1, GL_FALSE, glm::value_ptr(app.camera.projection));
+
+  glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(app.camera.view));
+
+  int segments = 50;
+  float radius = 1.0f;
+  for (int i = 0; i < segments; ++i)
+  {
+    float theta = (2.0f * M_PI * i) / segments;
+    app.graphics.base_circle.push_back(glm::vec3(cos(theta), sin(theta), 0.0f));
+  }
+
+  glGenVertexArrays(1, &app.graphics.vao_circle);
+  glBindVertexArray(app.graphics.vao_circle);
+
+  glGenBuffers(1, &app.graphics.vbo_circle_buf);
+  glBindBuffer(GL_ARRAY_BUFFER, app.graphics.vbo_circle_buf);
+  glBufferData(GL_ARRAY_BUFFER, app.graphics.base_circle.size() * sizeof(glm::vec3), app.graphics.base_circle.data(), GL_STATIC_DRAW);
+
+  // pos
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void *)0);
+  glEnableVertexAttribArray(0);
+
+  // centered (instance)
+  glGenBuffers(1, &app.graphics.vbo_circles);
+  glBindBuffer(GL_ARRAY_BUFFER, app.graphics.vbo_circles);
+  glBufferData(GL_ARRAY_BUFFER, app.graphics.max_circles * sizeof(Circle), nullptr, GL_DYNAMIC_DRAW);
+
+  // color
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Circle), (void *)offsetof(Circle, color));
+  glEnableVertexAttribArray(1);
+  glVertexAttribDivisor(1, 1);
+
+  // center
+  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Circle), (void *)offsetof(Circle, center));
+  glEnableVertexAttribArray(2);
+  glVertexAttribDivisor(2, 1); // center changes per instance
+
+  // scale
+  glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Circle), (void *)offsetof(Circle, size));
+  glEnableVertexAttribArray(3);
+  glVertexAttribDivisor(3, 1); // scale changes per instance
+
+  glBindVertexArray(0);
+
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  glEnable(GL_DEPTH_TEST);
+  glLineWidth(1.0f);
 
   return true;
 }
@@ -81,13 +226,6 @@ void initializeImgui()
   ImGui_ImplSDL3_InitForOpenGL(window, glContext);
   ImGui_ImplOpenGL3_Init("#version 330");
 }
-
-App app;
-bool imgui_on = true;
-
-auto & time_elapsed = app.state.time;
-auto & game_time = app.state.game_time;
-auto & state = app.state;
 
 void gameLoop(SDL_Event &event)
 {
@@ -115,8 +253,8 @@ void gameLoop(SDL_Event &event)
 
   app.input.GetMouseInput();
   app.player.MovePlayer();
-  app.cam.CenterCam(app.input, app.player);
-  app.input.GetMouseWorldPos(state, app.cam);
+  app.camera.CenterCam(app.graphics.vertexID, app.input, app.player);
+  app.input.GetMouseWorldPos(state, app.camera);
 
   game_time += time_elapsed;
   std::string time_str = app.formatTime();
@@ -124,7 +262,7 @@ void gameLoop(SDL_Event &event)
   // -- end updating --
   // -- start render --
 
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   ImGui_ImplOpenGL3_NewFrame();
@@ -133,31 +271,122 @@ void gameLoop(SDL_Event &event)
 
   if (imgui_on)
   {
-    
-    app.gui.DrawWindow(state, app.input, app.cam, app.world, app.player, time_str);
 
-    app.gui.DrawPoints(state, app.input);
+    app.gui.DrawWindow(state, app.graphics, app.gizmos, app.input, app.camera, app.world, app.player, time_str);
+
+    app.gui.DrawList(state, app.input, app.world, app.camera);
   }
+  // app.world.DrawWorld(app.lines);
+  // app.world.DrawHouse();
 
-  app.world.DrawWorld();
-  app.player.DrawCrosshair(app.input);
-  app.player.DrawPlayer();
+  // clear circles
+
+  app.gizmos.circles.clear();
+
+  app.player.DrawCrosshair(app.graphics.points, app.input.mouse_world_pos);
+  app.player.DrawPlayer(app.graphics.points);
 
   for (auto &weapon : app.player.weapons)
-    weapon.UpdateWeapon(app.input, app.world, app.player, time_elapsed, weapon.type);
+    weapon.UpdateWeapon(app.input, app.world, app.player, time_elapsed, weapon.type, app.graphics.lines, app.gizmos.circles);
 
-  for (auto &blast : app.world.blasts)
-    blast.DrawBlast(time_elapsed);
+  // for (auto &blast : app.world.blasts)
+  //   blast.DrawBlast(time_elapsed, app.graphics.lines);
+
+  BlastManager::UpdateBlasts(time_elapsed, app.world.blasts, app.gizmos.circles);
+  // UpdateCircles(time_elapsed, app.gizmos.circles);
 
   for (auto &bullet : app.world.bullets)
     bullet.DrawBullet(time_elapsed);
 
+  glUseProgram(app.graphics.vertexID);
+
+  if (app.graphics.points.size() > app.graphics.max_points)
+  {
+    app.graphics.max_points = app.graphics.points.size() * 1.25f;
+    glBufferData(GL_ARRAY_BUFFER, app.graphics.max_points * sizeof(Point), nullptr, GL_DYNAMIC_DRAW);
+  }
+
+  if (app.graphics.lines.size() > app.graphics.max_lines)
+  {
+    app.graphics.max_lines = app.graphics.lines.size() * 1.25f;
+    glBufferData(GL_ARRAY_BUFFER, app.graphics.max_lines * sizeof(Point), nullptr, GL_DYNAMIC_DRAW);
+  }
+
+  if (app.gizmos.circles.size() > app.graphics.max_circles)
+  {
+    app.graphics.max_circles = app.gizmos.circles.size() * 1.25f;
+    glBufferData(GL_ARRAY_BUFFER, app.graphics.max_circles * sizeof(Circle), nullptr, GL_DYNAMIC_DRAW);
+  }
+
+  GLuint projLocation = glGetUniformLocation(app.graphics.vertexID, "uProjection");
+  GLuint viewLocation = glGetUniformLocation(app.graphics.vertexID, "uView");
+  glUniformMatrix4fv(projLocation, 1, GL_FALSE, glm::value_ptr(app.camera.projection));
+  glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(app.camera.view));
+
+  glBindVertexArray(app.graphics.vao_point);
+  glBindBuffer(GL_ARRAY_BUFFER, app.graphics.vbo_point);
+
+  glBufferSubData(GL_ARRAY_BUFFER, 0, app.graphics.points.size() * sizeof(Point), app.graphics.points.data());
+  glPointSize(6.0f);
+
+  glDrawArrays(GL_POINTS, 0, app.graphics.points.size());
+
+  // glBindVertexArray(0);
+
+  glBindVertexArray(app.graphics.vao_line);
+  glBindBuffer(GL_ARRAY_BUFFER, app.graphics.vbo_line);
+
+  glBufferSubData(GL_ARRAY_BUFFER, 0, app.graphics.lines.size() * sizeof(Point), app.graphics.lines.data());
+  glLineWidth(2.0f);
+
+  glDrawArrays(GL_LINES, 0, app.graphics.lines.size());
+
+  glBindVertexArray(0);
+
+
+
+  glUseProgram(app.graphics.circleID);
+
+  GLuint projLocationCirc = glGetUniformLocation(app.graphics.circleID, "uProjection");
+  GLuint viewLocationCirc = glGetUniformLocation(app.graphics.circleID, "uView");
+  glUniformMatrix4fv(projLocationCirc, 1, GL_FALSE, glm::value_ptr(app.camera.projection));
+  glUniformMatrix4fv(viewLocationCirc, 1, GL_FALSE, glm::value_ptr(app.camera.view));
+
+  GLsizei circleCount = app.gizmos.circles.size();
+  std::cout << "Base circle verts: " << app.graphics.base_circle.size() << std::endl;
+  std::cout << "Circle count: " << circleCount << std::endl;
+  std::cout << "VBO size: " << app.gizmos.circles.size() * sizeof(Circle) << std::endl;
+
+  glBindVertexArray(app.graphics.vao_circle);
+  if (!app.gizmos.circles.empty())
+  {
+    glBindBuffer(GL_ARRAY_BUFFER, app.graphics.vbo_circles);
+
+    glBufferSubData(GL_ARRAY_BUFFER, 0, app.gizmos.circles.size() * sizeof(Circle), app.gizmos.circles.data());
+  }
+
+  glDrawArraysInstanced(GL_LINE_LOOP, 0, app.graphics.base_circle.size(), app.gizmos.circles.size());
+
+  glBindVertexArray(0);
+
+  GLenum err;
+  while ((err = glGetError()) != GL_NO_ERROR)
+    std::cerr << "GL error: " << err << std::endl;
+
+  std::cout << "circles:" << app.gizmos.circles.size() << std::endl;
+  for (auto &circle : app.gizmos.circles)
+    std::cout << "circle size:" << circle.size << std::endl;
+
+  /*
+    glDebugMessageCallback([](GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar *message, const void *)
+                           { std::cerr << "GL: " << message << '\n'; }, nullptr);
+   */
   ImGui::Render();
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
   SDL_GL_SwapWindow(window);
 
-  app.world.EraseBlasts();
+  app.world.EraseBlasts(app.graphics.lines);
   app.world.EraseBullets();
 
   frameNumber++;
@@ -198,7 +427,12 @@ void gameStart()
 
   std::cout << "Checked size." << std::endl;
 
-  app.world.InitializeWorld(app.player, app.cam);
+  app.world.InitializeWorld(
+      app.player, app.camera,
+      app.graphics.points, app.graphics.lines,
+      app.graphics.vertexID,
+      app.graphics.vbo_point,
+      app.graphics.vbo_line);
 
   std::cout << "Initialized world." << std::endl;
 
@@ -224,7 +458,7 @@ void App::CheckSize()
   state.window_center.x = state.window_width / 2.0f;
   state.window_center.y = state.window_height / 2.0f;
 
-  cam.window_center = state.window_center;
+  camera.window_center = state.window_center;
   input.window_center = state.window_center;
 }
 

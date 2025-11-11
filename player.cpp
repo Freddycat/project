@@ -31,27 +31,26 @@ void Player::MovePlayer()
     velocity_y = 0.0f;
 }
 
-void Player::DrawPlayer()
+void Player::DrawPlayer(std::vector<Point> &points)
 {
-  glColor3f(0.6f, 0.0f, 0.6f);
-  glPointSize(8.0f);
-  glBegin(GL_POINTS);
-  glVertex2f(pos_x, pos_y);
-  glEnd();
+  points[0].pos = {pos_x, pos_y, 0.0f};
+  points[0].color = glm::vec3(1.0f, 1.0f, 1.0f);
+  /*
+ pos_dot.pos = {pos_x, pos_y, 0.0};
+ pos_dot.color = glm::vec3(1.0f, 1.0f, 1.0f); */
 }
 
-void Player::DrawCrosshair(Input &input)
+void Player::DrawCrosshair(std::vector<Point> &points, glm::vec2 pos)
 {
 
-  glColor3f(1.0f, 0.0f, 0.0f);
-  glPointSize(4.0f);
-  glBegin(GL_POINTS);
-  glVertex2f(input.mouse_world_pos.x,
-             input.mouse_world_pos.y);
-  glEnd();
+  points[1].pos = {pos.x, pos.y, 0.0f};
+  points[1].color = glm::vec3(1.0f, 1.0f, 1.0f);
+  /*
+ xhair_dot.pos = glm::vec3(pos.x, pos.y, 0.0f);
+ xhair_dot.color = glm::vec3(1.0f, 1.0f, 1.0f); */
 }
 
-void Weapon::UpdateWeapon(Input &input, World &world, Player &player, double delta, WeaponType type)
+void Weapon::UpdateWeapon(Input &input, World &world, Player &player, double delta, WeaponType type, std::vector<Point> &lines, std::vector<Circle> &circles)
 {
   fire_cooldown -= delta;
 
@@ -64,23 +63,27 @@ void Weapon::UpdateWeapon(Input &input, World &world, Player &player, double del
       DoBullet(input, player, world);
       break;
     case WeaponType::Blast:
-      DoBlast(input, world);
+      Weapon blast = player.weapons[0];
+      BlastManager::CreateBlast(blast.blast_size, blast.blast_rate, input.mouse_world_pos, world.blasts, circles);
+      //DoBlast(input, world);
       break;
     }
-    //std::cout << "Weapon fired" << std::endl;
+    // std::cout << "Weapon fired" << std::endl;
   }
 }
-
+/* 
 void Weapon::DoBlast(Input &input, World &world)
 {
   Blast blast;
-  blast.time = blast_rate;
+  blast.cooldown = blast_rate;
   blast.rate = blast_rate;
-  blast.pos_x = input.mouse_world_pos.x;
-  blast.pos_y = input.mouse_world_pos.y;
+  blast.pos.x = input.mouse_world_pos.x;
+  blast.pos.y = input.mouse_world_pos.y;
+  blast.pos.z = 0.0f;
   blast.radius = blast_radius;
   world.blasts.push_back(blast);
-}
+} 
+*/
 
 void Weapon::DoBullet(Input &input, Player &player, World &world)
 {

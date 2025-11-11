@@ -20,9 +20,7 @@ struct Input
   // float mouse_screen_pos_x;
   // float mouse_screen_pos_y;
 
-  glm::mat4 inverse_view;
-
-  glm::vec2 mouse_world_pos;
+  glm::vec3 mouse_world_pos = {0.0f, 0.0f, 0.0f};
 
   // float mouse_world_pos_x;
   // float mouse_world_pos_y;

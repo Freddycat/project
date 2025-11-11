@@ -83,7 +83,9 @@
     "map": "cpp",
     "coroutine": "cpp",
     "source_location": "cpp",
-    "xtree": "cpp"
+    "xtree": "cpp",
+    "codecvt": "cpp",
+    "fstream": "cpp"
   },
   "C_Cpp.default.compilerPath": "d:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe"
 }

@@ -3,6 +3,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glad/glad.h>
 
 struct App;
 struct Player;
@@ -28,6 +29,7 @@ struct Camera
   
   glm::mat4 projection{1.0f};
   glm::mat4 view{1.0f};
+  glm::mat4 inverse_view{1.0f};
 
   float center_x;
   float center_y;
@@ -35,8 +37,8 @@ struct Camera
   float origin_y;
   float zoom_amount = 0.3f;
 
-  void SetCam();
-  void CenterCam(Input &input, Player &player);
+  void SetCam(GLuint &shaderID);
+  void CenterCam(GLuint &shaderID, Input &input, Player &player);
 };
 
 #endif

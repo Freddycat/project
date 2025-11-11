@@ -2,12 +2,12 @@
 #define PLAYER_H
 
 #include <vector>
+#include <gizmos.h>
 
 struct App;
 struct Input;
 struct World;
 struct Blast;
-struct Player;
 
 struct Weapon;
 
@@ -17,14 +17,19 @@ struct Player
   float pos_y = 0.0f;
   float velocity_x = 0.0f;
   float velocity_y = 0.0f;
-  float speed = 2.5f;
+  float speed = 2.0f;
+
+  float height = 48.0f;
+
   float orientation = -45.0f;
 
   std::vector<Weapon> weapons;
+  Point pos_dot;
+  Point xhair_dot;
 
   void MovePlayer();
-  void DrawPlayer();
-  void DrawCrosshair(Input &input);
+  void DrawPlayer(std::vector<Point> &points);
+  void DrawCrosshair(std::vector<Point> &points, glm::vec2 pos);
 };
 
 enum class WeaponType
@@ -36,7 +41,7 @@ enum class WeaponType
 
 struct Weapon
 {
-  float blast_radius = 15.0f;
+  float blast_size = 150.0f;
 
   double blast_rate = 0.5f;
   double blast_time = 0.0f;
@@ -49,7 +54,7 @@ struct Weapon
 
   WeaponType type;
 
-  void UpdateWeapon(Input &input, World &world, Player &player, double delta, WeaponType type);
+  void UpdateWeapon(Input &input, World &world, Player &player, double delta, WeaponType type, std::vector<Point> &lines, std::vector<Circle> &circle);
   void DoBlast(Input &input, World &world);
   void DoBullet(Input &input, Player &player, World &world);
 };

@@ -14,15 +14,14 @@ void Input::GetMouseInput()
 
 void Input::GetMouseWorldPos(State &state, Camera &cam)
 {
-  inverse_view = glm::inverse(cam.projection * cam.view);
   float ndc_x = (2.0f * mouse_screen_pos.x) / state.window_width - 1.0f;
   float ndc_y = 1.0f - (2.0f * mouse_screen_pos.y) / state.window_height;
 
   glm::vec4 ray_clip(ndc_x, ndc_y, -1.0f, 1.0f);
   glm::vec4 ray_far_clip(ndc_x, ndc_y, 1.0f, 1.0f);
 
-  glm::vec4 ray_near_world = inverse_view * ray_clip;
-  glm::vec4 ray_far_world = inverse_view * ray_far_clip;
+  glm::vec4 ray_near_world = cam.inverse_view * ray_clip;
+  glm::vec4 ray_far_world = cam.inverse_view * ray_far_clip;
   ray_near_world /= ray_near_world.w;
   ray_far_world /= ray_far_world.w;
 
