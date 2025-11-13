@@ -56,7 +56,7 @@ void LoadBasics()
   // circle
   for (int i = 0; i < segments; ++i)
   {
-    float theta = (2.0f * M_PI * i) / segments;
+    float theta = (2.0f * glm::pi<float>() * i) / segments;
     base_circle.push_back(glm::vec3(cos(theta), sin(theta), 0.0f));
   }
 
@@ -64,13 +64,13 @@ void LoadBasics()
 
   for (int lat = 0; lat <= rings; ++lat)
   {
-    float phi = M_PI * lat / rings; // 0..PI
+    float phi = glm::pi<float>() * lat / rings; // 0..PI
     float z = cos(phi) * size;
     float r = sin(phi) * size;
 
     for (int lon = 0; lon <= segments; ++lon)
     {
-      float theta = 2.0f * M_PI * lon / segments;
+      float theta = 2.0f * glm::pi<float>() * lon / segments;
       float x = cos(theta) * r;
       float y = sin(theta) * r;
       base_sphere.push_back(glm::vec3(x, y, z));
@@ -81,8 +81,8 @@ void LoadBasics()
 
   for (int i = 0; i < segments; ++i)
   {
-    float theta0 = 2.0f * M_PI * i / segments;
-    float theta1 = 2.0f * M_PI * (i + 1) / segments;
+    float theta0 = 2.0f * glm::pi<float>() * i / segments;
+    float theta1 = 2.0f * glm::pi<float>() * (i + 1) / segments;
 
     float x0 = cos(theta0) * size;
     float y0 = sin(theta0) * size;
@@ -112,8 +112,8 @@ void LoadBasics()
 
   for (int i = 0; i < segments; ++i)
   {
-    float theta0 = 2.0f * M_PI * i / segments;
-    float theta1 = 2.0f * M_PI * (i + 1) / segments;
+    float theta0 = 2.0f * glm::pi<float>() * i / segments;
+    float theta1 = 2.0f * glm::pi<float>() * (i + 1) / segments;
 
     float x0 = cos(theta0) * size;
     float y0 = sin(theta0) * size;
@@ -140,8 +140,8 @@ void LoadBasics()
 
   for (int lat = 0; lat < rings / 2; ++lat)
   {
-    float phi0 = (M_PI / 2) * lat / (rings / 2);
-    float phi1 = (M_PI / 2) * (lat + 1) / (rings / 2);
+    float phi0 = (glm::pi<float>() / 2) * lat / (rings / 2);
+    float phi1 = (glm::pi<float>() / 2) * (lat + 1) / (rings / 2);
 
     float z0 = cos(phi0) * size + half;
     float z1 = cos(phi1) * size + half;
@@ -150,8 +150,8 @@ void LoadBasics()
 
     for (int i = 0; i < segments; ++i)
     {
-      float theta0 = 2.0f * M_PI * i / segments;
-      float theta1 = 2.0f * M_PI * (i + 1) / segments;
+      float theta0 = 2.0f * glm::pi<float>() * i / segments;
+      float theta1 = 2.0f * glm::pi<float>() * (i + 1) / segments;
 
       glm::vec3 p0(r0 * cos(theta0), r0 * sin(theta0), z0);
       glm::vec3 p1(r0 * cos(theta1), r0 * sin(theta1), z0);
@@ -168,8 +168,8 @@ void LoadBasics()
   }
   for (int lat = 0; lat < rings / 2; ++lat)
   {
-    float phi0 = (M_PI / 2) * lat / (rings / 2);
-    float phi1 = (M_PI / 2) * (lat + 1) / (rings / 2);
+    float phi0 = (glm::pi<float>() / 2) * lat / (rings / 2);
+    float phi1 = (glm::pi<float>() / 2) * (lat + 1) / (rings / 2);
 
     float z0 = -cos(phi0) * size - half;
     float z1 = -cos(phi1) * size - half;
@@ -178,8 +178,8 @@ void LoadBasics()
 
     for (int i = 0; i < segments; ++i)
     {
-      float theta0 = 2.0f * M_PI * i / segments;
-      float theta1 = 2.0f * M_PI * (i + 1) / segments;
+      float theta0 = 2.0f * glm::pi<float>() * i / segments;
+      float theta1 = 2.0f * glm::pi<float>() * (i + 1) / segments;
 
       glm::vec3 p0(r0 * cos(theta0), r0 * sin(theta0), z0);
       glm::vec3 p1(r0 * cos(theta1), r0 * sin(theta1), z0);
