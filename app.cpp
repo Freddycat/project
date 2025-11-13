@@ -80,7 +80,7 @@ void gameLoop(SDL_Event &event)
   // -- start render --
   render();
 
-  // world.EraseBlasts(gizmos.line_points_static);
+  //world.EraseBlasts(gizmos.line_points_static);
   // world.EraseBullets();
 
   frameNumber++;

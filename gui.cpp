@@ -50,7 +50,9 @@ void Gui::AppTime(const std::string time)
 
 void Gui::MouseInfo()
 {
+
   Input *input = Input::Instance();
+
   glm::vec2 mouse_screen;
   mouse_screen = input->GetMouse().screen_pos;
   glm::vec2 mouse_world;

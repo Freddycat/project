@@ -4,14 +4,6 @@
 #include <glm/glm.hpp>
 #include <SDL3/SDL.h>
 
-struct Camera;
-struct Graphics;
-struct Input;
-struct World;
-struct Player;
-struct Gizmos;
-struct Gui;
-
 extern bool running;
 
 struct Global

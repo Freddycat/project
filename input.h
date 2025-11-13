@@ -4,7 +4,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 
-//struct Mouse;
+// struct Mouse;
 
 struct Mouse
 {
@@ -19,11 +19,11 @@ struct Input
 {
   static Input *Instance()
   {
-    static Input instance;
-    return &instance;
+    static Input input;
+    return &input;
   }
 
-  Mouse& GetMouse();
+  Mouse &GetMouse();
 
   void GetMouseInput();
 
