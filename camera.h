@@ -15,7 +15,7 @@ struct Camera
   glm::vec3 handle; // if we want to manually move the camera later
 
   glm::vec2 window_center = glm::vec2(0.0f, 0.0f);
-  
+
   glm::vec3 position = glm::vec3(500.0f, 500.0f, 500.0f);
   glm::vec3 target = glm::vec3(0.0f, 0.0f, 0.0f);
   glm::vec3 offset = glm::vec3(500.0f, 500.0f, 500.0f);
@@ -26,7 +26,7 @@ struct Camera
   glm::vec3 up;
   glm::vec3 map_up;
   glm::vec3 map_forward;
-  
+
   glm::mat4 projection{1.0f};
   glm::mat4 view{1.0f};
   glm::mat4 inverse_view{1.0f};
@@ -38,7 +38,9 @@ struct Camera
   float zoom_amount = 0.3f;
 
   void SetCam(GLuint &shaderID);
-  void CenterCam(GLuint &shaderID, Input &input, Player &player);
+  void CenterCam(GLuint &shaderID);
 };
+
+extern Camera camera;
 
 #endif

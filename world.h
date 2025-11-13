@@ -13,7 +13,7 @@ struct House;
 
 struct World
 {
-  glm::vec2 origin = glm::vec2(0.0, 0.0);
+  glm::vec3 origin = glm::vec3(0.0, 0.0, 0.0);
 
   int grid_width = 64;
   float grid_square_size = 64.0f;
@@ -23,7 +23,7 @@ struct World
   std::vector<Cell> cells;
   std::vector<House> structures;
 
-  struct Compas
+  struct Compass
   {
     glm::vec3 color[3] = {
         {1.0f, 0.0f, 0.0f},
@@ -36,30 +36,31 @@ struct World
         {{0, 0, 0}, {0, 100, 0}, color[1]}, // Y axis
         {{0, 0, 0}, {0, 0, 100}, color[2]}  // Z axis
     };
-  } compas;
+  } compass;
 
   void InitializeWorld(
       Player &player,
       Camera &cam,
-      std::vector<Point> &points,
-      std::vector<Point> &lines,
+      Gizmos &gizmos,
       GLuint &shaderID,
       GLuint &vbo_point,
       GLuint &vbo_line);
 
-  void InitWorld(std::vector<Point> &lines);
-  void DrawHouse();
+  void InitWorld(Gizmos &gizmos);
   void InitCompas(std::vector<Point> &lines);
+  void InitCube(std::vector<Cube> &cubes);
   void EraseBlasts(std::vector<Point> &lines);
   void EraseBullets();
 };
+
+extern World world;
 
 void InitGrid(std::vector<Point> &lines, glm::vec2 origin, int amount, float cellSize);
 
 struct Cell
 {
   int id;
-  glm::vec2 pos;
+  glm::vec3 pos;
 };
 
 struct House
@@ -71,12 +72,12 @@ struct House
 
 namespace BlastManager
 {
-  void CreateBlast(float size, float rate, glm::vec3 pos, std::vector<Blast> &blasts, std::vector<Circle> &circles);
+  void CreateBlast(float size, float rate, glm::vec3 pos, std::vector<Blast> &blasts);
   void UpdateBlasts(double time_elapsed, std::vector<Blast> &blasts, std::vector<Circle> &circles);
 }
 
-void CreateBullet(glm::vec3 player_pos, glm::vec3 mouse_pos, double cooldown, std::vector<Bullet> &bullets, std::vector<Point> &lines);
-void UpdateBullets(double time_elapsed, std::vector<Bullet> &bullets, std::vector<Point> &lines);
+void CreateBullet(glm::vec3 player_pos, glm::vec3 mouse_pos, double cooldown, std::vector<Bullet> &bullets);
+void UpdateBullets(double time_elapsed, std::vector<Bullet> &bullets, std::vector<Line> &lines);
 
 struct Blast
 {

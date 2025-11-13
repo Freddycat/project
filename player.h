@@ -4,12 +4,9 @@
 #include <vector>
 #include <gizmos.h>
 
-struct App;
-struct Input;
-struct World;
-struct Blast;
-
 struct Weapon;
+struct World;
+struct Input;
 
 struct Player
 {
@@ -24,14 +21,21 @@ struct Player
   float orientation = -45.0f;
 
   std::vector<Weapon> weapons;
-  
+
   Point pos_dot;
   Point xhair_dot;
 
+  Capsule playerCap{
+      {0.0, 0.0, 32.0, 0.0},
+      {16.0, 16.0, 32.0, 0.0},
+      {0.8, 0.8, 0.8, 1.0}};
+
   void MovePlayer();
-  void DrawPlayer(std::vector<Point> &points);
-  void DrawCrosshair(std::vector<Point> &points, glm::vec2 pos);
+  void UpdatePlayerDot(std::vector<Point> &points, std::vector<Capsule> &capsules);
+  void UpdateCrosshair(std::vector<Point> &points, glm::vec2 pos);
 };
+
+extern Player player;
 
 enum class WeaponType
 {
@@ -53,9 +57,9 @@ struct Weapon
 
   WeaponType type;
 
-  void UpdateWeapon(Input &input, World &world, Player &player, double delta, WeaponType type, std::vector<Point> &lines, std::vector<Circle> &circle);
-  //void DoBlast(Input &input, World &world);
-  //void DoBullet(Input &input, Player &player, World &world);
+  void UpdateWeapon(Input &input, double delta, WeaponType type);
+  // void DoBlast(Input &input, World &world);
+  // void DoBullet(Input &input, Player &player, World &world);
 };
 
 #endif

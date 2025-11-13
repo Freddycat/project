@@ -8,11 +8,12 @@
 #include "player.h"
 #include "gizmos.h"
 
+World world;
+
 void World::InitializeWorld(
     Player &player,
     Camera &cam,
-    std::vector<Point> &points,
-    std::vector<Point> &lines,
+    Gizmos &gizmos,
     GLuint &shaderID,
     GLuint &vbo_points,
     GLuint &vbo_lines)
@@ -30,10 +31,9 @@ void World::InitializeWorld(
   player.pos_y = 0.0f;
   player.weapons.push_back(blast);
   player.weapons.push_back(deagle);
-  points.push_back(player.pos_dot);
-  points.push_back(player.xhair_dot);
-
-  InitWorld(lines);
+  gizmos.points.push_back(player.pos_dot);
+  gizmos.points.push_back(player.xhair_dot);
+  gizmos.capsules.push_back(player.playerCap);
 
   cells.reserve(grid_width * grid_width);
   for (int y = 0; y < grid_width; ++y)
@@ -43,54 +43,58 @@ void World::InitializeWorld(
       Cell cell;
       cell.id = y * grid_width + x;
 
-      glm::vec2 start = origin - (grid_width * grid_square_size) / 2.0f;
-      cell.pos = start + glm::vec2(x + 0.5f, y + 0.5f) * grid_square_size;
+      glm::vec3 start = origin;
+      start.x -= (grid_width * grid_square_size) / 2.0f;
+      start.y -= (grid_width * grid_square_size) / 2.0f;
+      cell.pos = start + glm::vec3(x + 0.5f, y + 0.5f, 0.0f) * grid_square_size;
 
       cells.push_back(cell);
     }
   }
+  std::cout << "cells.size(): " << cells.size() << std::endl;
+
   House house;
   house.id = 1;
   house.cell = 1820;
   structures.push_back(house);
-/* 
-  glBindBuffer(GL_ARRAY_BUFFER, vbo_points);
-  glBufferData(GL_ARRAY_BUFFER,
-               points.size() * sizeof(Point),
-               points.data(),
-               GL_DYNAMIC_DRAW);
 
-  glBindBuffer(GL_ARRAY_BUFFER, vbo_lines);
-  glBufferData(GL_ARRAY_BUFFER,
-               lines.size() * sizeof(Point),
-               lines.data(),
-               GL_DYNAMIC_DRAW); */
+  InitWorld(gizmos);
+
+  std::cout << "Initialized world." << std::endl;
 }
 
-void World::InitWorld(std::vector<Point> &lines)
+void World::InitWorld(Gizmos &gizmos)
 {
-  InitGrid(lines, glm::vec2(0.0f, 0.0f), grid_width, grid_square_size);
+  InitGrid(gizmos.static_line_points, glm::vec2(0.0f, 0.0f), grid_width, grid_square_size);
 
-  InitCompas(lines);
+  InitCompas(gizmos.static_line_points);
+
+  World::InitCube(gizmos.cubes);
 }
 
-void DrawCube(glm::vec3 center, float size)
+void World::InitCube(std::vector<Cube> &cubes)
 {
-  // re implement
-}
+  glm::vec3 color = {0.0f, 1.0f, 1.0f};
+  float size = 100.0f;
 
-void World::DrawHouse()
-{
+  std::cout << "trying to find cell" << std::endl;
+
   for (auto &cell : cells)
     if (cell.id == 1820)
     {
+      glm::vec3 center = cell.pos;
+      center.z += size / 2;
+      std::cout << "found cell" << center.x << center.y << center.z << std::endl;
       for (auto &house : structures)
-        DrawCube(glm::vec3(cell.pos.x, cell.pos.y, 64.0f), 64.0f);
+      {
+        std::cout << "found house" << std::endl;
+        Cube cube = CreateCube(center, size, color, cubes);
+      }
     }
 }
 void World::InitCompas(std::vector<Point> &lines)
 {
-  for (auto line : compas.lines)
+  for (auto line : compass.lines)
   {
     Point a, b;
     a.pos = line.start;
@@ -149,56 +153,30 @@ void InitGrid(std::vector<Point> &lines, glm::vec2 origin, int width, float cell
   }
 }
 
-void World::EraseBlasts(std::vector<Point> &lines)
+void CreateBullet(glm::vec3 player_pos, glm::vec3 mouse_pos, double cooldown, std::vector<Bullet> &bullets)
 {
-  blasts.erase(
-      std::remove_if(blasts.begin(), blasts.end(),
-                     [&](Blast &b)
-                     {
-                       if (b.cooldown <= 0.0f)
-                       {
-                         // Remove vertices from the global buffer
-                         if (b.vertex_start + b.vertex_amount <= lines.size())
-                           lines.erase(lines.begin() + b.vertex_start,
-                                       lines.begin() + b.vertex_start + b.vertex_amount);
-
-                         // Update remaining blasts
-                         size_t removed_count = b.vertex_amount;
-                         for (auto &other : blasts)
-                           if (other.vertex_start > b.vertex_start)
-                             other.vertex_start -= removed_count;
-
-                         return true;
-                       }
-                       return false;
-                     }),
-      blasts.end());
-}
-
-void CreateBullet(glm::vec3 player_pos, glm::vec3 mouse_pos, double cooldown, std::vector<Bullet> &bullets, std::vector<Point> &lines){
   Bullet bullet{
-    player_pos,
-    mouse_pos,
-    cooldown
-  };
+      player_pos,
+      mouse_pos,
+      cooldown};
   bullets.push_back(bullet);
 }
 
-void BlastManager::CreateBlast(float size, float rate, glm::vec3 pos, std::vector<Blast> &blasts, std::vector<Circle> &circles)
+void BlastManager::CreateBlast(float size, float rate, glm::vec3 pos, std::vector<Blast> &blasts)
 {
-  //std::cout << "Creating blast" << std::endl;
-  //int segments = 16;
-  //glm::vec3 color = {1.0f, 0.0f, 0.0f};
+  // std::cout << "Creating blast" << std::endl;
+  // int segments = 16;
+  // glm::vec3 color = {1.0f, 0.0f, 0.0f};
 
-  //Circle circle = CreateCircle(size, color, pos, circles);
+  // Circle circle = CreateCircle(size, color, pos, circles);
   Blast blast{size, rate, rate, pos};
   blasts.push_back(blast);
-  //std::cout << "Created blast" << std::endl;
+  // std::cout << "Created blast" << std::endl;
 }
 
 void BlastManager::UpdateBlasts(double time_elapsed, std::vector<Blast> &blasts, std::vector<Circle> &circles)
 {
-  glm::vec3 color = {1.0f,0.0f,0.0f};
+  glm::vec3 color = {1.0f, 0.0f, 0.0f};
 
   for (auto &blast : blasts)
   {
@@ -208,11 +186,10 @@ void BlastManager::UpdateBlasts(double time_elapsed, std::vector<Blast> &blasts,
 
       blast.size = blast.max_size * (1.0f - float(blast.cooldown / blast.rate));
 
-      Circle circle{ // color, center, size
-        color,
-        blast.pos,
-        blast.size
-      };
+      Circle circle{// color, center, size
+                    blast.pos,
+                    blast.size,
+                    color};
       circles.push_back(circle);
 
       if (blast.cooldown < 0.0f)
@@ -223,9 +200,9 @@ void BlastManager::UpdateBlasts(double time_elapsed, std::vector<Blast> &blasts,
   }
 }
 
-void UpdateBullets(double time_elapsed, std::vector<Bullet> &bullets, std::vector<Point> &lines)
+void UpdateBullets(double time_elapsed, std::vector<Bullet> &bullets, std::vector<Line> &lines)
 {
-  glm::vec3 color = {1.0f,0.0f,0.0f};
+  glm::vec3 color = {1.0f, 0.0f, 0.0f};
 
   for (auto &bullet : bullets)
   {
@@ -233,17 +210,14 @@ void UpdateBullets(double time_elapsed, std::vector<Bullet> &bullets, std::vecto
     {
       bullet.cooldown -= time_elapsed;
 
-      Point start{
-        bullet.pos_start,
-        color
-      };
-      Point end{
-        bullet.pos_end,
-        color
+      Line line{
+
+          bullet.pos_start,
+          bullet.pos_end,
+          color
       };
 
-      lines.push_back(start);
-      lines.push_back(end);
+      lines.push_back(line);
 
       if (bullet.cooldown < 0.0f)
         bullet.cooldown = 0.0f;
@@ -253,7 +227,7 @@ void UpdateBullets(double time_elapsed, std::vector<Bullet> &bullets, std::vecto
   }
 }
 
-/* 
+/*
 void Bullet::DrawBullet(double delta)
 {
 

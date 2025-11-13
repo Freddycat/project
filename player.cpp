@@ -8,6 +8,8 @@
 
 #include <iostream>
 
+Player player;
+
 void Player::MovePlayer()
 {
 
@@ -31,16 +33,14 @@ void Player::MovePlayer()
     velocity_y = 0.0f;
 }
 
-void Player::DrawPlayer(std::vector<Point> &points)
+void Player::UpdatePlayerDot(std::vector<Point> &points, std::vector<Capsule> &capsules)
 {
   points[0].pos = {pos_x, pos_y, 0.0f};
   points[0].color = glm::vec3(1.0f, 1.0f, 1.0f);
-  /*
- pos_dot.pos = {pos_x, pos_y, 0.0};
- pos_dot.color = glm::vec3(1.0f, 1.0f, 1.0f); */
+  capsules[0].center = {pos_x, pos_y, 16.0f, 0.0f};
 }
 
-void Player::DrawCrosshair(std::vector<Point> &points, glm::vec2 pos)
+void Player::UpdateCrosshair(std::vector<Point> &points, glm::vec2 pos)
 {
 
   points[1].pos = {pos.x, pos.y, 0.0f};
@@ -50,9 +50,8 @@ void Player::DrawCrosshair(std::vector<Point> &points, glm::vec2 pos)
  xhair_dot.color = glm::vec3(1.0f, 1.0f, 1.0f); */
 }
 
-void Weapon::UpdateWeapon(Input &input, World &world, Player &player, double delta, WeaponType type, std::vector<Point> &lines, std::vector<Circle> &circles)
+void Weapon::UpdateWeapon(Input &input, double delta, WeaponType type)
 {
-
   glm::vec3 pos = {0.0f, 0.0f, 0.0f};
   pos.x = player.pos_x;
   pos.y = player.pos_y;
@@ -67,13 +66,13 @@ void Weapon::UpdateWeapon(Input &input, World &world, Player &player, double del
     case WeaponType::Blast:
     {
       Weapon blast = player.weapons[0];
-      BlastManager::CreateBlast(blast.blast_size, blast.blast_rate, input.mouse_world_pos, world.blasts, circles);
+      BlastManager::CreateBlast(blast.blast_size, blast.blast_rate, input.mouse.world_pos, world.blasts);
       break;
     }
     case WeaponType::Deagle:
     {
       Weapon deagle = player.weapons[1];
-      CreateBullet(pos, input.mouse_world_pos, deagle.bullet_live, world.bullets, lines);
+      CreateBullet(pos, input.mouse.world_pos, deagle.bullet_live, world.bullets);
       break;
     }
     }

@@ -8,171 +8,85 @@
 
 #include "app.h"
 #include "app_start.h"
+#include "shaders.h"
+#include "render.h"
+#include "global.h"
 
-App app;
+Global g;
 
 SDL_Window *window = nullptr;
 SDL_GLContext glContext;
 
-auto &time_elapsed = app.state.time;
-auto &game_time = app.state.game_time;
-auto &state = app.state;
-
-bool imgui_on = true;
+bool running = true;
 
 std::string message = "so this is the message";
 int number = 42;
 int frameNumber = 0;
 
+int target_framerate = 60;
+std::chrono::milliseconds target_frametime = std::chrono::milliseconds(int(1000 / target_framerate));
+std::chrono::steady_clock::time_point frame_last;
+std::chrono::steady_clock::time_point frame_now;
+std::chrono::steady_clock::time_point next_frametime;
+
 void gameLoop(SDL_Event &event)
 {
-  app.frame_now = std::chrono::steady_clock::now();
+  // -- start time stuff --
+  Input *input = Input::Instance();
 
-  time_elapsed = std::chrono::duration<double>(app.frame_now - app.frame_last).count();
-
-  app.frame_last = app.frame_now;
+  frame_now = std::chrono::steady_clock::now();
+  g.time_elapsed = std::chrono::duration<double>(frame_now - frame_last).count();
+  frame_last = frame_now;
+  g.game_time += g.time_elapsed;
 
   while (SDL_PollEvent(&event))
   {
     ImGui_ImplSDL3_ProcessEvent(&event);
     if (event.type == SDL_EVENT_QUIT)
     {
-      app.running = false;
+      running = false;
     }
 
-    if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_X)
+    if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE)
     {
-      imgui_on = !imgui_on;
+      g.console_on = !g.console_on;
     }
   }
 
-  app.input.InputKeyboard(app.player);
+  // -- CLEARING (DYNAMIC)--
 
-  app.input.GetMouseInput();
-  app.player.MovePlayer();
-  app.camera.CenterCam(app.graphics.vertexID, app.input, app.player);
-  app.input.GetMouseWorldPos(state, app.camera);
+  gizmos.lines.clear();
+  gizmos.line_points.clear();
+  gizmos.circles.clear();
 
-  game_time += time_elapsed;
-  std::string time_str = app.formatTime();
+  // -- UPDATING --
+
+  input->InputKeyboard();
+  input->GetMouseInput();
+  player.MovePlayer();
+  camera.CenterCam(graphics.vertexID);
+  input->GetMouseWorldPos();
+
+  player.UpdateCrosshair(gizmos.points, input->mouse.world_pos);
+  player.UpdatePlayerDot(gizmos.points, gizmos.capsules);
+
+  for (auto &weapon : player.weapons)
+    weapon.UpdateWeapon(*input, g.time_elapsed, weapon.type);
+
+  BlastManager::UpdateBlasts(g.time_elapsed, world.blasts, gizmos.circles);
+  UpdateBullets(g.time_elapsed, world.bullets, gizmos.lines);
 
   // -- end updating --
   // -- start render --
+  render();
 
-  glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  ImGui_ImplOpenGL3_NewFrame();
-  ImGui_ImplSDL3_NewFrame();
-  ImGui::NewFrame();
-
-  if (imgui_on)
-  {
-
-    app.gui.DrawWindow(state, app.graphics, app.gizmos, app.input, app.camera, app.world, app.player, time_str);
-
-    app.gui.DrawList(state, app.input, app.world, app.camera);
-  }
-  // app.world.DrawWorld(app.lines);
-
-  // app.world.DrawHouse();
-
-  // clear circles
-  app.gizmos.circles.clear();
-
-  app.player.DrawCrosshair(app.graphics.points, app.input.mouse_world_pos);
-  app.player.DrawPlayer(app.graphics.points);
-
-  for (auto &weapon : app.player.weapons)
-    weapon.UpdateWeapon(app.input, app.world, app.player, time_elapsed, weapon.type, app.graphics.lines, app.gizmos.circles);
-
-  BlastManager::UpdateBlasts(time_elapsed, app.world.blasts, app.gizmos.circles);
-  UpdateBullets(time_elapsed, app.world.bullets, app.graphics.lines);
-  
-/* 
-  for (auto &bullet : app.world.bullets)
-    bullet.DrawBullet(time_elapsed);
- */
-  glUseProgram(app.graphics.vertexID);
-
-  if (app.graphics.points.size() > app.graphics.max_points)
-  {
-    app.graphics.max_points = app.graphics.points.size() * 1.25f;
-    glBufferData(GL_ARRAY_BUFFER, app.graphics.max_points * sizeof(Point), nullptr, GL_DYNAMIC_DRAW);
-  }
-
-  if (app.graphics.lines.size() > app.graphics.max_lines)
-  {
-    app.graphics.max_lines = app.graphics.lines.size() * 1.25f;
-    glBufferData(GL_ARRAY_BUFFER, app.graphics.max_lines * sizeof(Point), nullptr, GL_DYNAMIC_DRAW);
-  }
-
-  if (app.gizmos.circles.size() > app.graphics.max_circles)
-  {
-    app.graphics.max_circles = app.gizmos.circles.size() * 1.25f;
-    glBufferData(GL_ARRAY_BUFFER, app.graphics.max_circles * sizeof(Circle), nullptr, GL_DYNAMIC_DRAW);
-  }
-
-  GLuint projLocation = glGetUniformLocation(app.graphics.vertexID, "uProjection");
-  GLuint viewLocation = glGetUniformLocation(app.graphics.vertexID, "uView");
-  glUniformMatrix4fv(projLocation, 1, GL_FALSE, glm::value_ptr(app.camera.projection));
-  glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(app.camera.view));
-
-  glBindVertexArray(app.graphics.vao_point);
-  glBindBuffer(GL_ARRAY_BUFFER, app.graphics.vbo_point);
-
-  glBufferSubData(GL_ARRAY_BUFFER, 0, app.graphics.points.size() * sizeof(Point), app.graphics.points.data());
-  glPointSize(6.0f);
-
-  glDrawArrays(GL_POINTS, 0, app.graphics.points.size());
-
-  glBindVertexArray(app.graphics.vao_line);
-  glBindBuffer(GL_ARRAY_BUFFER, app.graphics.vbo_line);
-
-  glBufferSubData(GL_ARRAY_BUFFER, 0, app.graphics.lines.size() * sizeof(Point), app.graphics.lines.data());
-  glLineWidth(2.0f);
-
-  glDrawArrays(GL_LINES, 0, app.graphics.lines.size());
-
-  glBindVertexArray(0);
-
-  // circle render
-  glUseProgram(app.graphics.circleID);
-  // camera stuff
-  GLuint projLocationCirc = glGetUniformLocation(app.graphics.circleID, "uProjection");
-  GLuint viewLocationCirc = glGetUniformLocation(app.graphics.circleID, "uView");
-  glUniformMatrix4fv(projLocationCirc, 1, GL_FALSE, glm::value_ptr(app.camera.projection));
-  glUniformMatrix4fv(viewLocationCirc, 1, GL_FALSE, glm::value_ptr(app.camera.view));
-
-  glBindVertexArray(app.graphics.vao_circle);
-
-  if (!app.gizmos.circles.empty())
-  {
-    glBindBuffer(GL_ARRAY_BUFFER, app.graphics.vbo_circles);
-
-    glBufferSubData(GL_ARRAY_BUFFER, 0, app.gizmos.circles.size() * sizeof(Circle), app.gizmos.circles.data());
-  }
-
-  glDrawArraysInstanced(GL_LINE_LOOP, 0, app.graphics.base_circle.size(), app.gizmos.circles.size());
-
-  glBindVertexArray(0);
-
-  GLenum err;
-  while ((err = glGetError()) != GL_NO_ERROR)
-    std::cerr << "GL error: " << err << std::endl;
-
-  ImGui::Render();
-  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-  SDL_GL_SwapWindow(window);
-
-  app.world.EraseBlasts(app.graphics.lines);
-  app.world.EraseBullets();
+  // world.EraseBlasts(gizmos.line_points_static);
+  // world.EraseBullets();
 
   frameNumber++;
 
-  app.next_frametime = app.target_frametime + app.frame_now;
-  std::this_thread::sleep_until(app.next_frametime);
+  next_frametime = target_frametime + frame_now;
+  std::this_thread::sleep_until(next_frametime);
 }
 
 void gameStart()
@@ -180,17 +94,15 @@ void gameStart()
   std::cout << message << std::endl;
   std::cout << number << std::endl;
 
-  if (!initializeSDL(app))
+  if (!initializeSDL())
   {
     std::cerr << "SDL initialization failed. Exiting." << std::endl;
     return;
   }
 
-  // SDL_SetWindowRelativeMouseMode(window, true);
-
   std::cout << "SDL initialized." << std::endl;
 
-  if (!initializeGL(app, glContext, window))
+  if (!initializeGL())
   {
     std::cerr << "GL initialization failed. Exiting." << std::endl;
     return;
@@ -198,52 +110,49 @@ void gameStart()
 
   std::cout << "GL initialized." << std::endl;
 
-  initializeImgui(glContext);
+  initializeImgui();
 
   std::cout << "ImGui initialized." << std::endl;
 
-  app.CheckSize();
+  CheckSize();
 
   std::cout << "Checked size." << std::endl;
 
-  app.world.InitializeWorld(
-      app.player, app.camera,
-      app.graphics.points, app.graphics.lines,
-      app.graphics.vertexID,
-      app.graphics.vbo_point,
-      app.graphics.vbo_line);
+  SetupShaders();
 
-  std::cout << "Initialized world." << std::endl;
+  world.InitializeWorld(
+      player, camera, gizmos,
+      graphics.vertexID,
+      graphics.vbo_point,
+      graphics.vbo_line);
 
-  app.frame_last = std::chrono::steady_clock::now();
-  app.frame_now = app.frame_last;
-  game_time = 0.0;
-  time_elapsed = 0.0;
+  frame_last = std::chrono::steady_clock::now();
+  frame_now = frame_last;
+  g.game_time = 0.0;
+  g.time_elapsed = 0.0;
 
-  app.state.running = true;
+  running = true;
+  g.console_on = true;
 
   SDL_Event event;
-  while (app.state.running)
+  while (running)
   {
     gameLoop(event);
   }
 }
 
-void App::CheckSize()
+void CheckSize()
 {
-  SDL_GetWindowSize(window, &state.window_width, &state.window_height);
+  SDL_GetWindowSize(g.window, &g.window_width, &g.window_height);
 
   // Center coordinates
-  state.window_center.x = state.window_width / 2.0f;
-  state.window_center.y = state.window_height / 2.0f;
-
-  camera.window_center = state.window_center;
-  input.window_center = state.window_center;
+  g.window_center.x = g.window_width / 2.0f;
+  g.window_center.y = g.window_height / 2.0f;
 }
 
-std::string App::formatTime() const
+std::string formatTime()
 {
-  int total_ms = (int)std::floor(game_time * 1000.0);
+  int total_ms = (int)std::floor(g.game_time * 1000.0);
   int ms = total_ms % 1000;
   int total_seconds = total_ms / 1000;
   int s = total_seconds % 60;

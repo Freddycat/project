@@ -10,50 +10,54 @@
 
 struct Graphics
 {
-  GLuint vertexID, // points
+  GLuint
+      vertexID, // points
       vao_point, vbo_point,
+      // lines
       vao_line, vbo_line,
+
+      cubeID,
+      vao_cube,
+      vbo_cube_buf,
+      vbo_cubes,
+
       circleID, // circles
       vao_circle,
       vbo_circle_buf,
-      vbo_circles;
+      vbo_circles,
+      
+      capID, // circles
+      vao_cap,
+      vbo_cap_buf,
+      vbo_caps;
 
-  std::vector<Point> points;
-  std::vector<Point> lines;
-
+  size_t max_points_static = 10000;
+  size_t max_line_points_static = 10000;
   size_t max_points = 10000;
   size_t max_lines = 10000;
   size_t max_circles = 50;
-  
-  std::vector<glm::vec3> base_circle;
+  size_t max_cubes = 50;
+  size_t max_capsules = 50;
 };
 
-namespace glGraphics
+extern Graphics graphics;
+
+namespace Gfx
 {
-  void checkGLError(const char *functionName);
-  namespace Shader
-  {
-    extern GLuint shaderID;
-    GLuint InitializeShader(const std::string &vertexPath, const std::string &fragmentPath);
-    void use(GLuint shaderProgram);
-    void setBool(GLuint shaderProgram, const std::string &name, bool value);
-    void setInt(GLuint shaderProgram, const std::string &name, int value);
-    void setFloat(GLuint shaderProgram, const std::string &name, float value);
-    void setMat3(GLuint shaderProgram, const std::string &name, const GLfloat *mat);
-    void setMat4(GLuint shaderProgram, const std::string &name, const GLfloat *mat);
-    void setVec2(GLuint shaderProgram, const std::string &name, glm::vec2 vec);
-    void setVec3(GLuint shaderProgram, const std::string &name, glm::vec3 vec);
-    void setVec4(GLuint shaderProgram, const std::string &name, glm::vec4 vec);
-  }
-  namespace Buffer
-  {
-    GLuint createVAO();
-    GLuint createVBO(GLsizeiptr verticesByteSize, const void *vertices, GLenum usage);
-    void addVertexAttrib(GLuint location, GLuint attribLen, GLuint stride, GLuint offset);
-    GLuint createEBO(GLsizeiptr indicesByteSize, GLuint *indices, GLenum usage);
-    void useVAO(GLuint vaoID);
-    void unbindVAO();
-  }
+  void CheckGLError(const char *functionName);
+  extern GLuint shaderID;
+  GLuint InitializeShader(const std::string &vertexPath, const std::string &fragmentPath);
+
+  // if needed setup:
+  void use(GLuint shaderID);
+  void setBool(GLuint shaderID, const std::string &name, bool value);
+  void setInt(GLuint shaderID, const std::string &name, int value);
+  void setFloat(GLuint shaderID, const std::string &name, float value);
+  void setMat3(GLuint shaderID, const std::string &name, const GLfloat *mat);
+  void setMat4(GLuint shaderID, const std::string &name, const GLfloat *mat);
+  void setVec2(GLuint shaderID, const std::string &name, glm::vec2 vec);
+  void setVec3(GLuint shaderID, const std::string &name, glm::vec3 vec);
+  void setVec4(GLuint shaderID, const std::string &name, glm::vec4 vec);
 };
 
 #endif

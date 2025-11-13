@@ -6,6 +6,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
+Camera camera;
+
 void Camera::SetCam(GLuint &shaderID)
 {
   projection = glm::ortho(
@@ -14,13 +16,14 @@ void Camera::SetCam(GLuint &shaderID)
       -1000.0f, 2000.0f // near, far
   );
 
-  glGraphics::Shader::setMat4(shaderID, "projection", glm::value_ptr(projection));
-  glGraphics::Shader::setMat4(shaderID, "view", glm::value_ptr(view));
+  Gfx::setMat4(shaderID, "projection", glm::value_ptr(projection));
+  Gfx::setMat4(shaderID, "view", glm::value_ptr(view));
 }
 
-void Camera::CenterCam(GLuint &shaderID, Input &input, Player &player)
+void Camera::CenterCam(GLuint &shaderID)
 {
-  glm::vec3 mouse_zoomed(input.mouse_center_pos * zoom_amount, 0.0f);
+  Input *input = Input::Instance();
+  glm::vec3 mouse_zoomed(input->mouse.center_pos * zoom_amount, 0.0f);
 
   target = glm::vec3(player.pos_x, player.pos_y, 0.0f);
   position = target + offset; // set position initially
@@ -35,7 +38,7 @@ void Camera::CenterCam(GLuint &shaderID, Input &input, Player &player)
       right * mouse_zoomed.x + up * mouse_zoomed.y;
 
   glm::vec3 rotated_center = // window center rotated
-      right * window_center.x + up * window_center.y;
+      right * g.window_center.x + up * g.window_center.y;
 
   target = target + rotated_mouse - rotated_center; // modify target then add offset
   position = target + offset;                       // Camera position with offset
@@ -45,5 +48,5 @@ void Camera::CenterCam(GLuint &shaderID, Input &input, Player &player)
                      up_axis); // World up vector
   inverse_view = glm::inverse(projection * view);
 
-  glGraphics::Shader::setMat4(shaderID, "view", glm::value_ptr(view));
+  Gfx::setMat4(shaderID, "view", glm::value_ptr(view));
 }

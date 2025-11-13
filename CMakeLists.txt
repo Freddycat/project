@@ -16,20 +16,21 @@ add_subdirectory(graphics)
 
 find_package(OpenGL REQUIRED)
 
-include_directories(
-  ${CMAKE_SOURCE_DIR}/include
-  ${CMAKE_SOURCE_DIR}/include/imgui
-  ${CMAKE_SOURCE_DIR}/include/imgui/backends
-  ${CMAKE_SOURCE_DIR}/include/glad
-)
+#include_directories(
+#  ${CMAKE_SOURCE_DIR}/include
+#  ${CMAKE_SOURCE_DIR}/include/imgui
+#  ${CMAKE_SOURCE_DIR}/include/imgui/backends
+#  ${CMAKE_SOURCE_DIR}/include/glad
+#)
 
 add_executable(
   project
   app.cpp
   app_start.cpp
+  gui.cpp
+  render.cpp
   input.cpp
   world.cpp
-  gui.cpp
   camera.cpp
   player.cpp
   glad.c
@@ -41,15 +42,17 @@ add_executable(
   include/imgui/backends/imgui_impl_opengl3.cpp
 )
 
-#target_include_directories(
-#  project
-#  PUBLIC
-#  include
-#  graphics
-#  ${CMAKE_CURRENT_SOURCE_DIR}
-#  include/glm
-#  include/imgui
-#)
+target_include_directories(
+  project
+  PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  include
+  graphics
+  include/glm
+  include/imgui
+  include/imgui/backends
+  include/glad
+)
 
 target_link_libraries(project PRIVATE
   graphics

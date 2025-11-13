@@ -3,23 +3,26 @@
 #include <glm/gtc/constants.hpp>
 #include <iostream>
 
-void drawDot()
-{
-}
-void drawLine()
-{
-}
-void drawCube()
-{
-}
-Circle CreateCircle(float size, glm::vec3 color, glm::vec3 pos, std::vector<Circle> &circles)
-{
-  std::cout << "creating circle" << std::endl;
+Gizmos gizmos;
 
-  Circle circle;
-  circle.center = pos;
-  circle.size = size;
-  circle.color = color;
+Cube CreateCube(glm::vec3 pos, float size, glm::vec3 color, std::vector<Cube> &cubes)
+{
+  Cube cube{
+      pos,
+      size,
+      color};
+
+  cubes.push_back(cube);
+  std::cout << "created cube" << std::endl;
+  return cube;
+}
+
+Circle CreateCircle(glm::vec3 pos, float size, glm::vec3 color, std::vector<Circle> &circles)
+{
+  Circle circle{
+      pos,
+      size,
+      color};
 
   circles.push_back(circle);
   std::cout << "created circle" << std::endl;

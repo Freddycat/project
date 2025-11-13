@@ -2,14 +2,17 @@
 #include "input.h"
 #include "camera.h"
 #include "graphics.h"
+#include "gizmos.h"
 #include "player.h"
 #include "world.h"
-#include "app_state.h"
+#include "global.h"
 #include <glm/glm.hpp>
+
+Gui gui;
 
 ImGuiChildFlags flags = ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Border;
 
-void Gui::DrawWindow(State &state, Graphics &graphics, Gizmos &gizmos, Input &input, Camera &camera, World &world, Player &player, std::string &time)
+void Gui::DrawWindow(const std::string time)
 {
   ImGui::Begin("Yo...");
 
@@ -17,130 +20,147 @@ void Gui::DrawWindow(State &state, Graphics &graphics, Gizmos &gizmos, Input &in
 
   if (ImGui::Button("Sheeit"))
   {
-    state.running = !state.running;
+    running = !running;
   }
 
-  AppTime(time, graphics, gizmos);
-  MouseInfo(input);
-  CamInfo(camera);
-  WeaponInfo(player.weapons[0]);
-  PlayerInfo(player);
-  WorldInfo(world);
-
+  AppTime(time);
+  MouseInfo();
+  CamInfo();
+  WeaponInfo();
+  PlayerInfo();
+  WorldInfo();
   ImGui::End();
 }
 
-void Gui::AppTime(std::string &time, Graphics &graphics, Gizmos &gizmos)
+void Gui::AppTime(const std::string time)
 {
-  ImGui::BeginChild("app time", ImVec2(0.0f, 0.0f), flags);
-  ImGui::Text("Time:");
-  ImGui::Indent();
-  ImGui::Text("Run time: %s", time.c_str());
-  ImGui::Text("Points: %d", graphics.points.size());
-  ImGui::Text("Lines: %d", graphics.lines.size());
-  ImGui::Text("Max Lines: %d", graphics.max_lines);
-  ImGui::Text("Circles: %d", gizmos.circles.size());
-  ImGui::Text("Max Circles: %d", graphics.max_circles);
-  ImGui::Unindent();
-  ImGui::EndChild();
-}
-
-void Gui::MouseInfo(Input &input)
-{
-  ImGui::BeginChild("mouse info", ImVec2(0.0f, 0.0f), flags);
-  ImGui::Text("Mouse Info:");
-  ImGui::Indent();
-  ImGui::Text("Screen Pos: (%.1f, %.1f)", input.mouse_screen_pos.x, input.mouse_screen_pos.y);
-  ImGui::Text("World Pos: (%.1f, %.1f)", input.mouse_world_pos.x, input.mouse_world_pos.y);
-  ImGui::Unindent();
-  ImGui::EndChild();
-}
-
-void Gui::CamInfo(Camera &cam)
-{
-  ImGui::BeginChild("cam info", ImVec2(0.0f, 0.0f), flags);
-  ImGui::Text("Camera Info:");
-  ImGui::Indent();
-
-  
-  float offset[3] = {cam.offset.x, cam.offset.y, cam.offset.z};
-  if (ImGui::InputFloat3("offset", offset))
+  if (ImGui::TreeNode("App info"))
   {
-    cam.offset.x = offset[0];
-    cam.offset.y = offset[1];
-    cam.offset.z = offset[2];
+    ImGui::BeginChild("app time", ImVec2(0.0f, 0.0f), flags);
+    ImGui::Text("Run time: %s", time.c_str());
+    ImGui::Text("Points: %d", gizmos.points.size());
+    ImGui::Text("Lines: %d", gizmos.lines.size());
+    ImGui::Text("Max Lines: %d", graphics.max_lines);
+    ImGui::Text("Circles: %d", gizmos.circles.size());
+    ImGui::Text("Max Circles: %d", graphics.max_circles);
+    ImGui::EndChild();
+    ImGui::TreePop();
   }
-  
+}
 
-  float pos[3] = {cam.position.x, cam.position.y, cam.position.z};
-  if (ImGui::InputFloat3("Pos", pos))
+void Gui::MouseInfo()
+{
+  Input *input = Input::Instance();
+  glm::vec2 mouse_screen;
+  mouse_screen = input->GetMouse().screen_pos;
+  glm::vec2 mouse_world;
+  mouse_world = input->GetMouse().world_pos;
+  if (ImGui::TreeNode("Mouse info"))
   {
-    cam.position.x = pos[0];
-    cam.position.y = pos[1];
-    cam.position.z = pos[2];
+    ImGui::BeginChild("mouse info", ImVec2(0.0f, 0.0f), flags);
+    ImGui::Text("Screen Pos: (%.1f, %.1f)", mouse_screen.x, mouse_screen.y);
+    ImGui::Text("World Pos: (%.1f, %.1f)", mouse_world.x, mouse_world.y);
+    ImGui::EndChild();
+    ImGui::TreePop();
   }
+}
 
-  float target[3] = {cam.target.x, cam.target.y, cam.target.z};
-  if (ImGui::InputFloat3("Target", target))
+void Gui::CamInfo()
+{
+  if (ImGui::TreeNode("Camera info"))
   {
-    cam.target.x = target[0];
-    cam.target.y = target[1];
-    cam.target.z = target[2];
+    ImGui::BeginChild("cam info", ImVec2(0.0f, 0.0f), flags);
+
+    float offset[3] = {camera.offset.x, camera.offset.y, camera.offset.z};
+    if (ImGui::InputFloat3("offset", offset))
+    {
+      camera.offset.x = offset[0];
+      camera.offset.y = offset[1];
+      camera.offset.z = offset[2];
+    }
+
+    float pos[3] = {camera.position.x, camera.position.y, camera.position.z};
+    if (ImGui::InputFloat3("Pos", pos))
+    {
+      camera.position.x = pos[0];
+      camera.position.y = pos[1];
+      camera.position.z = pos[2];
+    }
+
+    float target[3] = {camera.target.x, camera.target.y, camera.target.z};
+    if (ImGui::InputFloat3("Target", target))
+    {
+      camera.target.x = target[0];
+      camera.target.y = target[1];
+      camera.target.z = target[2];
+    }
+
+    ImGui::EndChild();
+    ImGui::TreePop();
   }
-
-  ImGui::Unindent();
-  ImGui::EndChild();
 }
 
-void Gui::WeaponInfo(Weapon &weapon)
+void Gui::WeaponInfo()
 {
-  ImGui::BeginChild("Weapon info", ImVec2(0.0f, 0.0f), flags);
-  ImGui::Text("Weapon Info:");
-  ImGui::Indent();
-  ImGui::Text("Cooldown: %.1f", weapon.fire_cooldown);
-  ImGui::Unindent();
-  ImGui::EndChild();
-}
-
-void Gui::WorldInfo(World &world)
-{
-  ImGui::BeginChild("World info", ImVec2(0.0f, 0.0f), flags);
-  ImGui::Text("World Info:");
-  ImGui::Indent();
-  ImGui::Text("blasts: %d", (int)world.blasts.size());
-  for (size_t i = 0; i < world.blasts.size(); i++)
+  if (ImGui::TreeNode("Weapon info"))
   {
-    ImGui::Text(" Blast %d - Pos: (%.1f, %.1f, %.1f) Time: %.2f", (int)i,
-                world.blasts[i].pos.x,
-                world.blasts[i].pos.y,
-                world.blasts[i].pos.z,
-                world.blasts[i].cooldown);
+    ImGui::BeginChild("Weapon info", ImVec2(0.0f, 0.0f), flags);
+
+    ImGui::Text("Cooldown: %.1f", player.weapons[0].fire_cooldown);
+    ImGui::EndChild();
+    ImGui::TreePop();
   }
-  ImGui::Text("Cells: %d", (int)world.cells.size());
-  ImGui::Unindent();
-  ImGui::EndChild();
 }
 
-void Gui::PlayerInfo(Player &player)
+void Gui::WorldInfo()
 {
-  ImGui::BeginChild("Player info", ImVec2(0.0f, 0.0f), flags);
-  ImGui::Text("Player Info:");
-  ImGui::Indent();
-  ImGui::Text("Player Pos: (%.1f, %.1f)", player.pos_x, player.pos_y);
-  ImGui::Unindent();
-  ImGui::EndChild();
+  if (ImGui::TreeNode("World info"))
+  {
+    ImGui::BeginChild("World info", ImVec2(0.0f, 0.0f), flags);
+    ImGui::Text("blasts: %d", (int)world.blasts.size());
+    for (size_t i = 0; i < world.blasts.size(); i++)
+    {
+      ImGui::Text(" Blast %d - Pos: (%.1f, %.1f, %.1f) Time: %.2f", (int)i,
+                  world.blasts[i].pos.x,
+                  world.blasts[i].pos.y,
+                  world.blasts[i].pos.z,
+                  world.blasts[i].cooldown);
+    }
+    ImGui::Text("Cells: %d", (int)world.cells.size());
+
+    ImGui::EndChild();
+    ImGui::TreePop();
+  }
 }
 
-glm::vec2 GetWorldPos(State &state, Camera &cam, glm::vec2 &pos)
+void Gui::PlayerInfo()
 {
-  float ndc_x = (2.0f * pos.x) / state.window_width - 1.0f;
-  float ndc_y = 1.0f - (2.0f * pos.y) / state.window_height;
+  if (ImGui::TreeNode("Player info"))
+  {
+    ImGui::BeginChild("Player info", ImVec2(0.0f, 0.0f), flags);
+    ImGui::Text("Player Pos: (%.1f, %.1f)", player.pos_x, player.pos_y);
+
+    float height = gizmos.capsules[0].size.z;
+    if (ImGui::InputFloat("Height", &height))
+    {
+      gizmos.capsules[0].size.z = height;
+    }
+
+    ImGui::EndChild();
+    ImGui::TreePop();
+  }
+}
+
+glm::vec2 GetWorldPos(glm::vec2 &pos)
+{
+  float ndc_x = (2.0f * pos.x) / g.window_width - 1.0f;
+  float ndc_y = 1.0f - (2.0f * pos.y) / g.window_height;
 
   glm::vec4 ray_clip(ndc_x, ndc_y, -1.0f, 1.0f);
   glm::vec4 ray_far_clip(ndc_x, ndc_y, 1.0f, 1.0f);
 
-  glm::vec4 ray_near_world = cam.inverse_view * ray_clip;
-  glm::vec4 ray_far_world = cam.inverse_view * ray_far_clip;
+  glm::vec4 ray_near_world = camera.inverse_view * ray_clip;
+  glm::vec4 ray_far_world = camera.inverse_view * ray_far_clip;
   ray_near_world /= ray_near_world.w;
   ray_far_world /= ray_far_world.w;
 
@@ -151,22 +171,26 @@ glm::vec2 GetWorldPos(State &state, Camera &cam, glm::vec2 &pos)
   return world_pos;
 }
 
-void Gui::DrawList(State &state, Input &input, World &world, Camera &cam)
+void Gui::DrawList()
 {
   ImDrawList *draw_list = ImGui::GetBackgroundDrawList();
 
-  ImVec2 window_center(state.window_center.x, state.window_center.y);
-  ImVec2 screen_pos(input.mouse_screen_pos.x, input.mouse_screen_pos.y);
+  Input *input = Input::Instance();
+  glm::vec2 mouse_screen;
+  mouse_screen = input->GetMouse().screen_pos;
+
+  ImVec2 window_center(g.window_center.x, g.window_center.y);
+  ImVec2 screen_pos(mouse_screen.x, mouse_screen.y);
 
   draw_list->AddText(window_center, IM_COL32(255, 255, 255, 255), "Window Center");
   draw_list->AddText(screen_pos, IM_COL32(0, 255, 255, 255), "Screen pos");
   for (auto &cell : world.cells)
   {
-    glm::vec4 clip = cam.projection * cam.view * glm::vec4(cell.pos.x, cell.pos.y, 0.0f, 1.0f);
+    glm::vec4 clip = camera.projection * camera.view * glm::vec4(cell.pos.x, cell.pos.y, 0.0f, 1.0f);
     glm::vec3 ndc = glm::vec3(clip) / clip.w;
     ImVec2 ImPos(
-        (ndc.x * 0.5f + 0.5f) * state.window_width,
-        (1.0f - (ndc.y * 0.5f + 0.5f)) * state.window_height);
+        (ndc.x * 0.5f + 0.5f) * g.window_width,
+        (1.0f - (ndc.y * 0.5f + 0.5f)) * g.window_height);
 
     char buf[64];
     snprintf(buf, sizeof(buf), "%d", cell.id);

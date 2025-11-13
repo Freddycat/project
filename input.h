@@ -4,32 +4,35 @@
 #include <vector>
 #include <glm/glm.hpp>
 
-struct App;
-struct Player;
-struct Camera;
-struct State;
+//struct Mouse;
+
+struct Mouse
+{
+  glm::vec2 screen_pos;
+
+  glm::vec2 center_pos;
+
+  glm::vec3 world_pos = {0.0f, 0.0f, 0.0f};
+};
 
 struct Input
 {
-  glm::vec2 window_center;
+  static Input *Instance()
+  {
+    static Input instance;
+    return &instance;
+  }
 
-  glm::vec2 mouse_screen_pos;
-
-  glm::vec2 mouse_center_pos;
-
-  // float mouse_screen_pos_x;
-  // float mouse_screen_pos_y;
-
-  glm::vec3 mouse_world_pos = {0.0f, 0.0f, 0.0f};
-
-  // float mouse_world_pos_x;
-  // float mouse_world_pos_y;
+  Mouse& GetMouse();
 
   void GetMouseInput();
 
-  void GetMouseWorldPos(State &state, Camera &cam);
+  void GetMouseWorldPos();
 
-  void InputKeyboard(Player &player);
+  void InputKeyboard();
+
+  Mouse mouse;
 };
+
 
 #endif
