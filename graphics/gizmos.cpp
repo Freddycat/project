@@ -3,8 +3,6 @@
 #include <glm/gtc/constants.hpp>
 #include <iostream>
 
-Gizmos gizmos;
-
 Cube CreateCube(glm::vec3 pos, float size, glm::vec3 color, std::vector<Cube> &cubes)
 {
   Cube cube{

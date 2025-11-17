@@ -6,8 +6,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
-Camera camera;
-
 void Camera::SetCam(GLuint &shaderID)
 {
   projection = glm::ortho(
@@ -20,12 +18,12 @@ void Camera::SetCam(GLuint &shaderID)
   Gfx::setMat4(shaderID, "view", glm::value_ptr(view));
 }
 
-void Camera::CenterCam(GLuint &shaderID)
+void Camera::CenterCam(GLuint &shaderID, Input &input, Player &player)
 {
-  Input *input = Input::Instance();
-  glm::vec3 mouse_zoomed(input->mouse.center_pos * zoom_amount, 0.0f);
 
-  target = glm::vec3(player.pos_x, player.pos_y, 0.0f);
+  glm::vec3 mouse_zoomed(input.mouse.center_pos * zoom_amount, 0.0f);
+
+  target = glm::vec3(player.pos.x, player.pos.y, player.cam_center);
   position = target + offset; // set position initially
 
   forward = glm::normalize(target - position);

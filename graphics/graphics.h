@@ -40,8 +40,6 @@ struct Graphics
   size_t max_capsules = 50;
 };
 
-extern Graphics graphics;
-
 namespace Gfx
 {
   void CheckGLError(const char *functionName);

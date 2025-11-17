@@ -11,8 +11,7 @@
 #include "shaders.h"
 #include "render.h"
 #include "global.h"
-
-Global g;
+#include "weapon.h"
 
 SDL_Window *window = nullptr;
 SDL_GLContext glContext;
@@ -29,148 +28,170 @@ std::chrono::steady_clock::time_point frame_last;
 std::chrono::steady_clock::time_point frame_now;
 std::chrono::steady_clock::time_point next_frametime;
 
+Input input;
+Graphics graphics;
+Gizmos gizmos;
+Player player;
+World world;
+Camera camera;
+Gui gui;
+WeaponManager manager;
+
+Global g;
+
 void gameLoop(SDL_Event &event)
 {
-  // -- start time stuff --
-  Input *input = Input::Instance();
 
-  frame_now = std::chrono::steady_clock::now();
-  g.time_elapsed = std::chrono::duration<double>(frame_now - frame_last).count();
-  frame_last = frame_now;
-  g.game_time += g.time_elapsed;
+    // -- start time stuff --
+    frame_now = std::chrono::steady_clock::now();
+    g.time_elapsed = std::chrono::duration<double>(frame_now - frame_last).count();
+    frame_last = frame_now;
+    g.game_time += g.time_elapsed;
 
-  while (SDL_PollEvent(&event))
-  {
-    ImGui_ImplSDL3_ProcessEvent(&event);
-    if (event.type == SDL_EVENT_QUIT)
+    while (SDL_PollEvent(&event))
     {
-      running = false;
+        ImGui_ImplSDL3_ProcessEvent(&event);
+        if (event.type == SDL_EVENT_QUIT)
+        {
+            running = false;
+        }
+
+        if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE)
+        {
+            g.console_on = !g.console_on;
+        }
     }
 
-    if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE)
+    // -- CLEARING (DYNAMIC)--
+
+    gizmos.lines.clear();
+    gizmos.line_points.clear();
+    gizmos.circles.clear();
+
+    // -- UPDATING --
+
+    input.InputKeyboard(player);
+    input.GetMouseInput();
+    player.MovePlayer();
+    camera.CenterCam(graphics.vertexID, input, player);
+    input.GetMouseWorldPos(camera, player.cam_center);
+
+    player.UpdateCrosshair(gizmos.points, input.mouse.world_pos);
+    player.UpdatePlayerDot(gizmos.points, gizmos.capsules);
+
+    // for (auto &weapon : player.weapons)
+
+    for (auto &entity : manager.registry.view<Weapon>())
     {
-      g.console_on = !g.console_on;
+        glm::vec3 newPos = player.pos;
+        newPos.z += player.cam_center;
+        auto &weapon = manager.registry.get<Weapon>(entity);
+        weapon.UpdateWeapon(input.mouse.xhair_pos, newPos, g.time_elapsed, world.blasts, world.lasers, manager.registry);
     }
-  }
 
-  // -- CLEARING (DYNAMIC)--
+    //player.weapon->UpdateWeapon(input.mouse.xhair_pos, player.pos, g.time_elapsed, world.blasts, world.lasers, manager.registry);
 
-  gizmos.lines.clear();
-  gizmos.line_points.clear();
-  gizmos.circles.clear();
+    UpdateBlasts(g.time_elapsed, world.blasts, gizmos.circles);
+    UpdateLasers(g.time_elapsed, world.lasers, gizmos.lines);
+    // UpdateBullets(g.time_elapsed, world.bullets, gizmos.lines);
 
-  // -- UPDATING --
+    // -- end updating --
+    // -- start render --
+    render(graphics, camera, gizmos, world, player, gui, manager.registry, player.weapon, input);
 
-  input->InputKeyboard();
-  input->GetMouseInput();
-  player.MovePlayer();
-  camera.CenterCam(graphics.vertexID);
-  input->GetMouseWorldPos();
+    world.EraseBlasts();
+    // world.EraseBullets();
+    world.EraseLasers();
 
-  player.UpdateCrosshair(gizmos.points, input->mouse.world_pos);
-  player.UpdatePlayerDot(gizmos.points, gizmos.capsules);
+    frameNumber++;
 
-  for (auto &weapon : player.weapons)
-    weapon.UpdateWeapon(*input, g.time_elapsed, weapon.type);
-
-  BlastManager::UpdateBlasts(g.time_elapsed, world.blasts, gizmos.circles);
-  UpdateBullets(g.time_elapsed, world.bullets, gizmos.lines);
-
-  // -- end updating --
-  // -- start render --
-  render();
-
-  //world.EraseBlasts(gizmos.line_points_static);
-  // world.EraseBullets();
-
-  frameNumber++;
-
-  next_frametime = target_frametime + frame_now;
-  std::this_thread::sleep_until(next_frametime);
+    next_frametime = target_frametime + frame_now;
+    std::this_thread::sleep_until(next_frametime);
 }
 
 void gameStart()
 {
-  std::cout << message << std::endl;
-  std::cout << number << std::endl;
+    std::cout << message << std::endl;
+    std::cout << number << std::endl;
 
-  if (!initializeSDL())
-  {
-    std::cerr << "SDL initialization failed. Exiting." << std::endl;
-    return;
-  }
+    if (!initializeSDL())
+    {
+        std::cerr << "SDL initialization failed. Exiting." << std::endl;
+        return;
+    }
 
-  std::cout << "SDL initialized." << std::endl;
+    std::cout << "SDL initialized." << std::endl;
 
-  if (!initializeGL())
-  {
-    std::cerr << "GL initialization failed. Exiting." << std::endl;
-    return;
-  }
+    if (!initializeGL())
+    {
+        std::cerr << "GL initialization failed. Exiting." << std::endl;
+        return;
+    }
 
-  std::cout << "GL initialized." << std::endl;
+    std::cout << "GL initialized." << std::endl;
 
-  initializeImgui();
+    initializeImgui();
 
-  std::cout << "ImGui initialized." << std::endl;
+    std::cout << "ImGui initialized." << std::endl;
 
-  CheckSize();
+    CheckSize();
 
-  std::cout << "Checked size." << std::endl;
+    std::cout << "Checked size." << std::endl;
 
-  SetupShaders();
+    SetupShaders(graphics, gizmos, camera);
 
-  world.InitializeWorld(
-      player, camera, gizmos,
-      graphics.vertexID,
-      graphics.vbo_point,
-      graphics.vbo_line);
+    world.InitializeWorld(
+        player, camera, gizmos,
+        graphics.vertexID,
+        graphics.vbo_point,
+        graphics.vbo_line,
+        manager.registry);
 
-  frame_last = std::chrono::steady_clock::now();
-  frame_now = frame_last;
-  g.game_time = 0.0;
-  g.time_elapsed = 0.0;
+    frame_last = std::chrono::steady_clock::now();
+    frame_now = frame_last;
+    g.game_time = 0.0;
+    g.time_elapsed = 0.0;
 
-  running = true;
-  g.console_on = true;
+    running = true;
+    g.console_on = true;
 
-  SDL_Event event;
-  while (running)
-  {
-    gameLoop(event);
-  }
+    SDL_Event event;
+    while (running)
+    {
+        gameLoop(event);
+    }
 }
 
 void CheckSize()
 {
-  SDL_GetWindowSize(g.window, &g.window_width, &g.window_height);
+    SDL_GetWindowSize(g.window, &g.window_width, &g.window_height);
 
-  // Center coordinates
-  g.window_center.x = g.window_width / 2.0f;
-  g.window_center.y = g.window_height / 2.0f;
+    // Center coordinates
+    g.window_center.x = g.window_width / 2.0f;
+    g.window_center.y = g.window_height / 2.0f;
 }
 
 std::string formatTime()
 {
-  int total_ms = (int)std::floor(g.game_time * 1000.0);
-  int ms = total_ms % 1000;
-  int total_seconds = total_ms / 1000;
-  int s = total_seconds % 60;
-  int total_minutes = total_seconds / 60;
-  int m = total_minutes % 60;
-  int h = total_minutes / 60;
-  char buf[64];
-  std::snprintf(buf, sizeof(buf), "%02d:%02d:%02d.%03d", h, m, s, ms);
-  // std::cout << "time done:" << buf << std::endl;
-  return std::string(buf);
+    int total_ms = (int)std::floor(g.game_time * 1000.0);
+    int ms = total_ms % 1000;
+    int total_seconds = total_ms / 1000;
+    int s = total_seconds % 60;
+    int total_minutes = total_seconds / 60;
+    int m = total_minutes % 60;
+    int h = total_minutes / 60;
+    char buf[64];
+    std::snprintf(buf, sizeof(buf), "%02d:%02d:%02d.%03d", h, m, s, ms);
+    // std::cout << "time done:" << buf << std::endl;
+    return std::string(buf);
 }
 
 int main()
 {
-  gameStart();
-  SDL_GL_DestroyContext(glContext);
-  SDL_DestroyWindow(window);
-  SDL_Quit();
+    gameStart();
+    SDL_GL_DestroyContext(glContext);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 
-  return 0;
+    return 0;
 }

@@ -8,99 +8,38 @@
 
 #include <iostream>
 
-Player player;
-
 void Player::MovePlayer()
 {
 
-  float theta = glm::radians(orientation); // -45 degrees
+    float theta = glm::radians(orientation); // -45 degrees
 
-  // Rotate velocity vector by orientation
-  float rotated_vx = velocity_x * cos(theta) - velocity_y * sin(theta);
-  float rotated_vy = velocity_x * sin(theta) + velocity_y * cos(theta);
+    // Rotate velocity vector by orientation
+    float rotated_vx = vel.x * cos(theta) - vel.y * sin(theta);
+    float rotated_vy = vel.x * sin(theta) + vel.y * cos(theta);
 
-  pos_x += rotated_vx;
-  pos_y += rotated_vy;
+    pos.x += rotated_vx;
+    pos.y += rotated_vy;
 
-  // Apply friction to gradually stop the player
-  velocity_x *= 0.8f; // Friction factor for x
-  velocity_y *= 0.8f; // Friction factor for y
+    // Apply friction to gradually stop the player
+    vel.x *= 0.8f; // Friction factor for x
+    vel.y *= 0.8f; // Friction factor for y
 
-  // If velocity is very small, set it to zero to prevent drifting
-  if (std::abs(velocity_x) < 0.1f)
-    velocity_x = 0.0f;
-  if (std::abs(velocity_y) < 0.1f)
-    velocity_y = 0.0f;
+    // If velocity is very small, set it to zero to prevent drifting
+    if (std::abs(vel.x) < 0.1f)
+        vel.x = 0.0f;
+    if (std::abs(vel.y) < 0.1f)
+        vel.y = 0.0f;
 }
 
 void Player::UpdatePlayerDot(std::vector<Point> &points, std::vector<Capsule> &capsules)
 {
-  points[0].pos = {pos_x, pos_y, 0.0f};
-  points[0].color = glm::vec3(1.0f, 1.0f, 1.0f);
-  capsules[0].center = {pos_x, pos_y, 16.0f, 0.0f};
+    points[0].pos = {pos.x, pos.y, 0.0f};
+    points[0].color = glm::vec3(1.0f, 1.0f, 1.0f);
+    capsules[0].center = {pos.x, pos.y, 16.0f, 0.0f};
 }
 
 void Player::UpdateCrosshair(std::vector<Point> &points, glm::vec2 pos)
 {
-
-  points[1].pos = {pos.x, pos.y, 0.0f};
-  points[1].color = glm::vec3(1.0f, 1.0f, 1.0f);
-  /*
- xhair_dot.pos = glm::vec3(pos.x, pos.y, 0.0f);
- xhair_dot.color = glm::vec3(1.0f, 1.0f, 1.0f); */
+    points[1].pos = {pos.x, pos.y, 0.0f};
+    points[1].color = glm::vec3(1.0f, 1.0f, 1.0f);
 }
-
-void Weapon::UpdateWeapon(Input &input, double delta, WeaponType type)
-{
-  glm::vec3 pos = {0.0f, 0.0f, 0.0f};
-  pos.x = player.pos_x;
-  pos.y = player.pos_y;
-
-  fire_cooldown -= delta;
-
-  if (fire_cooldown <= 0.0)
-  {
-    fire_cooldown = fire_rate;
-    switch (type)
-    {
-    case WeaponType::Blast:
-    {
-      Weapon blast = player.weapons[0];
-      BlastManager::CreateBlast(blast.blast_size, blast.blast_rate, input.mouse.world_pos, world.blasts);
-      break;
-    }
-    case WeaponType::Deagle:
-    {
-      Weapon deagle = player.weapons[1];
-      CreateBullet(pos, input.mouse.world_pos, deagle.bullet_live, world.bullets);
-      break;
-    }
-    }
-    // std::cout << "Weapon fired" << std::endl;
-  }
-}
-/*
-void Weapon::DoBlast(Input &input, World &world)
-{
-  Blast blast;
-  blast.cooldown = blast_rate;
-  blast.rate = blast_rate;
-  blast.pos.x = input.mouse_world_pos.x;
-  blast.pos.y = input.mouse_world_pos.y;
-  blast.pos.z = 0.0f;
-  blast.radius = blast_radius;
-  world.blasts.push_back(blast);
-}
-*/
-/*
-void Weapon::DoBullet(Input &input, Player &player, World &world)
-{
-  Bullet bullet;
-  bullet.time = bullet_live;
-  bullet.start_pos_x = player.pos_x;
-  bullet.start_pos_y = player.pos_y;
-  bullet.pos_x = input.mouse_world_pos.x;
-  bullet.pos_y = input.mouse_world_pos.y;
-  world.bullets.push_back(bullet);
-}
- */

@@ -70,8 +70,6 @@ struct Gizmos
   std::vector<Capsule> capsules;
 };
 
-extern Gizmos gizmos;
-
 void LoadBasics();
 
 Cube CreateCube(glm::vec3 pos, float size, glm::vec3 color, std::vector<Cube> &cubes);

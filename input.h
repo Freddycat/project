@@ -4,15 +4,15 @@
 #include <vector>
 #include <glm/glm.hpp>
 
-// struct Mouse;
+struct Camera;
+struct Player;
 
 struct Mouse
 {
   glm::vec2 screen_pos;
-
   glm::vec2 center_pos;
-
   glm::vec3 world_pos = {0.0f, 0.0f, 0.0f};
+  glm::vec3 xhair_pos = {0.0f, 0.0f, 0.0f};
 };
 
 struct Input
@@ -27,9 +27,9 @@ struct Input
 
   void GetMouseInput();
 
-  void GetMouseWorldPos();
+  void GetMouseWorldPos(Camera &camera, float offset = 0.0f);
 
-  void InputKeyboard();
+  void InputKeyboard(Player &player);
 
   Mouse mouse;
 };

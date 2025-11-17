@@ -9,8 +9,6 @@
 #include <stdexcept>
 #include <filesystem>
 
-Graphics graphics;
-
 namespace Gfx
 {
   void CheckGLError(const char *functionName)
