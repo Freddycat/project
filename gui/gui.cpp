@@ -10,7 +10,7 @@
 
 #include <glm/glm.hpp>
 
-ImGuiChildFlags flags = ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Border;
+ImGuiChildFlags flags = ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Borders;
 
 void Gui::DrawImGui(const std::string time, Graphics &graphics, Gizmos &gizmos, Player &player, Camera &camera, World &world, entt::registry &registry, entt::entity &weapon, Input &input)
 {
