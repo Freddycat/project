@@ -93,7 +93,7 @@ void render(Graphics &graphics, Camera &camera, Gizmos &gizmos, World &world, Pl
         glBufferSubData(GL_ARRAY_BUFFER, 0, gizmos.cubes.size() * sizeof(Cube), gizmos.cubes.data());
     }
     glLineWidth(4.0f);
-    glDrawArraysInstanced(GL_LINES, 0, base_cube.size(), gizmos.cubes.size());
+    glDrawArraysInstanced(GL_TRIANGLES, 0, base_cube_wireframe.size(), gizmos.cubes.size());
     glBindVertexArray(0);
 
     // -- CIRCLES --

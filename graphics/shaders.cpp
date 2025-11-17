@@ -10,7 +10,8 @@
 
 #include "global.h"
 
-std::vector<glm::vec3> base_cube;
+std::vector<glm::vec3> base_cube_wireframe;
+std::vector<glm::vec3> base_cube_filled;
 std::vector<glm::vec3> base_circle;
 std::vector<glm::vec3> base_sphere;
 std::vector<glm::vec3> base_cylinder;
@@ -35,7 +36,7 @@ void LoadBasics()
         {0.5f, 0.5f, 0.5f},
         {-0.5f, 0.5f, 0.5f}};
 
-    // Edges (pairs of vertex indices)
+    // Edges (for wireframe)
     int edges[12][2] = {
         {0, 1}, {1, 2}, {2, 3}, {3, 0}, // bottom
         {4, 5},
@@ -47,10 +48,30 @@ void LoadBasics()
         {2, 6},
         {3, 7} // sides
     };
+    // Lines (for filled triangles cube)
+    int cubeIndices[36] = {
+        // Back face
+        0, 1, 2, 2, 3, 0,
+        // Front face
+        4, 5, 6, 6, 7, 4,
+        // Left face
+        0, 4, 7, 7, 3, 0,
+        // Right face
+        1, 5, 6, 6, 2, 1,
+        // Bottom face
+        0, 1, 5, 5, 4, 0,
+        // Top face
+        3, 2, 6, 6, 7, 3};
+
     for (int i = 0; i < 12; ++i)
     {
-        base_cube.push_back(cubeVerts[edges[i][0]]);
-        base_cube.push_back(cubeVerts[edges[i][1]]);
+        base_cube_wireframe.push_back(cubeVerts[edges[i][0]]);
+        base_cube_wireframe.push_back(cubeVerts[edges[i][1]]);
+    }
+
+    for (int i = 0; i < 36; ++i)
+    {
+        base_cube_filled.push_back(cubeVerts[cubeIndices[i]]);
     }
 
     // circle
@@ -285,7 +306,7 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera)
     glBindVertexArray(graphics.vao_cube);
     glGenBuffers(1, &graphics.vbo_cube_buf);
     glBindBuffer(GL_ARRAY_BUFFER, graphics.vbo_cube_buf);
-    glBufferData(GL_ARRAY_BUFFER, base_cube.size() * sizeof(glm::vec3), base_cube.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, base_cube_wireframe.size() * sizeof(glm::vec3), base_cube_wireframe.data(), GL_STATIC_DRAW);
     // pos
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void *)0);
     glEnableVertexAttribArray(0);
