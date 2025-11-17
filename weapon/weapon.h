@@ -9,7 +9,6 @@
 struct Blast;
 struct Laser;
 
-
 struct WeaponManager
 {
     entt::registry registry;

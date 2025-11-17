@@ -17,8 +17,6 @@ void Weapon::UpdateWeapon(glm::vec3 target, glm::vec3 start, double delta, std::
 
 void Weapon::FireWeapon(glm::vec3 target, glm::vec3 start, double delta, std::vector<Blast> &blasts, std::vector<Laser> &lasers, entt::registry &registry)
 {
-
-
     for (auto &weapon : registry.view<LaserComponent>())
     {
         auto &laser = registry.get<LaserComponent>(weapon);
