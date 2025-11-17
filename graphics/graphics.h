@@ -5,6 +5,7 @@
 #include <vector>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <filesystem>
 
 #include "gizmos.h"
 
@@ -44,7 +45,7 @@ namespace Gfx
 {
   void CheckGLError(const char *functionName);
   extern GLuint shaderID;
-  GLuint InitializeShader(const std::string &vertexPath, const std::string &fragmentPath);
+  GLuint InitializeShader(const std::filesystem::path &vertexPath, const std::filesystem::path &fragmentPath);
 
   // if needed setup:
   void use(GLuint shaderID);

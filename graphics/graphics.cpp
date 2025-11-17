@@ -20,7 +20,7 @@ namespace Gfx
     }
   }
   GLuint shaderID = 0;
-  GLuint InitializeShader(const std::string &vertexPath, const std::string &fragmentPath)
+  GLuint InitializeShader(const std::filesystem::path &vertexPath, const std::filesystem::path &fragmentPath)
   {
     std::cout << "Vertex Shader Path: " << vertexPath << std::endl;
     std::cout << "Fragment Shader Path: " << fragmentPath << std::endl;
@@ -35,11 +35,11 @@ namespace Gfx
 
     if (!std::filesystem::exists(vertexPath))
     {
-      throw std::runtime_error("ERROR::SHADER::VERTEX_FILE_NOT_FOUND: " + vertexPath);
+      throw std::runtime_error("ERROR::SHADER::VERTEX_FILE_NOT_FOUND: " /* + vertexPath */);
     }
     if (!std::filesystem::exists(fragmentPath))
     {
-      throw std::runtime_error("ERROR::SHADER::FRAGMENT_FILE_NOT_FOUND: " + fragmentPath);
+      throw std::runtime_error("ERROR::SHADER::FRAGMENT_FILE_NOT_FOUND: " /* + fragmentPath */);
     }
     try
     {

@@ -36,7 +36,6 @@ World world;
 Camera camera;
 Gui gui;
 WeaponManager manager;
-
 Global g;
 
 void gameLoop(SDL_Event &event)
