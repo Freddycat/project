@@ -8,6 +8,7 @@
 #include "weapon.h"
 #include "player.h"
 #include "gizmos.h"
+#include "collisions.h"
 
 void World::InitializeWorld(
     Player &player,
@@ -30,7 +31,7 @@ void World::InitializeWorld(
     registry.emplace<LaserComponent>(weapon.id);
     registry.emplace<BlastComponent>(weapon.id);
 
-    //weapons.push_back(weapon);
+    // weapons.push_back(weapon);
 
     player.weapon = weapon.id;
 
@@ -57,7 +58,6 @@ void World::InitializeWorld(
     std::cout << "cells.size(): " << cells.size() << std::endl;
 
     House house;
-    house.id = 1;
     house.cell = 1820;
     structures.push_back(house);
 
@@ -92,6 +92,19 @@ void World::InitCube(std::vector<Cube> &cubes)
             {
                 std::cout << "found house" << std::endl;
                 Cube cube = CreateCube(center, size, color, cubes);
+
+                glm::vec3 offset_cube_start = center;
+                glm::vec3 offset_cube_end = center;
+
+                offset_cube_start.x -= size / 2;
+                offset_cube_start.y -= size / 2;
+                offset_cube_start.z -= size / 2;
+                offset_cube_end.x += size / 2;
+                offset_cube_end.y += size / 2;
+                offset_cube_end.z += size / 2;
+
+                house.id = collidables.create();
+                collidables.emplace<BoxColliderAxis>(house.id, offset_cube_start, offset_cube_end);
             }
         }
 }

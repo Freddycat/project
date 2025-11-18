@@ -71,7 +71,7 @@ struct Cell
 
 struct House
 {
-    int id;
+    entt::entity id;
     glm::vec2 pos;
     int cell;
 };

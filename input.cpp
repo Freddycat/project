@@ -6,6 +6,8 @@
 #include "camera.h"
 #include "player.h"
 #include <SDL3/SDL.h>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/norm.hpp>
 
 Mouse &Input::GetMouse()
 {
@@ -45,19 +47,20 @@ void Input::InputKeyboard(Player &player)
 
     const bool *keyboard = SDL_GetKeyboardState(nullptr);
 
-    if (keyboard[SDL_SCANCODE_W])
+    player.wish_dir = {0.0f, 0.0f};
 
-        player.vel.y -= player.speed;
+    if (keyboard[SDL_SCANCODE_W])
+        player.wish_dir.y -= 1.0f;
 
     if (keyboard[SDL_SCANCODE_S])
-
-        player.vel.y += player.speed;
+        player.wish_dir.y += 1.0f;
 
     if (keyboard[SDL_SCANCODE_A])
-
-        player.vel.x -= player.speed;
+        player.wish_dir.x -= 1.0f;
 
     if (keyboard[SDL_SCANCODE_D])
+        player.wish_dir.x += 1.0f;
 
-        player.vel.x += player.speed;
+    if (glm::length2(player.wish_dir) > 0.0f)
+        player.wish_dir = glm::normalize(player.wish_dir);
 }

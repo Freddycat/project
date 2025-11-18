@@ -207,6 +207,9 @@ void Gui::PlayerInfo(Player &player, Gizmos &gizmos)
     {
         ImGui::BeginChild("Player info", ImVec2(0.0f, 0.0f), flags);
         ImGui::Text("Player Pos: (%.1f, %.1f)", player.pos.x, player.pos.y);
+        ImGui::Text("Player Accel: (%.1f)", player.accel);
+        ImGui::Text("Player Vel: (%.1f, %.1f)", player.velocity.x, player.velocity.y);
+        ImGui::Text("Player WishDir: (%.1f, %.1f)", player.wish_dir.x, player.wish_dir.y);
 
         float height = gizmos.capsules[0].size.z;
         if (ImGui::InputFloat("Height", &height))

@@ -71,7 +71,7 @@ void gameLoop(SDL_Event &event)
 
     input.InputKeyboard(player);
     input.GetMouseInput();
-    player.MovePlayer();
+    player.MovePlayer(g.time_elapsed);
     camera.CenterCam(graphics.vertexID, input, player);
     input.GetMouseWorldPos(camera, player.cam_center);
 

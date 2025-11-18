@@ -5,30 +5,56 @@
 #include "player.h"
 #include "app.h"
 #include "world.h"
+#include <collisions.h>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/norm.hpp>
 
 #include <iostream>
 
-void Player::MovePlayer()
+void Player::MovePlayer(float time_elapsed)
 {
 
-    float theta = glm::radians(orientation); // -45 degrees
+    // Always rotate player's wish_dir to wishdir
+    float theta = glm::radians(orientation);
+    glm::vec2 wishdir;
+    wishdir.x = wish_dir.x * cos(theta) - wish_dir.y * sin(theta);
+    wishdir.y = wish_dir.x * sin(theta) + wish_dir.y * cos(theta);
 
-    // Rotate velocity vector by orientation
-    float rotated_vx = vel.x * cos(theta) - vel.y * sin(theta);
-    float rotated_vy = vel.x * sin(theta) + vel.y * cos(theta);
+    if (glm::length2(wishdir) > 0.0f)
+        wishdir = glm::normalize(wishdir);
 
-    pos.x += rotated_vx;
-    pos.y += rotated_vy;
+    // Acceleration is applied to velocity
+    velocity += glm::vec3(wishdir.x, wishdir.y, 0.0f) * accel;
 
-    // Apply friction to gradually stop the player
-    vel.x *= 0.8f; // Friction factor for x
-    vel.y *= 0.8f; // Friction factor for y
+    // Maximim movement amount for this frame
+    glm::vec3 distance = velocity * time_elapsed;
 
-    // If velocity is very small, set it to zero to prevent drifting
-    if (std::abs(vel.x) < 0.1f)
-        vel.x = 0.0f;
-    if (std::abs(vel.y) < 0.1f)
-        vel.y = 0.0f;
+    // Head pos
+    head_pos = pos + glm::vec3(0.0f, 0.0f, height);
+
+    // Test collisions
+    CollisionResult collision = TestCollisions(pos, pos + distance, pos, head_pos, radius);
+
+    // Move either full distance or portion till collision
+    glm::vec3 delta = distance * collision.fraction;
+
+    if (collision.hit)
+    { // Slide along collision normal
+        glm::vec3 remaining = distance * (1.0f - collision.fraction);
+        remaining -= glm::dot(remaining, collision.normal) * collision.normal;
+        delta += remaining;
+    }
+
+    // Apply movement
+    pos += delta;
+
+    // Friction
+    velocity.x *= 0.8f;
+    velocity.y *= 0.8f;
+    if (std::abs(velocity.x) < 0.1f)
+        velocity.x = 0.0f;
+    if (std::abs(velocity.y) < 0.1f)
+        velocity.y = 0.0f;
 }
 
 void Player::UpdatePlayerDot(std::vector<Point> &points, std::vector<Capsule> &capsules)

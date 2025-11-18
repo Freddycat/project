@@ -18,12 +18,27 @@ struct Player
     float velocity_x = 0.0f;
     float velocity_y = 0.0f;
 
+    glm::vec2 wish_dir;
+
     glm::vec3 pos;
-    glm::vec3 vel;
-    float speed = 2.0f;
+
+    glm::vec3 velocity;
+
+    glm::vec3 move_direction;
+
+    glm::vec3 facing;
+
+    glm::vec3 next_pos;
+
+    glm::vec3 head_pos;
+
+    float speed = 0.0f;
+
+    float accel = 120.0f;
 
     float orientation = -45.0f;
 
+    float radius = 16.0f;
     float height = 32.0f;
 
     float center = height / 2;
@@ -37,13 +52,12 @@ struct Player
 
     Capsule playerCap{
         {0.0, 0.0, 0.0, 0.0},
-        {16.0, 16.0, height, 0.0},
+        {radius, radius, height, 0.0},
         {0.8, 0.8, 0.8, 1.0}};
 
-    void MovePlayer();
+    void MovePlayer(float time_elapsed);
     void UpdatePlayerDot(std::vector<Point> &points, std::vector<Capsule> &capsules);
     void UpdateCrosshair(std::vector<Point> &points, glm::vec2 pos);
 };
-
 
 #endif

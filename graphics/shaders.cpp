@@ -222,14 +222,13 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera)
     LoadBasics();
 
     // shader programs
-    std::filesystem::path home = std::filesystem::current_path();
 
-    graphics.vertexID = Gfx::InitializeShader(home / "vert.glsl", home / "frag.glsl");
+    graphics.vertexID = Gfx::InitializeShader("vert.glsl", "frag.glsl");
 
-    graphics.vertexID = Gfx::InitializeShader(home / "vert.glsl", home / "frag.glsl");
-    graphics.circleID = Gfx::InitializeShader(home / "circle.glsl", home / "frag.glsl");
-    graphics.cubeID = Gfx::InitializeShader(home / "circle.glsl", home / "frag.glsl");
-    graphics.capID = Gfx::InitializeShader(home / "capsule.glsl", home / "frag.glsl");
+    graphics.vertexID = Gfx::InitializeShader("vert.glsl", "frag.glsl");
+    graphics.circleID = Gfx::InitializeShader("circle.glsl", "frag.glsl");
+    graphics.cubeID = Gfx::InitializeShader("circle.glsl", "frag.glsl");
+    graphics.capID = Gfx::InitializeShader("capsule.glsl", "frag.glsl");
 
     if (glIsProgram(graphics.vertexID))
         glUseProgram(graphics.vertexID);

@@ -11,6 +11,7 @@ add_subdirectory(include/SDL)
 add_subdirectory(include/entt)
 
 add_subdirectory(graphics)
+add_subdirectory(physics)
 add_subdirectory(gui)
 add_subdirectory(weapon)
 
@@ -58,6 +59,7 @@ target_link_libraries(project PUBLIC
     EnTT::EnTT
     OpenGL::GL
     graphics
+    physics
     weapon
     gui
 )

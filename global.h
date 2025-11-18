@@ -17,8 +17,8 @@ struct Global
 
   glm::vec2 window_center;
 
-  double game_time;
-  double time_elapsed;
+  float game_time;
+  float time_elapsed;
 
   bool console_on = true;
 };
