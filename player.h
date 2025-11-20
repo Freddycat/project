@@ -57,7 +57,7 @@ struct Player
 
     void MovePlayer(float time_elapsed);
     void UpdatePlayerDot(std::vector<Point> &points, std::vector<Capsule> &capsules);
-    void UpdateCrosshair(std::vector<Point> &points, glm::vec2 pos);
+    void UpdateCrosshair(std::vector<Point> &points, glm::vec3 &pos);
 };
 
 #endif

@@ -5,120 +5,96 @@
 
 entt::registry collidables;
 
-float segment_to_segment_dist_sq(const glm::vec3 &p1, const glm::vec3 &q1,
-                                 const glm::vec3 &p2, const glm::vec3 &q2)
-{
-    glm::vec3 d1 = q1 - p1;
-    glm::vec3 d2 = q2 - p2;
-    glm::vec3 r = p1 - p2;
-    float a = glm::dot(d1, d1);
-    float e = glm::dot(d2, d2);
-    float f = glm::dot(d2, r);
-
-    float s, t;
-    const float EPS = 1e-6f;
-
-    if (a <= EPS && e <= EPS)
-    {
-        s = t = 0.0f;
-        return glm::dot(r, r);
-    }
-    if (a <= EPS)
-    {
-        s = 0.0f;
-        t = glm::clamp(f / e, 0.0f, 1.0f);
-    }
-    else
-    {
-        float c = glm::dot(d1, r);
-        if (e <= EPS)
-        {
-            t = 0.0f;
-            s = glm::clamp(-c / a, 0.0f, 1.0f);
-        }
-        else
-        {
-            float b = glm::dot(d1, d2);
-            float denom = a * e - b * b;
-            if (denom != 0.0f)
-                s = glm::clamp((b * f - c * e) / denom, 0.0f, 1.0f);
-            else
-                s = 0.0f;
-            t = (b * s + f) / e;
-            if (t < 0.0f)
-            {
-                t = 0.0f;
-                s = glm::clamp(-c / a, 0.0f, 1.0f);
-            }
-            else if (t > 1.0f)
-            {
-                t = 1.0f;
-                s = glm::clamp((b - c) / a, 0.0f, 1.0f);
-            }
-        }
-    }
-    glm::vec3 c1 = p1 + d1 * s;
-    glm::vec3 c2 = p2 + d2 * t;
-    return glm::dot(c1 - c2, c1 - c2);
-}
-
 CollisionResult capsule_vs_box(const glm::vec3 start_pos, glm::vec3 end_pos, const glm::vec3 cap_start, const glm::vec3 cap_end,
                                const float radius, const glm::vec3 box_start, const glm::vec3 box_end)
 {
     glm::vec3 delta = end_pos - start_pos;
-    glm::vec3 move_vec = end_pos - start_pos;
-    glm::vec3 swept_start = cap_start + move_vec;
-    glm::vec3 swept_end = cap_end + move_vec;
+    glm::vec3 direction = glm::normalize(delta);
 
     CollisionResult result;
 
-    for (float sweep = 0; sweep <= 1.0f; sweep += 0.01f)
+    glm::vec3 ex_start = box_start - glm::vec3(radius);
+    glm::vec3 ex_end = box_end + glm::vec3(radius);
+
+    float tmin = 0.0f;
+    float tmax = 1.0f;
+
+    for (int i = 0; i < 3; i++)
     {
-        glm::vec3 p0 = cap_start + delta * sweep;
-        glm::vec3 p1 = cap_end + delta * sweep;
-        glm::vec3 closest = glm::clamp(p0, box_start, box_end);
-        glm::vec3 diff = p0 - closest;
-        float dist2 = glm::dot(diff, diff);
-
-        if (glm::dot(p0 - closest, p0 - closest) <= radius * radius)
+        if (std::abs(delta[i]) < 1e-8f)
         {
-            result.fraction = sweep;
+            if (cap_start[i] < ex_start[i] || cap_start[i] > ex_end[i])
+                return result; // no hit
+        }
+        else
+        {
 
-            if (glm::length2(diff) > 1e-6f)
-                result.normal = glm::normalize(diff);
-            else
-                result.normal = glm::vec3(0.0f, 0.0f, 1.0f); // fallback
+            float invD = 1.0f / delta[i];
 
-            result.hit = true;
-            std::cout << "true" << std::endl;
-            break;
+            float t1 = (ex_start[i] - start_pos[i]) * invD;
+            float t2 = (ex_end[i] - start_pos[i]) * invD;
+
+            if (t1 > t2)
+                std::swap(t1, t2);
+
+            tmin = glm::max(tmin, t1);
+            tmax = glm::min(tmax, t2);
+
+            if (tmin > tmax)
+                return result; // miss
         }
     }
+    // Collision occurs at tmin
+    if (tmin < 0.0f || tmin > 1.0f)
+        return result;
+
+    std::cout << "hit a wall bro" << std::endl;
+
+    result.hit = true;
+    result.fraction = tmin;
+
+    // Compute normal: find dominant axis
+    glm::vec3 hitPoint = start_pos + delta * tmin;
+
+    const float eps = 1e-4f;
+    if (std::abs(hitPoint.x - ex_start.x) < eps)
+        result.normal = glm::vec3(-1, 0, 0);
+    else if (std::abs(hitPoint.x - ex_end.x) < eps)
+        result.normal = glm::vec3(1, 0, 0);
+    else if (std::abs(hitPoint.y - ex_start.y) < eps)
+        result.normal = glm::vec3(0, -1, 0);
+    else if (std::abs(hitPoint.y - ex_end.y) < eps)
+        result.normal = glm::vec3(0, 1, 0);
+    else if (std::abs(hitPoint.z - ex_start.z) < eps)
+        result.normal = glm::vec3(0, 0, -1);
+    else if (std::abs(hitPoint.z - ex_end.z) < eps)
+        result.normal = glm::vec3(0, 0, 1);
+
+    /*
+        for (float sweep = 0; sweep <= 1.0f; sweep += 0.01f)
+        {
+            glm::vec3 p0 = cap_start + delta * sweep;
+            glm::vec3 p1 = cap_end + delta * sweep;
+            glm::vec3 closest = glm::clamp(p0, box_start, box_end);
+            glm::vec3 diff = p0 - closest;
+            float dist2 = glm::dot(diff, diff);
+
+            if (glm::dot(p0 - closest, p0 - closest) <= radius * radius)
+            {
+                result.fraction = sweep;
+
+                if (glm::length2(diff) > 1e-6f)
+                    result.normal = glm::normalize(diff);
+                else
+                    result.normal = glm::vec3(0.0f, 0.0f, 1.0f); // fallback
+
+                result.hit = true;
+                std::cout << "true" << std::endl;
+                break;
+            }
+        } */
     return result;
 }
-
-/*
-    auto closest_point = [&](const glm::vec3 &p)
-    {
-        return glm::clamp(p, box_start, box_end);
-    };
-
-    if (glm::dot(swept_start - closest_point(swept_start), swept_start - closest_point(swept_start)) <= radius * radius)
-        return true;
-    if (glm::dot(swept_end - closest_point(swept_end), swept_end - closest_point(swept_end)) <= radius * radius)
-        return true;
- */
-/* // Check closest distance from segment to rectangle edges
-// rectangle edges as segments: min->(max.x,min.y), (max.x,min.y)->max, max->(min.x,max.y), (min.x,max.y)->min
-glm::vec2 rect_points[4] = {min, {max.x, min.y}, max, {min.x, max.y}};
-for (int i = 0; i < 4; ++i)
-{
-    glm::vec2 p0 = rect_points[i];
-    glm::vec2 p1 = rect_points[(i + 1) % 4];
-    float dist_sq = segment_to_segment_dist_sq(cap_start, cap_end, p0, p1);
-    if (dist_sq <= radius * radius)
-        return true;
-} */
 
 CollisionResult TestCollisions(glm::vec3 pos, glm::vec3 next_pos, glm::vec3 cap_start, glm::vec3 cap_end, float radius)
 {

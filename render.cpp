@@ -41,18 +41,27 @@ void render(Graphics &graphics, Camera &camera, Gizmos &gizmos, World &world, Pl
         glBufferData(GL_ARRAY_BUFFER, graphics.max_circles * sizeof(Circle), nullptr, GL_DYNAMIC_DRAW);
     }
 
-    glUseProgram(graphics.vertexID);
+    // -- CAMERA (universal) --
+    glm::mat4 view = camera.view;
+    glm::mat4 proj = camera.projection;
+
+    glBindBuffer(GL_UNIFORM_BUFFER, graphics.cameraUBO);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
+    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(proj));
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     // -- POINTS --
-    GLuint projLocation = glGetUniformLocation(graphics.vertexID, "uProjection");
-    GLuint viewLocation = glGetUniformLocation(graphics.vertexID, "uView");
-    glUniformMatrix4fv(projLocation, 1, GL_FALSE, glm::value_ptr(camera.projection));
-    glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(camera.view));
+    glUseProgram(graphics.vertexID);
+
     glBindVertexArray(graphics.vao_point);
     glBindBuffer(GL_ARRAY_BUFFER, graphics.vbo_point);
     glBufferSubData(GL_ARRAY_BUFFER, 0, gizmos.points.size() * sizeof(Point), gizmos.points.data());
     glPointSize(6.0f);
     glDrawArrays(GL_POINTS, 0, gizmos.points.size());
+    glBindVertexArray(0);
+
+    glm::vec3 test_color = gizmos.points[0].color;
+    glm::vec3 test_pos = gizmos.points[0].pos;
 
     // -- LINES (STATIC) --
     glBindVertexArray(graphics.vao_line);
@@ -79,16 +88,37 @@ void render(Graphics &graphics, Camera &camera, Gizmos &gizmos, World &world, Pl
     glBindVertexArray(0);
 
     // -- CUBES --
+    glUseProgram(graphics.wireframe_cubeID);
+    glBindVertexArray(graphics.vao_wireframecube);
+
+    if (!gizmos.cubes.empty())
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, graphics.vbo_wireframecubes);
+
+        glBufferSubData(GL_ARRAY_BUFFER, 0, gizmos.cubes.size() * sizeof(Cube), gizmos.cubes.data());
+    }
+    glLineWidth(4.0f);
+    glDrawArraysInstanced(GL_LINES, 0, base_cube_wireframe.size(), gizmos.cubes.size());
+    glBindVertexArray(0);
+
     glUseProgram(graphics.cubeID);
-    // camera stuff
-    GLuint projLocationCube = glGetUniformLocation(graphics.cubeID, "uProjection");
-    GLuint viewLocationCube = glGetUniformLocation(graphics.cubeID, "uView");
-    glUniformMatrix4fv(projLocationCube, 1, GL_FALSE, glm::value_ptr(camera.projection));
-    glUniformMatrix4fv(viewLocationCube, 1, GL_FALSE, glm::value_ptr(camera.view));
     glBindVertexArray(graphics.vao_cube);
+
     if (!gizmos.cubes.empty())
     {
         glBindBuffer(GL_ARRAY_BUFFER, graphics.vbo_cubes);
+
+        glBufferSubData(GL_ARRAY_BUFFER, 0, gizmos.cubes.size() * sizeof(Cube), gizmos.cubes.data());
+    }
+    glDrawArraysInstanced(GL_TRIANGLES, 0, base_cube.size(), gizmos.cubes.size());
+    glBindVertexArray(0);
+
+    glUseProgram(graphics.cubeID);
+    glBindVertexArray(graphics.vao_wireframecube);
+
+    if (!gizmos.cubes.empty())
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, graphics.vbo_wireframecubes);
 
         glBufferSubData(GL_ARRAY_BUFFER, 0, gizmos.cubes.size() * sizeof(Cube), gizmos.cubes.data());
     }
@@ -98,13 +128,8 @@ void render(Graphics &graphics, Camera &camera, Gizmos &gizmos, World &world, Pl
 
     // -- CIRCLES --
     glUseProgram(graphics.circleID);
-
-    // camera stuff
-    GLuint projLocationCirc = glGetUniformLocation(graphics.circleID, "uProjection");
-    GLuint viewLocationCirc = glGetUniformLocation(graphics.circleID, "uView");
-    glUniformMatrix4fv(projLocationCirc, 1, GL_FALSE, glm::value_ptr(camera.projection));
-    glUniformMatrix4fv(viewLocationCirc, 1, GL_FALSE, glm::value_ptr(camera.view));
     glBindVertexArray(graphics.vao_circle);
+
     if (!gizmos.circles.empty())
     {
         glBindBuffer(GL_ARRAY_BUFFER, graphics.vbo_circles);
@@ -115,12 +140,8 @@ void render(Graphics &graphics, Camera &camera, Gizmos &gizmos, World &world, Pl
 
     // -- CAPSULES --
     glUseProgram(graphics.capID);
-    // camera stuff
-    GLuint projLocationCap = glGetUniformLocation(graphics.capID, "uProjection");
-    GLuint viewLocationCap = glGetUniformLocation(graphics.capID, "uView");
-    glUniformMatrix4fv(projLocationCap, 1, GL_FALSE, glm::value_ptr(camera.projection));
-    glUniformMatrix4fv(viewLocationCap, 1, GL_FALSE, glm::value_ptr(camera.view));
     glBindVertexArray(graphics.vao_cap);
+
     if (!gizmos.capsules.empty())
     {
         glBindBuffer(GL_ARRAY_BUFFER, graphics.vbo_caps);
@@ -129,10 +150,6 @@ void render(Graphics &graphics, Camera &camera, Gizmos &gizmos, World &world, Pl
 
     glDrawArraysInstanced(GL_LINES, 0, base_capsule.size(), gizmos.capsules.size());
     glBindVertexArray(0);
-
-    GLenum err;
-    while ((err = glGetError()) != GL_NO_ERROR)
-        std::cerr << "GL error: " << err << std::endl;
 
     if (g.console_on)
     {

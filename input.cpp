@@ -6,8 +6,10 @@
 #include "camera.h"
 #include "player.h"
 #include <SDL3/SDL.h>
+#include <iostream>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 Mouse &Input::GetMouse()
 {

@@ -11,7 +11,7 @@
 #include "global.h"
 
 std::vector<glm::vec3> base_cube_wireframe;
-std::vector<glm::vec3> base_cube_filled;
+std::vector<glm::vec3> base_cube;
 std::vector<glm::vec3> base_circle;
 std::vector<glm::vec3> base_sphere;
 std::vector<glm::vec3> base_cylinder;
@@ -71,7 +71,7 @@ void LoadBasics()
 
     for (int i = 0; i < 36; ++i)
     {
-        base_cube_filled.push_back(cubeVerts[cubeIndices[i]]);
+        base_cube.push_back(cubeVerts[cubeIndices[i]]);
     }
 
     // circle
@@ -221,43 +221,33 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera)
 
     LoadBasics();
 
-    // shader programs
-
-    graphics.vertexID = Gfx::InitializeShader("vert.glsl", "frag.glsl");
-
+    // Create all the shader programs:
     graphics.vertexID = Gfx::InitializeShader("vert.glsl", "frag.glsl");
     graphics.circleID = Gfx::InitializeShader("circle.glsl", "frag.glsl");
+    graphics.wireframe_cubeID = Gfx::InitializeShader("circle.glsl", "frag.glsl");
     graphics.cubeID = Gfx::InitializeShader("circle.glsl", "frag.glsl");
     graphics.capID = Gfx::InitializeShader("capsule.glsl", "frag.glsl");
 
-    if (glIsProgram(graphics.vertexID))
-        glUseProgram(graphics.vertexID);
-    else
-        std::cerr << "Invalid shader program\n";
+    Gfx::CheckGLError("Gfx::use"); // this is just an error check, not sure if it works.
 
-    Gfx::CheckGLError("Graphics::Shader::use");
-
-    GLuint projLocation = glGetUniformLocation(graphics.vertexID, "uProjection");
-    if (projLocation == -1)
-        std::cerr << "Warning: uProjection uniform not found!\n";
-
-    GLuint viewLocation = glGetUniformLocation(graphics.vertexID, "uView");
-    if (viewLocation == -1)
-        std::cerr << "Warning: uView uniform not found!\n";
-
-    glUniformMatrix4fv(projLocation, 1, GL_FALSE, glm::value_ptr(camera.projection));
-
-    glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(camera.view));
-
-    gizmos.static_points.reserve(1000);
+    // Create a global camera "uniform buffer" to use
+    glGenBuffers(1, &graphics.cameraUBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, graphics.cameraUBO);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 2, nullptr, GL_DYNAMIC_DRAW); // allocates the 2 mat4
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, graphics.cameraUBO); // binds to "0" from layout
+    glBindBuffer(GL_UNIFORM_BUFFER, 0); //unbind
+    // continue:
+    
+    gizmos.points.reserve(1000);
     gizmos.static_line_points.reserve(1000);
     gizmos.lines.reserve(1000);
     gizmos.circles.reserve(50);
     gizmos.cubes.reserve(50);
 
-    graphics.max_points_static = std::max<size_t>(256, gizmos.points.capacity());
+    graphics.max_points = std::max<size_t>(256, gizmos.points.capacity());
     graphics.max_line_points_static = std::max<size_t>(1024, gizmos.static_line_points.capacity());
     graphics.max_circles = std::max<size_t>(64, gizmos.circles.capacity());
+    graphics.max_cubes_wireframe = std::max<size_t>(64, gizmos.wireframe_cubes.capacity());
     graphics.max_cubes = std::max<size_t>(64, gizmos.cubes.capacity());
 
     // -- POINTS (STATIC) --
@@ -272,6 +262,7 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera)
     // color
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Point), (void *)offsetof(Point, color));
     glEnableVertexAttribArray(1);
+    glPointSize(6.0f);
     glBindVertexArray(0);
 
     // -- LINES --
@@ -293,25 +284,45 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera)
     else
         std::cerr << "Invalid shader program\n";
 
-    Gfx::CheckGLError("Graphics::Shader::use");
+    Gfx::CheckGLError("Gfx::use");
 
-    // -- CUBES -- (static)
+    // -- CUBES -- (wireframe static)
 
-    GLuint projLocationCube = glGetUniformLocation(graphics.cubeID, "uProjection");
-    if (projLocationCube == -1)
-        std::cerr << "Warning: uProjection uniform not found!\n";
-    GLuint viewLocationCube = glGetUniformLocation(graphics.cubeID, "uView");
-    if (viewLocationCube == -1)
-        std::cerr << "Warning: uView uniform not found!\n";
+    glGenVertexArrays(1, &graphics.vao_wireframecube);
+    glBindVertexArray(graphics.vao_wireframecube);
+    glGenBuffers(1, &graphics.vbo_wireframecube_buf);
+    glBindBuffer(GL_ARRAY_BUFFER, graphics.vbo_wireframecube_buf);
+    glBufferData(GL_ARRAY_BUFFER, base_cube_wireframe.size() * sizeof(glm::vec3), base_cube_wireframe.data(), GL_STATIC_DRAW);
+    
+    // pos
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void *)0);
+    glEnableVertexAttribArray(0);
+    // centered (instance)
+    glGenBuffers(1, &graphics.vbo_wireframecubes);
+    glBindBuffer(GL_ARRAY_BUFFER, graphics.vbo_wireframecubes);
+    glBufferData(GL_ARRAY_BUFFER, graphics.max_cubes * sizeof(Cube), nullptr, GL_DYNAMIC_DRAW);
+    // center
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Cube), (void *)offsetof(Cube, center));
+    glEnableVertexAttribArray(1);
+    glVertexAttribDivisor(1, 1);
+    // scale
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(Cube), (void *)offsetof(Cube, size));
+    glEnableVertexAttribArray(2);
+    glVertexAttribDivisor(2, 1); // center changes per instance
+    // color
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Cube), (void *)offsetof(Cube, color));
+    glEnableVertexAttribArray(3);
+    glVertexAttribDivisor(3, 1); // scale changes per instance
 
-    glUniformMatrix4fv(projLocation, 1, GL_FALSE, glm::value_ptr(camera.projection));
-    glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(camera.view));
+    glBindVertexArray(0);
+
+    // -- CUBES -- (solid)
 
     glGenVertexArrays(1, &graphics.vao_cube);
     glBindVertexArray(graphics.vao_cube);
     glGenBuffers(1, &graphics.vbo_cube_buf);
     glBindBuffer(GL_ARRAY_BUFFER, graphics.vbo_cube_buf);
-    glBufferData(GL_ARRAY_BUFFER, base_cube_wireframe.size() * sizeof(glm::vec3), base_cube_wireframe.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, base_cube.size() * sizeof(glm::vec3), base_cube.data(), GL_STATIC_DRAW);
     // pos
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void *)0);
     glEnableVertexAttribArray(0);
@@ -341,18 +352,7 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera)
     else
         std::cerr << "Invalid shader program\n";
 
-    Gfx::CheckGLError("Graphics::Shader::use");
-    GLuint projLocationCirc = glGetUniformLocation(graphics.circleID, "uProjection");
-    if (projLocationCirc == -1)
-        std::cerr << "Warning: uProjection uniform not found!\n";
-
-    GLuint viewLocationCirc = glGetUniformLocation(graphics.circleID, "uView");
-    if (viewLocationCirc == -1)
-        std::cerr << "Warning: uView uniform not found!\n";
-
-    glUniformMatrix4fv(projLocationCirc, 1, GL_FALSE, glm::value_ptr(camera.projection));
-
-    glUniformMatrix4fv(viewLocationCirc, 1, GL_FALSE, glm::value_ptr(camera.view));
+    Gfx::CheckGLError("Gfx::use");
 
     glGenVertexArrays(1, &graphics.vao_circle);
     glBindVertexArray(graphics.vao_circle);
@@ -394,18 +394,7 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera)
     else
         std::cerr << "Invalid shader program\n";
 
-    Gfx::CheckGLError("Graphics::Shader::use");
-    GLuint projLocationCap = glGetUniformLocation(graphics.capID, "uProjection");
-    if (projLocationCap == -1)
-        std::cerr << "Warning: uProjection uniform not found!\n";
-
-    GLuint viewLocationCap = glGetUniformLocation(graphics.capID, "uView");
-    if (viewLocationCap == -1)
-        std::cerr << "Warning: uView uniform not found!\n";
-
-    glUniformMatrix4fv(projLocationCap, 1, GL_FALSE, glm::value_ptr(camera.projection));
-
-    glUniformMatrix4fv(viewLocationCap, 1, GL_FALSE, glm::value_ptr(camera.view));
+    Gfx::CheckGLError("Gfx::use");
 
     glGenVertexArrays(1, &graphics.vao_cap);
     glBindVertexArray(graphics.vao_cap);
@@ -443,4 +432,12 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera)
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glEnable(GL_DEPTH_TEST);
     glLineWidth(1.0f);
+
+
+    GLenum err = glGetError();
+    if (err != GL_NO_ERROR)
+    {
+        std::cerr << "OpenGL error here: 0x" << std::hex << err << std::dec << std::endl;
+    }
+
 };

@@ -21,7 +21,7 @@ struct Gui
 {
     void DrawImGui(const std::string time, Graphics &graphics, Gizmos &gizmos, Player &player, Camera &camera, World &world, entt::registry &registry, entt::entity &weapon, Input &input);
     void AppTime(const std::string time, Graphics &graphics, Gizmos &gizmos);
-    void MouseInfo();
+    void MouseInfo(Input &input);
     void CamInfo(Camera &camera);
     void PlayerInfo(Player &player, Gizmos &gizmos);
     void WorldInfo(World &world);

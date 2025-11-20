@@ -5,6 +5,8 @@
 #include <ctime>
 #include <vector>
 #include <glm/gtc/type_ptr.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
 
 #include "app.h"
 #include "app_start.h"
@@ -63,6 +65,7 @@ void gameLoop(SDL_Event &event)
 
     // -- CLEARING (DYNAMIC)--
 
+    gizmos.points.clear();
     gizmos.lines.clear();
     gizmos.line_points.clear();
     gizmos.circles.clear();
@@ -75,10 +78,8 @@ void gameLoop(SDL_Event &event)
     camera.CenterCam(graphics.vertexID, input, player);
     input.GetMouseWorldPos(camera, player.cam_center);
 
-    player.UpdateCrosshair(gizmos.points, input.mouse.world_pos);
+    player.UpdateCrosshair(gizmos.points, input.mouse.xhair_pos);
     player.UpdatePlayerDot(gizmos.points, gizmos.capsules);
-
-    // for (auto &weapon : player.weapons)
 
     for (auto &entity : manager.registry.view<Weapon>())
     {
@@ -88,18 +89,14 @@ void gameLoop(SDL_Event &event)
         weapon.UpdateWeapon(input.mouse.xhair_pos, newPos, g.time_elapsed, world.blasts, world.lasers, manager.registry);
     }
 
-    //player.weapon->UpdateWeapon(input.mouse.xhair_pos, player.pos, g.time_elapsed, world.blasts, world.lasers, manager.registry);
-
     UpdateBlasts(g.time_elapsed, world.blasts, gizmos.circles);
     UpdateLasers(g.time_elapsed, world.lasers, gizmos.lines);
-    // UpdateBullets(g.time_elapsed, world.bullets, gizmos.lines);
 
     // -- end updating --
     // -- start render --
     render(graphics, camera, gizmos, world, player, gui, manager.registry, player.weapon, input);
 
     world.EraseBlasts();
-    // world.EraseBullets();
     world.EraseLasers();
 
     frameNumber++;

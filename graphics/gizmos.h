@@ -64,6 +64,7 @@ struct Gizmos
   std::vector<Point> points;
   std::vector<Line> lines;
   std::vector<Point> line_points;
+  std::vector<Cube> wireframe_cubes;
   std::vector<Cube> cubes;
   std::vector<Circle> circles;
   std::vector<Sphere> spheres;

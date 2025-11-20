@@ -24,7 +24,7 @@ void Gui::DrawImGui(const std::string time, Graphics &graphics, Gizmos &gizmos, 
     }
 
     AppTime(time, graphics, gizmos);
-    MouseInfo();
+    MouseInfo(input);
     CamInfo(camera);
     PlayerInfo(player, gizmos);
     WorldInfo(world);
@@ -49,12 +49,9 @@ void Gui::AppTime(const std::string time, Graphics &graphics, Gizmos &gizmos)
     }
 }
 
-void Gui::MouseInfo()
+void Gui::MouseInfo(Input &input)
 {
-
-    Input *input = Input::Instance();
-    Mouse mouse = input->GetMouse();
-
+    auto &mouse = input.mouse;
     if (ImGui::TreeNode("Mouse info"))
     {
         ImGui::BeginChild("mouse info", ImVec2(0.0f, 0.0f), flags);
@@ -188,10 +185,15 @@ void Gui::WorldInfo(World &world)
         ImGui::Text("blasts: %d", (int)world.blasts.size());
         for (size_t i = 0; i < world.blasts.size(); i++)
         {
-            ImGui::Text(" Blast %d - Pos: (%.1f, %.1f, %.1f) Time: %.2f", (int)i,
+            ImGui::Text("Blast %d - Pos: (%.1f, %.1f, %.1f) Time: %.2f", (int)i,
                         world.blasts[i].pos.x,
                         world.blasts[i].pos.y,
                         world.blasts[i].pos.z,
+                        world.blasts[i].cooldown);
+        }
+        for (size_t i = 0; i < world.lasers.size(); i++)
+        {
+            ImGui::Text("Laser %d - Time: %.2f", (int)i,
                         world.blasts[i].cooldown);
         }
         ImGui::Text("Cells: %d", (int)world.cells.size());
@@ -210,6 +212,7 @@ void Gui::PlayerInfo(Player &player, Gizmos &gizmos)
         ImGui::Text("Player Accel: (%.1f)", player.accel);
         ImGui::Text("Player Vel: (%.1f, %.1f)", player.velocity.x, player.velocity.y);
         ImGui::Text("Player WishDir: (%.1f, %.1f)", player.wish_dir.x, player.wish_dir.y);
+        ImGui::Text("Player Speed: (%.1f)", player.speed);
 
         float height = gizmos.capsules[0].size.z;
         if (ImGui::InputFloat("Height", &height))

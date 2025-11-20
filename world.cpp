@@ -243,7 +243,7 @@ void World::EraseBlasts()
     blasts.erase(
         std::remove_if(blasts.begin(), blasts.end(),
                        [](const Blast &b)
-                       { return b.cooldown <= 0.0f; }),
+                       { return b.time_left <= 0.0f; }),
         blasts.end());
 }
 

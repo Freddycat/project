@@ -11,52 +11,62 @@
 
 struct Graphics
 {
-  GLuint
-      vertexID, // points
-      vao_point, vbo_point,
-      // lines
-      vao_line, vbo_line,
+    GLuint
+        cameraUBO,
+        
+        vertexID, 
+        vao_point, vbo_point, // points
+        
+        vao_line, vbo_line, // lines
 
-      cubeID,
-      vao_cube,
-      vbo_cube_buf,
-      vbo_cubes,
+        wireframe_cubeID,
+        vao_wireframecube,
+        vbo_wireframecube_buf,
+        vbo_wireframecubes,
 
-      circleID, // circles
-      vao_circle,
-      vbo_circle_buf,
-      vbo_circles,
-      
-      capID, // circles
-      vao_cap,
-      vbo_cap_buf,
-      vbo_caps;
+        circleID, // circles
+        vao_circle,
+        vbo_circle_buf,
+        vbo_circles,
 
-  size_t max_points_static = 10000;
-  size_t max_line_points_static = 10000;
-  size_t max_points = 10000;
-  size_t max_lines = 10000;
-  size_t max_circles = 50;
-  size_t max_cubes = 50;
-  size_t max_capsules = 50;
+        // SOLID OBJECTS
+
+        cubeID, //solid cubes
+        vao_cube,
+        vbo_cube_buf,
+        vbo_cubes,
+
+        capID, // capsules
+        vao_cap,
+        vbo_cap_buf,
+        vbo_caps;
+
+    size_t max_points_static = 10000;
+    size_t max_line_points_static = 10000;
+    size_t max_points = 10000;
+    size_t max_lines = 10000;
+    size_t max_circles = 50;
+    size_t max_cubes_wireframe = 50;
+    size_t max_cubes = 50;
+    size_t max_capsules = 50;
 };
 
 namespace Gfx
 {
-  void CheckGLError(const char *functionName);
-  extern GLuint shaderID;
-  GLuint InitializeShader(const std::filesystem::path &vertexPath, const std::filesystem::path &fragmentPath);
+    void CheckGLError(const char *functionName);
+    extern GLuint shaderID;
+    GLuint InitializeShader(const std::filesystem::path &vertexPath, const std::filesystem::path &fragmentPath);
 
-  // if needed setup:
-  void use(GLuint shaderID);
-  void setBool(GLuint shaderID, const std::string &name, bool value);
-  void setInt(GLuint shaderID, const std::string &name, int value);
-  void setFloat(GLuint shaderID, const std::string &name, float value);
-  void setMat3(GLuint shaderID, const std::string &name, const GLfloat *mat);
-  void setMat4(GLuint shaderID, const std::string &name, const GLfloat *mat);
-  void setVec2(GLuint shaderID, const std::string &name, glm::vec2 vec);
-  void setVec3(GLuint shaderID, const std::string &name, glm::vec3 vec);
-  void setVec4(GLuint shaderID, const std::string &name, glm::vec4 vec);
+    // if needed setup:
+    void use(GLuint shaderID);
+    void setBool(GLuint shaderID, const std::string &name, bool value);
+    void setInt(GLuint shaderID, const std::string &name, int value);
+    void setFloat(GLuint shaderID, const std::string &name, float value);
+    void setMat3(GLuint shaderID, const std::string &name, const GLfloat *mat);
+    void setMat4(GLuint shaderID, const std::string &name, const GLfloat *mat);
+    void setVec2(GLuint shaderID, const std::string &name, glm::vec2 vec);
+    void setVec3(GLuint shaderID, const std::string &name, glm::vec3 vec);
+    void setVec4(GLuint shaderID, const std::string &name, glm::vec4 vec);
 };
 
 #endif
