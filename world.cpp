@@ -169,12 +169,36 @@ void InitGrid(std::vector<Point> &lines, glm::vec2 origin, int width, float cell
     }
 }
 
+void CreateBullet(glm::vec3 target, glm::vec3 start, std::vector<Bullet> &bullets)
+{
+    Bullet bullet;
+
+    glm::vec3 distance = target - start;
+
+    bullet.direction = glm::normalize(distance);
+
+    bullet.pos = start;
+    
+    bullets.push_back(bullet);
+}
+
+void UpdateBullets(double time_elapsed, std::vector<Bullet> &bullets, std::vector<Point> &points)
+{
+    static glm::vec3 color = {1.0f, 0.0f, 1.0f};
+    for (auto &bullet : bullets)
+    {
+        Point point;
+
+        bullet.pos += bullet.direction * bullet.speed * time_elapsed;
+
+        point.pos = bullet.pos;
+        point.color = color;
+    }
+}
+
 void CreateLaser(glm::vec3 start_pos, glm::vec3 end_pos, double cooldown, std::vector<Laser> &lasers)
 {
-    Laser laser{
-        start_pos,
-        end_pos,
-        cooldown};
+    Laser laser{start_pos, end_pos, cooldown};
     lasers.push_back(laser);
 }
 

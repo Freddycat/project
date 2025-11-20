@@ -29,6 +29,11 @@ void Weapon::FireWeapon(glm::vec3 target, glm::vec3 start, double delta, std::ve
     }
 }
 
+void BulletComponent::Shoot(glm::vec3 target, glm::vec3 start, double delta, std::vector<Bullet> &bullet)
+{
+    CreateBullet(target, start, delta, bullet)
+}
+
 void BlastComponent::Shoot(glm::vec3 target, glm::vec3 start, double delta, std::vector<Blast> &blasts)
 {
     CreateBlast(blast_size, blast_rate, target, blasts);

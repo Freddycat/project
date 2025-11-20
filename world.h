@@ -89,9 +89,10 @@ struct Blast
 
 struct Bullet
 {
-    glm::vec3 pos_start;
-    glm::vec3 pos_end;
-    double cooldown;
+    glm::vec3 direction;
+    glm::vec3 pos;
+    float speed;
+    float range;
 };
 
 struct Laser
@@ -100,6 +101,9 @@ struct Laser
     glm::vec3 pos_end;
     double cooldown;
 };
+
+void CreateBullet(glm::vec3 target, glm::vec3 start, std::vector<Bullet> &bullets);
+//void UpdateBullets(double time_elapsed, std::vector<Blast> &blasts, std::vector<Circle> &circles);
 
 void CreateBlast(float size, float cooldown, glm::vec3 pos, std::vector<Blast> &blasts);
 void UpdateBlasts(double time_elapsed, std::vector<Blast> &blasts, std::vector<Circle> &circles);

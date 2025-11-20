@@ -8,10 +8,19 @@
 
 struct Blast;
 struct Laser;
+struct Bullet;
 
 struct WeaponManager
 {
     entt::registry registry;
+};
+
+struct BulletComponent
+{
+    float bulletspeed = 1000.0f;
+    float maxrange = 10000.0f;
+    glm::vec3 direction;
+    void Shoot(glm::vec3 target, glm::vec3 start, double delta, std::vector<Bullet> &bullets);
 };
 
 struct LaserComponent
