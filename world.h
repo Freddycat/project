@@ -79,8 +79,8 @@ struct House
 struct Blast
 {
     float max_size;
-    double cooldown;
-    double time_left;
+    float cooldown;
+    float time_left;
     glm::vec3 pos;
     float size;
     size_t vertex_start;
@@ -93,24 +93,24 @@ struct Bullet
     glm::vec3 pos;
     float speed;
     float range;
+    float distance = 0.0f;
 };
 
 struct Laser
 {
     glm::vec3 pos_start;
     glm::vec3 pos_end;
-    double cooldown;
+    float cooldown;
 };
 
-void CreateBullet(glm::vec3 target, glm::vec3 start, std::vector<Bullet> &bullets);
-//void UpdateBullets(double time_elapsed, std::vector<Blast> &blasts, std::vector<Circle> &circles);
+void CreateBullet(glm::vec3 target, glm::vec3 start, float speed, float range, std::vector<Bullet> &bullets);
+void UpdateBullets(float time_elapsed, std::vector<Bullet> &bullets, std::vector<Point> &points);
 
 void CreateBlast(float size, float cooldown, glm::vec3 pos, std::vector<Blast> &blasts);
-void UpdateBlasts(double time_elapsed, std::vector<Blast> &blasts, std::vector<Circle> &circles);
+void UpdateBlasts(float time_elapsed, std::vector<Blast> &blasts, std::vector<Circle> &circles);
 
-void CreateLaser(glm::vec3 start_pos, glm::vec3 end_pos, double cooldown, std::vector<Laser> &lasers);
-void UpdateLasers(double time_elapsed, std::vector<Laser> &lasers, std::vector<Line> &lines);
+void CreateLaser(glm::vec3 start_pos, glm::vec3 end_pos, float cooldown, std::vector<Laser> &lasers);
+void UpdateLasers(float time_elapsed, std::vector<Laser> &lasers, std::vector<Line> &lines);
 
-void UpdateBullets(double time_elapsed, std::vector<Laser> &lasers, std::vector<Line> &lines);
 
 #endif

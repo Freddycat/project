@@ -45,7 +45,7 @@ void gameLoop(SDL_Event &event)
 
     // -- start time stuff --
     frame_now = std::chrono::steady_clock::now();
-    g.time_elapsed = std::chrono::duration<double>(frame_now - frame_last).count();
+    g.time_elapsed = std::chrono::duration<float>(frame_now - frame_last).count();
     frame_last = frame_now;
     g.game_time += g.time_elapsed;
 
@@ -86,9 +86,10 @@ void gameLoop(SDL_Event &event)
         glm::vec3 newPos = player.pos;
         newPos.z += player.cam_center;
         auto &weapon = manager.registry.get<Weapon>(entity);
-        weapon.UpdateWeapon(input.mouse.xhair_pos, newPos, g.time_elapsed, world.blasts, world.lasers, manager.registry);
+        weapon.UpdateWeapon(input.mouse.xhair_pos, newPos, g.time_elapsed, world.bullets, world.blasts, world.lasers, manager.registry);
     }
 
+    UpdateBullets(g.time_elapsed, world.bullets, gizmos.points);
     UpdateBlasts(g.time_elapsed, world.blasts, gizmos.circles);
     UpdateLasers(g.time_elapsed, world.lasers, gizmos.lines);
 
@@ -97,6 +98,7 @@ void gameLoop(SDL_Event &event)
     render(graphics, camera, gizmos, world, player, gui, manager.registry, player.weapon, input);
 
     world.EraseBlasts();
+    world.EraseBullets();
     world.EraseLasers();
 
     frameNumber++;

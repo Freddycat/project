@@ -20,29 +20,29 @@ struct BulletComponent
     float bulletspeed = 1000.0f;
     float maxrange = 10000.0f;
     glm::vec3 direction;
-    void Shoot(glm::vec3 target, glm::vec3 start, double delta, std::vector<Bullet> &bullets);
+    void Shoot(glm::vec3 target, glm::vec3 start, float speed, float maxrange, std::vector<Bullet> &bullets);
 };
 
 struct LaserComponent
 {
-    double cooldown = 0.3f;
-    void Shoot(glm::vec3 target, glm::vec3 start, double delta, std::vector<Laser> &lasers);
+    float cooldown = 0.3f;
+    void Shoot(glm::vec3 target, glm::vec3 start, float delta, std::vector<Laser> &lasers);
 };
 
 struct BlastComponent
 {
     float blast_size = 150.0f;
-    double blast_rate = 0.5f;
-    void Shoot(glm::vec3 target, glm::vec3 start, double delta, std::vector<Blast> &blasts);
+    float blast_rate = 0.5f;
+    void Shoot(glm::vec3 target, glm::vec3 start, float delta, std::vector<Blast> &blasts);
 };
 
 struct Weapon
 {
     entt::entity id;
-    double fire_rate = 0.9f;
-    double cooldown = 0.0f;
-    void UpdateWeapon(glm::vec3 target, glm::vec3 start, double delta, std::vector<Blast> &blasts, std::vector<Laser> &lasers, entt::registry &registry);
-    void FireWeapon(glm::vec3 target, glm::vec3 start, double delta, std::vector<Blast> &blasts, std::vector<Laser> &lasers, entt::registry &registry);
+    float fire_rate = 0.9f;
+    float cooldown = 0.0f;
+    void UpdateWeapon(glm::vec3 target, glm::vec3 start, float delta, std::vector<Bullet> &bullets, std::vector<Blast> &blasts, std::vector<Laser> &lasers, entt::registry &registry);
+    void FireWeapon(glm::vec3 target, glm::vec3 start, float delta, std::vector<Bullet> &bullets, std::vector<Blast> &blasts, std::vector<Laser> &lasers, entt::registry &registry);
 };
 
 using WeaponComponents = entt::type_list<Weapon, LaserComponent, BlastComponent>;

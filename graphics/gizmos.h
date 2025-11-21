@@ -76,6 +76,6 @@ void LoadBasics();
 Cube CreateCube(glm::vec3 pos, float size, glm::vec3 color, std::vector<Cube> &cubes);
 Circle CreateCircle(glm::vec3 pos, float size, glm::vec3 color, std::vector<Circle> &circles);
 
-void UpdateCircles(double time_elapsed, std::vector<Circle> &circles);
+void UpdateCircles(float time_elapsed, std::vector<Circle> &circles);
 void drawCapsule();
 #endif // GIZMOS_H

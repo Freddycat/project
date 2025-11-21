@@ -107,23 +107,38 @@ void DrawWeaponGui(entt::registry &registry, entt::entity &weapon)
     {
         auto &component = registry.get<Weapon>(weapon);
 
-        static double min = 0.0;
-        static double max = 2.0;
+        static float min = 0.0;
+        static float max = 2.0;
 
         ImGui::Text("Base Weapon");
-        ImGui::InputDouble("Rate", &component.fire_rate);
-        ImGui::SliderScalar("RateSlider", ImGuiDataType_Double, &component.fire_rate, &min, &max);
+        ImGui::InputFloat("Rate", &component.fire_rate);
+        ImGui::SliderScalar("RateSlider", ImGuiDataType_Float, &component.fire_rate, &min, &max);
+    }
+
+    if (registry.all_of<BulletComponent>(weapon))
+    {
+        auto &component = registry.get<BulletComponent>(weapon);
+
+        static float min = 0.0f;
+        static float max = 10000.0f;
+        ImGui::Text("Bullet component");
+        ImGui::InputFloat("Speed", &component.bulletspeed);
+        ImGui::SliderScalar("SpeedSlider", ImGuiDataType_Float, &component.bulletspeed, &min, &max);
+        if (ImGui::Button("Remove Bullet"))
+        {
+            registry.remove<BulletComponent>(weapon);
+        }
     }
 
     if (registry.all_of<BlastComponent>(weapon))
     {
         auto &component = registry.get<BlastComponent>(weapon);
 
-        static double min = 0.0f;
-        static double max = 2.0f;
+        static float min = 0.0f;
+        static float max = 2.0f;
         ImGui::Text("Blast component");
-        ImGui::InputDouble("BlastRate", &component.blast_rate);
-        ImGui::SliderScalar("BlastRateSlider", ImGuiDataType_Double, &component.blast_rate, &min, &max);
+        ImGui::InputFloat("BlastRate", &component.blast_rate);
+        ImGui::SliderScalar("BlastRateSlider", ImGuiDataType_Float, &component.blast_rate, &min, &max);
         ImGui::SliderFloat("SizeSlider", &component.blast_size, 0, 600);
         if (ImGui::Button("Remove Blast"))
         {
@@ -134,13 +149,21 @@ void DrawWeaponGui(entt::registry &registry, entt::entity &weapon)
     {
         auto &component = registry.get<LaserComponent>(weapon);
 
-        static double min = 0.0f;
-        static double max = 5.0f;
+        static float min = 0.0f;
+        static float max = 5.0f;
         ImGui::Text("Laser component");
-        ImGui::SliderScalar("LaserCooldown", ImGuiDataType_Double, &component.cooldown, &min, &max);
+        ImGui::SliderScalar("LaserCooldown", ImGuiDataType_Float, &component.cooldown, &min, &max);
         if (ImGui::Button("Remove Laser"))
         {
             registry.remove<LaserComponent>(weapon);
+        }
+    }
+
+    if (!registry.all_of<BulletComponent>(weapon))
+    {
+        if (ImGui::Button("Add Bullet"))
+        {
+            registry.emplace<BulletComponent>(weapon);
         }
     }
 
@@ -195,6 +218,11 @@ void Gui::WorldInfo(World &world)
         {
             ImGui::Text("Laser %d - Time: %.2f", (int)i,
                         world.blasts[i].cooldown);
+        }
+        for (size_t i = 0; i < world.bullets.size(); i++)
+        {
+            ImGui::Text("Bullet %d - dist: %.2f", (int)i,
+                        world.bullets[i].distance);
         }
         ImGui::Text("Cells: %d", (int)world.cells.size());
 

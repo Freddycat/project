@@ -30,6 +30,7 @@ void World::InitializeWorld(
     registry.emplace<Weapon>(weapon.id);
     registry.emplace<LaserComponent>(weapon.id);
     registry.emplace<BlastComponent>(weapon.id);
+    registry.emplace<BulletComponent>(weapon.id);
 
     // weapons.push_back(weapon);
 
@@ -169,20 +170,21 @@ void InitGrid(std::vector<Point> &lines, glm::vec2 origin, int width, float cell
     }
 }
 
-void CreateBullet(glm::vec3 target, glm::vec3 start, std::vector<Bullet> &bullets)
+void CreateBullet(glm::vec3 target, glm::vec3 start, float speed, float range, std::vector<Bullet> &bullets)
 {
     Bullet bullet;
 
     glm::vec3 distance = target - start;
 
     bullet.direction = glm::normalize(distance);
-
     bullet.pos = start;
-    
+    bullet.speed = speed;
+    bullet.range = range;
+
     bullets.push_back(bullet);
 }
 
-void UpdateBullets(double time_elapsed, std::vector<Bullet> &bullets, std::vector<Point> &points)
+void UpdateBullets(float time_elapsed, std::vector<Bullet> &bullets, std::vector<Point> &points)
 {
     static glm::vec3 color = {1.0f, 0.0f, 1.0f};
     for (auto &bullet : bullets)
@@ -190,13 +192,16 @@ void UpdateBullets(double time_elapsed, std::vector<Bullet> &bullets, std::vecto
         Point point;
 
         bullet.pos += bullet.direction * bullet.speed * time_elapsed;
+        bullet.distance += bullet.speed * time_elapsed;
 
         point.pos = bullet.pos;
         point.color = color;
+
+        points.push_back(point);
     }
 }
 
-void CreateLaser(glm::vec3 start_pos, glm::vec3 end_pos, double cooldown, std::vector<Laser> &lasers)
+void CreateLaser(glm::vec3 start_pos, glm::vec3 end_pos, float cooldown, std::vector<Laser> &lasers)
 {
     Laser laser{start_pos, end_pos, cooldown};
     lasers.push_back(laser);
@@ -210,7 +215,7 @@ void CreateBlast(float size, float cooldown, glm::vec3 pos, std::vector<Blast> &
     // std::cout << "Created blast" << std::endl;
 }
 
-void UpdateBlasts(double time_elapsed, std::vector<Blast> &blasts, std::vector<Circle> &circles)
+void UpdateBlasts(float time_elapsed, std::vector<Blast> &blasts, std::vector<Circle> &circles)
 {
     static glm::vec3 color = {1.0f, 0.0f, 0.0f};
 
@@ -236,7 +241,7 @@ void UpdateBlasts(double time_elapsed, std::vector<Blast> &blasts, std::vector<C
     }
 }
 
-void UpdateLasers(double time_elapsed, std::vector<Laser> &lasers, std::vector<Line> &lines)
+void UpdateLasers(float time_elapsed, std::vector<Laser> &lasers, std::vector<Line> &lines)
 {
     glm::vec3 color = {1.0f, 0.0f, 0.0f};
 
@@ -278,4 +283,13 @@ void World::EraseLasers()
                        [](const Laser &l)
                        { return l.cooldown <= 0.0f; }),
         lasers.end());
+}
+
+void World::EraseBullets()
+{
+    bullets.erase(
+        std::remove_if(bullets.begin(), bullets.end(),
+                       [](const Bullet &b)
+                       { return b.distance >= b.range; }),
+        bullets.end());
 }
