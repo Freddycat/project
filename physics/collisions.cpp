@@ -3,8 +3,6 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp>
 
-entt::registry collidables;
-
 CollisionResult capsule_vs_box(const glm::vec3 start_pos, glm::vec3 end_pos, const glm::vec3 cap_start, const glm::vec3 cap_end,
                                const float radius, const glm::vec3 box_start, const glm::vec3 box_end)
 {
@@ -70,38 +68,31 @@ CollisionResult capsule_vs_box(const glm::vec3 start_pos, glm::vec3 end_pos, con
     else if (std::abs(hitPoint.z - ex_end.z) < eps)
         result.normal = glm::vec3(0, 0, 1);
 
-    /*
-        for (float sweep = 0; sweep <= 1.0f; sweep += 0.01f)
-        {
-            glm::vec3 p0 = cap_start + delta * sweep;
-            glm::vec3 p1 = cap_end + delta * sweep;
-            glm::vec3 closest = glm::clamp(p0, box_start, box_end);
-            glm::vec3 diff = p0 - closest;
-            float dist2 = glm::dot(diff, diff);
-
-            if (glm::dot(p0 - closest, p0 - closest) <= radius * radius)
-            {
-                result.fraction = sweep;
-
-                if (glm::length2(diff) > 1e-6f)
-                    result.normal = glm::normalize(diff);
-                else
-                    result.normal = glm::vec3(0.0f, 0.0f, 1.0f); // fallback
-
-                result.hit = true;
-                std::cout << "true" << std::endl;
-                break;
-            }
-        } */
     return result;
 }
 
-CollisionResult TestCollisions(glm::vec3 pos, glm::vec3 next_pos, glm::vec3 cap_start, glm::vec3 cap_end, float radius)
+bool MouseHit(const vec3 pos, const vec3 &box_start, const vec3 &box_end)
 {
+    bool hit =
+        pos.x >= box_start.x && pos.x <= box_end.x &&
+        pos.y >= box_start.y && pos.y <= box_end.y &&
+        pos.z >= box_start.z && pos.z <= box_end.z;
+
+
+    if (hit)
+        std::cout << "mouse hit" << std::endl;
+
+    return hit;
+}
+
+CollisionResult TestCollisions(ColliderCtx &ctx, glm::vec3 pos, glm::vec3 next_pos, glm::vec3 cap_start, glm::vec3 cap_end, float radius)
+{
+    auto &reg = ctx.collidables;
     CollisionResult result;
-    for (auto &view : collidables.view<BoxColliderAxis>())
+
+    for (auto &view : reg.view<BoxColliderAxis>())
     {
-        auto &box = collidables.get<BoxColliderAxis>(view);
+        auto &box = reg.get<BoxColliderAxis>(view);
         result = capsule_vs_box(pos, next_pos, cap_start, cap_end, radius, box.start, box.end);
         return result;
     }

@@ -1,10 +1,11 @@
 
 add_library(
-    weapon
-    weapon.cpp
+    helper
+    jsonHelper.cpp
 )
 
-target_include_directories(weapon PUBLIC
+target_include_directories(helper
+    PUBLIC
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/graphics
@@ -12,10 +13,11 @@ target_include_directories(weapon PUBLIC
     ${CMAKE_SOURCE_DIR}/world
     ${CMAKE_SOURCE_DIR}/player
     ${CMAKE_SOURCE_DIR}/include/glm
+    ${CMAKE_SOURCE_DIR}/include/json
 )
 
 target_link_libraries(
-    weapon
+    helper
     PUBLIC
     SDL3::SDL3
     EnTT::EnTT)

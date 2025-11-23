@@ -15,7 +15,7 @@
 #include "world.h"
 #include "app.h"
 
-void render(Graphics &graphics, Camera &camera, Gizmos &gizmos, World &world, Player &player, Gui &gui, entt::registry &registry, entt::entity &weapon, Input &input)
+void render(Graphics &graphics, Camera &camera, Gizmos &gizmos, WorldCtx &ctx, World &world, Player &player, Gui &gui, entt::registry &registry, entt::entity &weapon, Input &input)
 {
 
     std::string time_str = formatTime();
@@ -126,6 +126,47 @@ void render(Graphics &graphics, Camera &camera, Gizmos &gizmos, World &world, Pl
     glDrawArraysInstanced(GL_LINES, 0, base_cube_wireframe.size(), gizmos.cubes.size());
     glBindVertexArray(0);
 
+
+    // -- SPHERES --
+    glUseProgram(graphics.circleID);
+    glBindVertexArray(graphics.vao_sphere);
+
+    if (!gizmos.spheres.empty())
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, graphics.vbo_spheres);
+
+        glBufferSubData(GL_ARRAY_BUFFER, 0, gizmos.spheres.size() * sizeof(Cube), gizmos.spheres.data());
+    }
+
+    glDrawArraysInstanced(GL_TRIANGLES, 0, base_sphere.size(), gizmos.spheres.size());
+    glBindVertexArray(0);
+
+    glUseProgram(graphics.cubeID);
+    glBindVertexArray(graphics.vao_cube);
+
+    if (!gizmos.cubes.empty())
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, graphics.vbo_cubes);
+
+        glBufferSubData(GL_ARRAY_BUFFER, 0, gizmos.cubes.size() * sizeof(Cube), gizmos.cubes.data());
+    }
+    glDrawArraysInstanced(GL_TRIANGLES, 0, base_cube.size(), gizmos.cubes.size());
+    glBindVertexArray(0);
+
+    glUseProgram(graphics.cubeID);
+    glBindVertexArray(graphics.vao_wireframecube);
+
+    if (!gizmos.cubes.empty())
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, graphics.vbo_wireframecubes);
+
+        glBufferSubData(GL_ARRAY_BUFFER, 0, gizmos.cubes.size() * sizeof(Cube), gizmos.cubes.data());
+    }
+    glLineWidth(4.0f);
+    glDrawArraysInstanced(GL_LINES, 0, base_cube_wireframe.size(), gizmos.cubes.size());
+    glBindVertexArray(0);
+
+
     // -- CIRCLES --
     glUseProgram(graphics.circleID);
     glBindVertexArray(graphics.vao_circle);
@@ -156,7 +197,7 @@ void render(Graphics &graphics, Camera &camera, Gizmos &gizmos, World &world, Pl
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
-        gui.DrawImGui(time_str, graphics, gizmos, player, camera, world, registry, weapon, input);
+        gui.DrawImGui(time_str, graphics, gizmos, player, camera, ctx, world, registry, weapon, input);
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }

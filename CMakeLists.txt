@@ -12,6 +12,9 @@ add_subdirectory(include/entt)
 
 add_subdirectory(graphics)
 add_subdirectory(physics)
+add_subdirectory(helper)
+add_subdirectory(player)
+add_subdirectory(world)
 add_subdirectory(gui)
 add_subdirectory(weapon)
 
@@ -30,9 +33,7 @@ add_executable(
     app_start.cpp
     render.cpp
     input.cpp
-    world.cpp
     camera.cpp
-    player.cpp
     glad.c
     include/imgui/imgui.cpp
     include/imgui/imgui_draw.cpp
@@ -51,6 +52,7 @@ target_include_directories(
     include/glm
     include/imgui
     include/imgui/backends
+    include/json
     include/glad
 )
 
@@ -60,6 +62,25 @@ target_link_libraries(project PUBLIC
     OpenGL::GL
     graphics
     physics
+    helper
+    world
+    player
     weapon
     gui
+)
+
+# Copy shaders folder into the build directory
+file(COPY ${CMAKE_SOURCE_DIR}/graphics/shaders DESTINATION ${CMAKE_BINARY_DIR})
+
+# Copy maps folder
+file(COPY ${CMAKE_SOURCE_DIR}/world/maps DESTINATION ${CMAKE_BINARY_DIR})
+
+add_custom_target(copy_resources ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_SOURCE_DIR}/graphics/shaders
+            ${CMAKE_BINARY_DIR}/shaders
+
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_SOURCE_DIR}/world/maps
+            ${CMAKE_BINARY_DIR}/maps
 )

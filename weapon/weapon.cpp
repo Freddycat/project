@@ -1,54 +1,77 @@
 #include "weapon.h"
+#include "playerCtx.h"
+#include "worldCtx.h"
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/gtx/string_cast.hpp"
+
 #include <iostream>
 
-void Weapon::UpdateWeapon(glm::vec3 target, glm::vec3 start, float delta, std::vector<Bullet> &bullets, std::vector<Blast> &blasts, std::vector<Laser> &lasers, entt::registry &registry)
+void Weapon::UpdateWeapon(PlayerCtx &ctx, float delta, WeaponEvents &events, entt::registry &weapreg)
 {
     cooldown -= delta;
-
-    // std::cout << "cooldown" << cooldown << "delta" << delta << std::endl;
-
-    if (cooldown <= 0.0)
+    if (cooldown <= 0.0 && ctx.firing)
     {
         cooldown = fire_rate;
         std::cout << "should shoot" << std::endl;
-        Weapon::FireWeapon(target, start, delta, bullets, blasts, lasers, registry);
+        Weapon::FireWeapon(ctx, events, weapreg);
     }
 }
 
-void Weapon::FireWeapon(glm::vec3 target, glm::vec3 start, float delta, std::vector<Bullet> &bullets, std::vector<Blast> &blasts, std::vector<Laser> &lasers, entt::registry &registry)
+void Weapon::FireWeapon(PlayerCtx &ctx, WeaponEvents &events, entt::registry &registry)
 {
-    for (auto &weapon : registry.view<BulletComponent>())
+    for (auto &weapon : registry.view<ProjectileComponent>())
     {
-        auto &bullet = registry.get<BulletComponent>(weapon);
-        bullet.Shoot(target, start, bullet.bulletspeed, bullet.maxrange, bullets);
+        auto &cmpt = registry.get<ProjectileComponent>(weapon);
+        cmpt.Shoot(ctx, cmpt, events.projectiles);
     }
     for (auto &weapon : registry.view<LaserComponent>())
     {
-        auto &laser = registry.get<LaserComponent>(weapon);
-        laser.Shoot(target, start, delta, lasers);
+        auto &cmpt = registry.get<LaserComponent>(weapon);
+        cmpt.Shoot(ctx, cmpt, events.lasers);
     }
     for (auto &weapon : registry.view<BlastComponent>())
     {
-        auto &blast = registry.get<BlastComponent>(weapon);
-        blast.Shoot(target, start, delta, blasts);
+        auto &cmpt = registry.get<BlastComponent>(weapon);
+        cmpt.Shoot(ctx, cmpt, events.blasts);
     }
 }
 
-void BulletComponent::Shoot(glm::vec3 target, glm::vec3 start, float speed, float range, std::vector<Bullet> &bullet)
+void ProjectileComponent::Shoot(PlayerCtx &ctx, ProjectileComponent &component, vector<Projectile> &que)
 {
-    CreateBullet(target, start, speed, range, bullet);
+    auto &speed = component.bulletspeed;
+    auto &range = component.maxrange;
+    auto &start = ctx.pos;
+    auto &direction = ctx.facing;
+    Projectile p;
+    p.speed = speed;
+    p.range = range;
+    p.pos = start;
+    p.direction = direction;
+    que.push_back(p);
+    //std::cout << "shooted bullit" << std::endl;
 }
 
-void BlastComponent::Shoot(glm::vec3 target, glm::vec3 start, float delta, std::vector<Blast> &blasts)
+void LaserComponent::Shoot(PlayerCtx &ctx, LaserComponent &laser, vector<Laser> &que)
 {
-    CreateBlast(blast_size, blast_rate, target, blasts);
-
-    std::cout << "shooted" << std::endl;
+    auto &cooldown = laser.cooldown;
+    auto &start = ctx.pos;
+    auto &end = ctx.xhair;
+    Laser l;
+    l.cooldown = cooldown;
+    l.pos_start = start;
+    l.pos_end = end;
+    que.push_back(l);
 }
 
-void LaserComponent::Shoot(glm::vec3 target, glm::vec3 start, float delta, std::vector<Laser> &lasers)
+void BlastComponent::Shoot(PlayerCtx &ctx, BlastComponent &blast, vector<Blast> &que)
 {
-    CreateLaser(start, target, cooldown, lasers);
-
-    std::cout << "shooted" << std::endl;
+    auto &size = blast.blast_size;
+    auto &rate = blast.blast_rate;
+    auto &pos = ctx.xhair;
+    Blast b;
+    b.max_size = size;
+    b.cooldown = rate;
+    b.pos = pos;
+    que.push_back(b);
+    //std::cout << "shooted blast: " << glm::to_string(b.pos) << std::endl;
 }

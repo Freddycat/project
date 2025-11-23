@@ -31,6 +31,11 @@ struct Graphics
 
         // SOLID OBJECTS
 
+        sphereID, //solid spheres
+        vao_sphere,
+        vbo_sphere_buf,
+        vbo_spheres,
+
         cubeID, //solid cubes
         vao_cube,
         vbo_cube_buf,
@@ -48,6 +53,7 @@ struct Graphics
     size_t max_circles = 50;
     size_t max_cubes_wireframe = 50;
     size_t max_cubes = 50;
+    size_t max_spheres = 50;
     size_t max_capsules = 50;
 };
 

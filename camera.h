@@ -7,6 +7,7 @@
 
 struct App;
 struct Player;
+struct PlayerCtx;
 struct Input;
 struct State;
 
@@ -38,7 +39,7 @@ struct Camera
     float zoom_amount = 0.3f;
 
     void SetCam(GLuint &shaderID);
-    void CenterCam(GLuint &shaderID, Input &input, Player &player);
+    void CenterCam(GLuint &shaderID, Input &input, PlayerCtx &player);
 };
 
 #endif

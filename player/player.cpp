@@ -3,8 +3,7 @@
 #include <chrono>
 #include <glm/glm.hpp>
 #include "player.h"
-#include "app.h"
-#include "world.h"
+#include "playerCtx.h"
 #include <collisions.h>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp>
@@ -12,7 +11,7 @@
 
 #include <iostream>
 
-void Player::MovePlayer(float time_elapsed)
+void Player::MovePlayer(float time_elapsed, PlayerCtx &ctx, ColliderCtx &colliderCtx)
 {
 
     // Always rotate player's wish_dir to wishdir
@@ -35,7 +34,7 @@ void Player::MovePlayer(float time_elapsed)
 
     // Test collisions
     // **look into more voids less collisions**
-    CollisionResult collision = TestCollisions(pos, pos + distance, pos, head_pos, radius);
+    CollisionResult collision = TestCollisions(colliderCtx, pos, pos + distance, pos, head_pos, radius);
 
     // Move either full distance or portion till collision
     glm::vec3 delta = distance * collision.fraction;
@@ -45,7 +44,7 @@ void Player::MovePlayer(float time_elapsed)
         glm::vec3 remaining = distance * (1.0f - collision.fraction);
         remaining -= glm::dot(remaining, collision.normal) * collision.normal;
         delta += remaining;
-        pos += collision.normal * 0.1f; //push you back off the wall slightly before more movement
+        pos += collision.normal * 0.1f; // push you back off the wall slightly before more movement
     }
 
     // Apply movement
@@ -60,16 +59,18 @@ void Player::MovePlayer(float time_elapsed)
         velocity.x = 0.0f;
     if (std::abs(velocity.y) < 0.1f)
         velocity.y = 0.0f;
+    // update player ctxt for other functions
+    ctx.pos = head_pos;
 }
 
 void Player::UpdatePlayerDot(std::vector<Point> &points, std::vector<Capsule> &capsules)
 {
-    //points[0].pos = {pos.x, pos.y, 0.0f};
-    //points[0].color = glm::vec3(1.0f, 1.0f, 1.0f);
+    // points[0].pos = {pos.x, pos.y, 0.0f};
+    // points[0].color = glm::vec3(1.0f, 1.0f, 1.0f);
     capsules[0].center = {pos.x, pos.y, 16.0f, 0.0f};
 }
 
-void Player::UpdateCrosshair(std::vector<Point> &points, glm::vec3 &pos)
+void Player::UpdateCrosshair(std::vector<Point> &points, glm::vec3 pos, PlayerCtx &ctx)
 {
     Point xhair;
 
@@ -77,4 +78,8 @@ void Player::UpdateCrosshair(std::vector<Point> &points, glm::vec3 &pos)
     xhair.color = glm::vec3(1.0f, 1.0f, 1.0f);
 
     points.push_back(xhair);
+
+    ctx.xhair = pos;
+    auto distance = ctx.xhair - ctx.pos;
+    ctx.facing = glm::normalize(distance);
 }

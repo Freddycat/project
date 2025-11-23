@@ -14,6 +14,11 @@
 #include "render.h"
 #include "global.h"
 #include "weapon.h"
+#include "world.h"
+#include "player.h"
+#include "playerCtx.h"
+#include "collisions.h"
+#include "weaponEventQueue.h"
 
 SDL_Window *window = nullptr;
 SDL_GLContext glContext;
@@ -39,6 +44,10 @@ Camera camera;
 Gui gui;
 WeaponManager manager;
 Global g;
+ColliderCtx colliderCtx;
+WorldCtx worldCtx;
+PlayerCtx playerCtx;
+WeaponEvents wepque;
 
 void gameLoop(SDL_Event &event)
 {
@@ -73,33 +82,37 @@ void gameLoop(SDL_Event &event)
     // -- UPDATING --
 
     input.InputKeyboard(player);
-    input.GetMouseInput();
-    player.MovePlayer(g.time_elapsed);
-    camera.CenterCam(graphics.vertexID, input, player);
+    input.GetMouseInput(playerCtx);
+    player.MovePlayer(g.time_elapsed, playerCtx, colliderCtx);
+    camera.CenterCam(graphics.vertexID, input, playerCtx);
     input.GetMouseWorldPos(camera, player.cam_center);
 
-    player.UpdateCrosshair(gizmos.points, input.mouse.xhair_pos);
+    player.UpdateCrosshair(gizmos.points, input.mouse.xhair_pos, playerCtx);
     player.UpdatePlayerDot(gizmos.points, gizmos.capsules);
+
+    UpdateWorldTargets(colliderCtx.collidables, playerCtx, world);
 
     for (auto &entity : manager.registry.view<Weapon>())
     {
         glm::vec3 newPos = player.pos;
         newPos.z += player.cam_center;
         auto &weapon = manager.registry.get<Weapon>(entity);
-        weapon.UpdateWeapon(input.mouse.xhair_pos, newPos, g.time_elapsed, world.bullets, world.blasts, world.lasers, manager.registry);
+        weapon.UpdateWeapon(playerCtx, g.time_elapsed, wepque, manager.registry);
     }
 
-    UpdateBullets(g.time_elapsed, world.bullets, gizmos.points);
-    UpdateBlasts(g.time_elapsed, world.blasts, gizmos.circles);
-    UpdateLasers(g.time_elapsed, world.lasers, gizmos.lines);
+    WorldQueue(wepque, worldCtx);
+
+    worldCtx.UpdateProjectiles(g.time_elapsed, gizmos.points);
+    worldCtx.UpdateBlasts(g.time_elapsed, gizmos.circles);
+    worldCtx.UpdateLasers(g.time_elapsed, gizmos.lines);
+    
+    worldCtx.EraseBlasts();
+    worldCtx.EraseProjectiles();
+    worldCtx.EraseLasers();
 
     // -- end updating --
     // -- start render --
-    render(graphics, camera, gizmos, world, player, gui, manager.registry, player.weapon, input);
-
-    world.EraseBlasts();
-    world.EraseBullets();
-    world.EraseLasers();
+    render(graphics, camera, gizmos, worldCtx, world, player, gui, manager.registry, player.weapon, input);
 
     frameNumber++;
 
@@ -107,10 +120,28 @@ void gameLoop(SDL_Event &event)
     std::this_thread::sleep_until(next_frametime);
 }
 
+std::filesystem::path getExecutableDir()
+{
+#if defined(_WIN32)
+    wchar_t buffer[MAX_PATH];
+    GetModuleFileNameW(nullptr, buffer, MAX_PATH);
+    return std::filesystem::path(buffer).parent_path();
+#else
+    // Linux, BSD, etc. using /proc/self/exe
+    char buffer[1024];
+    ssize_t len = readlink("/proc/self/exe", buffer, sizeof(buffer)-1);
+    buffer[len] = '\0';
+    return std::filesystem::path(buffer).parent_path();
+#endif
+}
+
 void gameStart()
 {
     std::cout << message << std::endl;
     std::cout << number << std::endl;
+
+    g.home = getExecutableDir();
+    std::cout << "Executable dir: " << g.home << std::endl;
 
     if (!initializeSDL())
     {
@@ -139,7 +170,7 @@ void gameStart()
     SetupShaders(graphics, gizmos, camera);
 
     world.InitializeWorld(
-        player, camera, gizmos,
+        player, camera, colliderCtx, world, gizmos,
         graphics.vertexID,
         graphics.vbo_point,
         graphics.vbo_line,

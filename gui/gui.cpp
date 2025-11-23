@@ -4,15 +4,22 @@
 #include "graphics.h"
 #include "gizmos.h"
 #include "player.h"
+#include "playerCtx.h"
 #include "weapon.h"
 #include "world.h"
+#include "worldCtx.h"
 #include "global.h"
 
 #include <glm/glm.hpp>
 
 ImGuiChildFlags flags = ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Borders;
 
-void Gui::DrawImGui(const std::string time, Graphics &graphics, Gizmos &gizmos, Player &player, Camera &camera, World &world, entt::registry &registry, entt::entity &weapon, Input &input)
+void Gui::DrawImGui(
+    const std::string time,
+    Graphics &graphics, Gizmos &gizmos,
+    Player &player, Camera &camera,
+    WorldCtx &ctx, World &world,
+    entt::registry &registry, entt::entity &weapon, Input &input)
 {
     ImGui::Begin("Yo...");
 
@@ -27,9 +34,10 @@ void Gui::DrawImGui(const std::string time, Graphics &graphics, Gizmos &gizmos, 
     MouseInfo(input);
     CamInfo(camera);
     PlayerInfo(player, gizmos);
-    WorldInfo(world);
+    WorldInfo(ctx);
     WeaponInfo(player, registry, weapon);
-    DrawScreenInfo(camera, world, input);
+    DrawScreenInfo(camera, ctx, world, input);
+    DrawGameInfo(camera, world);
     ImGui::End();
 }
 
@@ -115,18 +123,18 @@ void DrawWeaponGui(entt::registry &registry, entt::entity &weapon)
         ImGui::SliderScalar("RateSlider", ImGuiDataType_Float, &component.fire_rate, &min, &max);
     }
 
-    if (registry.all_of<BulletComponent>(weapon))
+    if (registry.all_of<ProjectileComponent>(weapon))
     {
-        auto &component = registry.get<BulletComponent>(weapon);
+        auto &component = registry.get<ProjectileComponent>(weapon);
 
         static float min = 0.0f;
         static float max = 10000.0f;
-        ImGui::Text("Bullet component");
+        ImGui::Text("Projectile component");
         ImGui::InputFloat("Speed", &component.bulletspeed);
         ImGui::SliderScalar("SpeedSlider", ImGuiDataType_Float, &component.bulletspeed, &min, &max);
-        if (ImGui::Button("Remove Bullet"))
+        if (ImGui::Button("Remove Projectile"))
         {
-            registry.remove<BulletComponent>(weapon);
+            registry.remove<ProjectileComponent>(weapon);
         }
     }
 
@@ -159,11 +167,11 @@ void DrawWeaponGui(entt::registry &registry, entt::entity &weapon)
         }
     }
 
-    if (!registry.all_of<BulletComponent>(weapon))
+    if (!registry.all_of<ProjectileComponent>(weapon))
     {
-        if (ImGui::Button("Add Bullet"))
+        if (ImGui::Button("Add Projectile"))
         {
-            registry.emplace<BulletComponent>(weapon);
+            registry.emplace<ProjectileComponent>(weapon);
         }
     }
 
@@ -200,31 +208,36 @@ void Gui::WeaponInfo(Player &player, entt::registry &registry, entt::entity &wea
     }
 }
 
-void Gui::WorldInfo(World &world)
+void Gui::WorldInfo(WorldCtx &world)
 {
+    auto &blasts = world.blasts.list;
+    auto &lasers = world.lasers.list;
+    auto &projectiles = world.projectiles.list;
+
     if (ImGui::TreeNode("World info"))
     {
         ImGui::BeginChild("World info", ImVec2(0.0f, 0.0f), flags);
-        ImGui::Text("blasts: %d", (int)world.blasts.size());
-        for (size_t i = 0; i < world.blasts.size(); i++)
+        ImGui::Text("blasts: %d", (int)blasts.size());
+        for (size_t i = 0; i < blasts.size(); i++)
         {
             ImGui::Text("Blast %d - Pos: (%.1f, %.1f, %.1f) Time: %.2f", (int)i,
-                        world.blasts[i].pos.x,
-                        world.blasts[i].pos.y,
-                        world.blasts[i].pos.z,
-                        world.blasts[i].cooldown);
+                        blasts[i].pos.x,
+                        blasts[i].pos.y,
+                        blasts[i].pos.z,
+                        blasts[i].cooldown);
         }
-        for (size_t i = 0; i < world.lasers.size(); i++)
+        for (size_t i = 0; i < lasers.size(); i++)
         {
             ImGui::Text("Laser %d - Time: %.2f", (int)i,
-                        world.blasts[i].cooldown);
+                        blasts[i].cooldown);
         }
-        for (size_t i = 0; i < world.bullets.size(); i++)
+        for (size_t i = 0; i < projectiles.size(); i++)
         {
-            ImGui::Text("Bullet %d - dist: %.2f", (int)i,
-                        world.bullets[i].distance);
+            ImGui::Text("Projectile %d - dist: %.2f", (int)i,
+                        projectiles[i].distance);
         }
-        ImGui::Text("Cells: %d", (int)world.cells.size());
+        // need to pass multiple or somehing
+        // ImGui::Text("Cells: %d", (int)world.cells.size());
 
         ImGui::EndChild();
         ImGui::TreePop();
@@ -273,7 +286,7 @@ glm::vec2 GetWorldPos(glm::vec2 &pos, Camera &camera)
     return world_pos;
 }
 
-void Gui::DrawScreenInfo(Camera &camera, World &world, Input &input)
+void Gui::DrawScreenInfo(Camera &camera, WorldCtx &ctx, World &world, Input &input)
 {
     ImDrawList *draw_list = ImGui::GetBackgroundDrawList();
 
@@ -296,5 +309,27 @@ void Gui::DrawScreenInfo(Camera &camera, World &world, Input &input)
         snprintf(buf, sizeof(buf), "%d", cell.id);
 
         draw_list->AddText(ImPos, IM_COL32(255, 255, 255, 255), buf);
+    }
+}
+
+void Gui::DrawGameInfo(Camera &camera, World &world)
+{
+    ImDrawList *draw_list = ImGui::GetBackgroundDrawList();
+
+    for (auto &target : world.targets)
+    {
+        if (!target.show_info)
+            continue;
+
+        float pos_z = target.pos.z + target.size;
+
+        glm::vec4 clip = camera.projection * camera.view * glm::vec4(target.pos.x, target.pos.y, pos_z, 1.0f);
+        glm::vec3 ndc = glm::vec3(clip) / clip.w;
+        ImVec2 ImPos(
+            (ndc.x * 0.5f + 0.5f) * g.window_width,
+            (1.0f - (ndc.y * 0.5f + 0.5f)) * g.window_height);
+        char buf[64];
+        snprintf(buf, sizeof(buf), "HP: %.1f", target.hp);
+        draw_list->AddText(ImPos, IM_COL32(200, 200, 200, 255), buf);
     }
 }

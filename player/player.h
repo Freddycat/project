@@ -10,6 +10,8 @@ struct Input;
 struct Blast;
 struct Laser;
 struct Weapon;
+struct PlayerCtx;
+struct ColliderCtx;
 
 struct Player
 {
@@ -25,8 +27,6 @@ struct Player
     glm::vec3 velocity;
 
     glm::vec3 move_direction;
-
-    glm::vec3 facing;
 
     glm::vec3 next_pos;
 
@@ -45,6 +45,8 @@ struct Player
 
     float cam_center = height * 0.75f;
 
+    bool mouse1;
+
     entt::entity weapon;
 
     Point pos_dot;
@@ -55,9 +57,9 @@ struct Player
         {radius, radius, height, 0.0},
         {0.8, 0.8, 0.8, 1.0}};
 
-    void MovePlayer(float time_elapsed);
+    void MovePlayer(float time_elapsed, PlayerCtx &ctx,ColliderCtx &colliderCtx);
     void UpdatePlayerDot(std::vector<Point> &points, std::vector<Capsule> &capsules);
-    void UpdateCrosshair(std::vector<Point> &points, glm::vec3 &pos);
+    void UpdateCrosshair(std::vector<Point> &points, glm::vec3 pos, PlayerCtx &ctx);
 };
 
 #endif

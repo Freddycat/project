@@ -5,6 +5,7 @@
 #include "app.h"
 #include "camera.h"
 #include "player.h"
+#include "playerCtx.h"
 #include <SDL3/SDL.h>
 #include <iostream>
 #define GLM_ENABLE_EXPERIMENTAL
@@ -16,10 +17,23 @@ Mouse &Input::GetMouse()
     return mouse;
 }
 
-void Input::GetMouseInput()
+void Input::GetMouseInput(PlayerCtx &player)
 {
-    SDL_GetMouseState(&mouse.screen_pos.x, &mouse.screen_pos.y);
+    Uint32 buttons = SDL_GetMouseState(&mouse.screen_pos.x, &mouse.screen_pos.y);
     mouse.center_pos = mouse.screen_pos - g.window_center;
+
+    bool left = (buttons & SDL_BUTTON_LMASK) != 0;
+    bool right = (buttons & SDL_BUTTON_RMASK) != 0;
+    bool middle = (buttons & SDL_BUTTON_MMASK) != 0;
+
+    if (left)
+    {
+        player.firing = true;
+    }
+    else
+    {
+        player.firing = false;
+    }
 }
 
 void Input::GetMouseWorldPos(Camera &camera, float offset)

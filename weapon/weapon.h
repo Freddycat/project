@@ -1,39 +1,44 @@
-#ifndef WEAPON_H
-#define WEAPON_H
+#ifndef WEAPON_EVENTS_H
+#define WEAPON_EVENTS_H
 
 #include "world.h"
+#include "weaponEventQueue.h"
+
 #include <glm/glm.hpp>
 #include <vector>
 #include <entt/entt.hpp>
 
+using std::vector;
+
 struct Blast;
 struct Laser;
-struct Bullet;
+struct Projectile;
+struct PlayerCtx;
 
 struct WeaponManager
 {
     entt::registry registry;
 };
 
-struct BulletComponent
+struct ProjectileComponent
 {
     float bulletspeed = 1000.0f;
     float maxrange = 10000.0f;
     glm::vec3 direction;
-    void Shoot(glm::vec3 target, glm::vec3 start, float speed, float maxrange, std::vector<Bullet> &bullets);
+    void Shoot(PlayerCtx &ctx, ProjectileComponent &bullet, vector<Projectile> &que);
 };
 
 struct LaserComponent
 {
     float cooldown = 0.3f;
-    void Shoot(glm::vec3 target, glm::vec3 start, float delta, std::vector<Laser> &lasers);
+    void Shoot(PlayerCtx &ctx, LaserComponent &laser, vector<Laser> &que);
 };
 
 struct BlastComponent
 {
     float blast_size = 150.0f;
     float blast_rate = 0.5f;
-    void Shoot(glm::vec3 target, glm::vec3 start, float delta, std::vector<Blast> &blasts);
+    void Shoot(PlayerCtx &ctx, BlastComponent &blast, vector<Blast> &que);
 };
 
 struct Weapon
@@ -41,10 +46,10 @@ struct Weapon
     entt::entity id;
     float fire_rate = 0.9f;
     float cooldown = 0.0f;
-    void UpdateWeapon(glm::vec3 target, glm::vec3 start, float delta, std::vector<Bullet> &bullets, std::vector<Blast> &blasts, std::vector<Laser> &lasers, entt::registry &registry);
-    void FireWeapon(glm::vec3 target, glm::vec3 start, float delta, std::vector<Bullet> &bullets, std::vector<Blast> &blasts, std::vector<Laser> &lasers, entt::registry &registry);
+    void UpdateWeapon(PlayerCtx &ctx, float delta, WeaponEvents &events, entt::registry &weapreg);
+    void FireWeapon(PlayerCtx &ctx, WeaponEvents &events, entt::registry &weapreg);
 };
 
 using WeaponComponents = entt::type_list<Weapon, LaserComponent, BlastComponent>;
 
-#endif // WEAPON_H
+#endif // WEAPON_EVENTS_H

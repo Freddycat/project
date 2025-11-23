@@ -81,22 +81,71 @@ void LoadBasics()
         base_circle.push_back(glm::vec3(cos(theta), sin(theta), 0.0f));
     }
 
-    // sphere
-
-    for (int lat = 0; lat <= rings; ++lat)
+    // sphere double halves for now
+    for (int lat = 0; lat < rings / 2; ++lat)
     {
-        float phi = glm::pi<float>() * lat / rings; // 0..PI
-        float z = cos(phi) * size;
-        float r = sin(phi) * size;
+        float phi0 = glm::pi<float>() * lat / rings;
+        float phi1 = glm::pi<float>() * (lat + 1) / rings;
 
-        for (int lon = 0; lon <= segments; ++lon)
+        float z0 = cos(phi0) * size;
+        float z1 = cos(phi1) * size;
+        float r0 = sin(phi0) * size;
+        float r1 = sin(phi1) * size;
+
+        for (int lon = 0; lon < segments; ++lon)
         {
-            float theta = 2.0f * glm::pi<float>() * lon / segments;
-            float x = cos(theta) * r;
-            float y = sin(theta) * r;
-            base_sphere.push_back(glm::vec3(x, y, z));
+            float theta0 = 2.0f * glm::pi<float>() * lon / segments;
+            float theta1 = 2.0f * glm::pi<float>() * (lon + 1) / segments;
+
+            glm::vec3 v00(r0 * cos(theta0), r0 * sin(theta0), z0);
+            glm::vec3 v01(r0 * cos(theta1), r0 * sin(theta1), z0);
+            glm::vec3 v10(r1 * cos(theta0), r1 * sin(theta0), z1);
+            glm::vec3 v11(r1 * cos(theta1), r1 * sin(theta1), z1);
+
+            // First triangle
+            base_sphere.push_back(v00);
+            base_sphere.push_back(v10);
+            base_sphere.push_back(v01);
+
+            // Second triangle
+            base_sphere.push_back(v10);
+            base_sphere.push_back(v11);
+            base_sphere.push_back(v01);
         }
     }
+
+    for (int lat = 0; lat < rings / 2; ++lat)
+    {
+        float phi0 = glm::pi<float>() * lat / rings;
+        float phi1 = glm::pi<float>() * (lat + 1) / rings;
+
+        float z0 = -cos(phi0) * size;
+        float z1 = -cos(phi1) * size;
+        float r0 = sin(phi0) * size;
+        float r1 = sin(phi1) * size;
+
+        for (int lon = 0; lon < segments; ++lon)
+        {
+            float theta0 = 2.0f * glm::pi<float>() * lon / segments;
+            float theta1 = 2.0f * glm::pi<float>() * (lon + 1) / segments;
+
+            glm::vec3 v00(r0 * cos(theta0), r0 * sin(theta0), z0);
+            glm::vec3 v01(r0 * cos(theta1), r0 * sin(theta1), z0);
+            glm::vec3 v10(r1 * cos(theta0), r1 * sin(theta0), z1);
+            glm::vec3 v11(r1 * cos(theta1), r1 * sin(theta1), z1);
+
+            // First triangle
+            base_sphere.push_back(v00);
+            base_sphere.push_back(v10);
+            base_sphere.push_back(v01);
+
+            // Second triangle
+            base_sphere.push_back(v10);
+            base_sphere.push_back(v11);
+            base_sphere.push_back(v01);
+        }
+    }
+
 
     // cylinder
 
@@ -226,6 +275,7 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera)
     graphics.circleID = Gfx::InitializeShader("circle.glsl", "frag.glsl");
     graphics.wireframe_cubeID = Gfx::InitializeShader("circle.glsl", "frag.glsl");
     graphics.cubeID = Gfx::InitializeShader("circle.glsl", "frag.glsl");
+    graphics.sphereID = Gfx::InitializeShader("circle.glsl", "frag.glsl");
     graphics.capID = Gfx::InitializeShader("capsule.glsl", "frag.glsl");
 
     Gfx::CheckGLError("Gfx::use"); // this is just an error check, not sure if it works.
@@ -234,10 +284,10 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera)
     glGenBuffers(1, &graphics.cameraUBO);
     glBindBuffer(GL_UNIFORM_BUFFER, graphics.cameraUBO);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 2, nullptr, GL_DYNAMIC_DRAW); // allocates the 2 mat4
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, graphics.cameraUBO); // binds to "0" from layout
-    glBindBuffer(GL_UNIFORM_BUFFER, 0); //unbind
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, graphics.cameraUBO);                       // binds to "0" from layout
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);                                               // unbind
     // continue:
-    
+
     gizmos.points.reserve(1000);
     gizmos.static_line_points.reserve(1000);
     gizmos.lines.reserve(1000);
@@ -249,6 +299,7 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera)
     graphics.max_circles = std::max<size_t>(64, gizmos.circles.capacity());
     graphics.max_cubes_wireframe = std::max<size_t>(64, gizmos.wireframe_cubes.capacity());
     graphics.max_cubes = std::max<size_t>(64, gizmos.cubes.capacity());
+    graphics.max_spheres = std::max<size_t>(64, gizmos.spheres.capacity());
 
     // -- POINTS (STATIC) --
     glGenVertexArrays(1, &graphics.vao_point);
@@ -293,7 +344,7 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera)
     glGenBuffers(1, &graphics.vbo_wireframecube_buf);
     glBindBuffer(GL_ARRAY_BUFFER, graphics.vbo_wireframecube_buf);
     glBufferData(GL_ARRAY_BUFFER, base_cube_wireframe.size() * sizeof(glm::vec3), base_cube_wireframe.data(), GL_STATIC_DRAW);
-    
+
     // pos
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void *)0);
     glEnableVertexAttribArray(0);
@@ -387,6 +438,48 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera)
 
     glBindVertexArray(0);
 
+    // -- SPHERES --
+
+    if (glIsProgram(graphics.circleID))
+        glUseProgram(graphics.circleID);
+    else
+        std::cerr << "Invalid shader program\n";
+
+    Gfx::CheckGLError("Gfx::use");
+
+    glGenVertexArrays(1, &graphics.vao_sphere);
+    glBindVertexArray(graphics.vao_sphere);
+
+    glGenBuffers(1, &graphics.vbo_sphere_buf);
+    glBindBuffer(GL_ARRAY_BUFFER, graphics.vbo_sphere_buf);
+    glBufferData(GL_ARRAY_BUFFER, base_sphere.size() * sizeof(glm::vec3), base_sphere.data(), GL_STATIC_DRAW);
+
+    // pos
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void *)0);
+    glEnableVertexAttribArray(0);
+
+    // centered (instance)
+    glGenBuffers(1, &graphics.vbo_spheres);
+    glBindBuffer(GL_ARRAY_BUFFER, graphics.vbo_spheres);
+    glBufferData(GL_ARRAY_BUFFER, graphics.max_spheres * sizeof(Sphere), nullptr, GL_DYNAMIC_DRAW);
+
+    // center
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Sphere), (void *)offsetof(Sphere, center));
+    glEnableVertexAttribArray(1);
+    glVertexAttribDivisor(1, 1); // center changes per instance
+
+    // scale
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Sphere), (void *)offsetof(Sphere, size));
+    glEnableVertexAttribArray(2);
+    glVertexAttribDivisor(2, 1); // scale changes per instance
+
+    // color
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Sphere), (void *)offsetof(Sphere, color));
+    glEnableVertexAttribArray(3);
+    glVertexAttribDivisor(3, 1);
+
+    glBindVertexArray(0);
+
     // -- CAPSULES --
 
     if (glIsProgram(graphics.capID))
@@ -433,11 +526,9 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera)
     glEnable(GL_DEPTH_TEST);
     glLineWidth(1.0f);
 
-
     GLenum err = glGetError();
     if (err != GL_NO_ERROR)
     {
         std::cerr << "OpenGL error here: 0x" << std::hex << err << std::dec << std::endl;
     }
-
 };

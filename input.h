@@ -6,6 +6,7 @@
 
 struct Camera;
 struct Player;
+struct PlayerCtx;
 
 struct Mouse
 {
@@ -25,11 +26,12 @@ struct Input
 
   Mouse &GetMouse();
 
-  void GetMouseInput();
+  void GetMouseInput(PlayerCtx &ctx);
 
   void GetMouseWorldPos(Camera &camera, float offset = 0.0f);
 
   void InputKeyboard(Player &player);
+  void InputMouse(Player &player);
 
   Mouse mouse;
 };

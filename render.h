@@ -9,8 +9,9 @@ struct Camera;
 struct Input;
 struct Player;
 struct World;
+struct WorldCtx;
 struct Gui;
 
-void render(Graphics &graphics, Camera &camera, Gizmos &gizmos, World &world, Player &player, Gui &gui, entt::registry &registry, entt::entity &weapon, Input &input);
+void render(Graphics &graphics, Camera &camera, Gizmos &gizmos, WorldCtx &ctx, World &world, Player &player, Gui &gui, entt::registry &registry, entt::entity &weapon, Input &input);
 
 #endif // RENDER_H

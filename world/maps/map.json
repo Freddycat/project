@@ -1,0 +1,28 @@
+{
+    "map": {
+        "name": "basic_map",
+        "objects": [
+            {
+                "type": "target",
+                "id": "target_1",
+                "position": [-500.0, -150.0, 0.0],
+                "size": 64.0,
+                "hp": 120
+            },
+            {
+                "type": "target",
+                "id": "target_2",
+                "position": [64.0, -254.0, 0.0],
+                "size": 40.0,
+                "hp": 64
+            },
+            {
+                "type": "target",
+                "id": "target_3",
+                "position": [62.0, 312.0, 0.0],
+                "size": 100.0,
+                "hp": 160
+            }
+        ]
+    }
+}
