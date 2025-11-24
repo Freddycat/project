@@ -32,7 +32,9 @@ void LoadBasics()
         vec3(0.0f, 1.0f, 0.0f)    // top
     };
 
-    base_triangle.push_back(triangle);
+    base_triangle.push_back(triangle[0]);
+    base_triangle.push_back(triangle[1]);
+    base_triangle.push_back(triangle[2]);
 
     // cube
     glm::vec3 cubeVerts[8] = {
