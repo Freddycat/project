@@ -9,13 +9,17 @@ extern bool running;
 
 struct Global
 {
+    float set_width = 1280;
+    float set_height = 720;
+
+    int window_width = 1280;
+    int window_height = 720;
+
     std::filesystem::path home;
     SDL_Window *window;
     SDL_GLContext glContext;
 
     glm::vec2 window_size;
-    int window_width;
-    int window_height;
 
     glm::vec2 window_center;
 

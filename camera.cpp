@@ -10,8 +10,8 @@
 void Camera::SetCam(GLuint &shaderID)
 {
   projection = glm::ortho(
-      0.0f, 800.0f,     // left, right
-      600.0f, 0.0f,     // bottom, top
+      0.0f, g.set_width,     // left, right
+      g.set_height, 0.0f,     // bottom, top
       -1000.0f, 2000.0f // near, far
   );
 

@@ -12,10 +12,11 @@
 
 #include "render.h"
 #include "shaders.h"
+#include "primitives.h"
 #include "world.h"
 #include "app.h"
 
-void render(Graphics &graphics, Camera &camera, Gizmos &gizmos, WorldCtx &ctx, World &world, Player &player, Gui &gui, entt::registry &registry, entt::entity &weapon, Input &input)
+void render(float delta, Graphics &graphics, Camera &camera, Gizmos &gizmos, WorldCtx &ctx, World &world, Player &player, Gui &gui, entt::registry &registry, entt::entity &weapon, Input &input)
 {
 
     std::string time_str = formatTime();
@@ -23,19 +24,19 @@ void render(Graphics &graphics, Camera &camera, Gizmos &gizmos, WorldCtx &ctx, W
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    if (gizmos.points.size() > graphics.max_points)
+    if (gizmos.points.size() > graphics.max_points * 0.8f)
     {
         graphics.max_points = gizmos.points.size() * 1.25f;
         glBufferData(GL_ARRAY_BUFFER, graphics.max_points * sizeof(Point), nullptr, GL_DYNAMIC_DRAW);
     }
 
-    if (gizmos.lines.size() > graphics.max_lines)
+    if (gizmos.lines.size() > graphics.max_lines * 0.8f)
     {
         graphics.max_lines = gizmos.lines.size() * 1.25f;
         glBufferData(GL_ARRAY_BUFFER, graphics.max_lines * sizeof(Point), nullptr, GL_DYNAMIC_DRAW);
     }
 
-    if (gizmos.circles.size() > graphics.max_circles)
+    if (gizmos.circles.size() > graphics.max_circles * 0.8f)
     {
         graphics.max_circles = gizmos.circles.size() * 1.25f;
         glBufferData(GL_ARRAY_BUFFER, graphics.max_circles * sizeof(Circle), nullptr, GL_DYNAMIC_DRAW);
@@ -126,7 +127,6 @@ void render(Graphics &graphics, Camera &camera, Gizmos &gizmos, WorldCtx &ctx, W
     glDrawArraysInstanced(GL_LINES, 0, base_cube_wireframe.size(), gizmos.cubes.size());
     glBindVertexArray(0);
 
-
     // -- SPHERES --
     glUseProgram(graphics.circleID);
     glBindVertexArray(graphics.vao_sphere);
@@ -166,7 +166,6 @@ void render(Graphics &graphics, Camera &camera, Gizmos &gizmos, WorldCtx &ctx, W
     glDrawArraysInstanced(GL_LINES, 0, base_cube_wireframe.size(), gizmos.cubes.size());
     glBindVertexArray(0);
 
-
     // -- CIRCLES --
     glUseProgram(graphics.circleID);
     glBindVertexArray(graphics.vao_circle);
@@ -192,15 +191,42 @@ void render(Graphics &graphics, Camera &camera, Gizmos &gizmos, WorldCtx &ctx, W
     glDrawArraysInstanced(GL_LINES, 0, base_capsule.size(), gizmos.capsules.size());
     glBindVertexArray(0);
 
+    // -- GROUND --
+
+    glUseProgram(graphics.groundID);
+
+    // draw plane normally
+    glBindVertexArray(graphics.vao_ground);
+    glBindBuffer(GL_ARRAY_BUFFER, graphics.vbo_ground);
+
+    GLint loc = glGetUniformLocation(graphics.groundID, "model");
+    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(gizmos.ground_model));
+
+    // update time uniform
+    glUniform1f(glGetUniformLocation(graphics.groundID, "u_time"), delta);
+
+
+    glBufferSubData(GL_ARRAY_BUFFER, 0,
+                    gizmos.ground.size() * sizeof(Ground),
+                    gizmos.ground.data());
+    glDrawArraysInstanced(GL_TRIANGLES, 0, base_ground.size(), gizmos.ground.size());
+
+    glBindVertexArray(0);
+
+    // -- IMGUI --
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
+    ImGui::NewFrame();
     if (g.console_on)
     {
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplSDL3_NewFrame();
-        ImGui::NewFrame();
         gui.DrawImGui(time_str, graphics, gizmos, player, camera, ctx, world, registry, weapon, input);
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
+    else
+        gui.DrawGameInfo(camera, world);
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     SDL_GL_SwapWindow(g.window);
 }

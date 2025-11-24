@@ -44,7 +44,12 @@ struct Graphics
         capID, // capsules
         vao_cap,
         vbo_cap_buf,
-        vbo_caps;
+        vbo_caps,
+
+        groundID, // the ground
+        vao_ground,
+        vbo_ground_buf,
+        vbo_ground;
 
     size_t max_points_static = 10000;
     size_t max_line_points_static = 10000;
@@ -55,6 +60,7 @@ struct Graphics
     size_t max_cubes = 50;
     size_t max_spheres = 50;
     size_t max_capsules = 50;
+    size_t max_ground = 64;
 };
 
 namespace Gfx

@@ -1,6 +1,7 @@
 
 add_library(
     graphics
+    primitives.cpp
     graphics.cpp
     shaders.cpp
     gizmos.cpp

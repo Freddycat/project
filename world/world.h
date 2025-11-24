@@ -20,6 +20,7 @@ struct Weapon;
 struct ColliderCtx;
 struct PlayerCtx;
 struct WeaponEvents;
+struct Ground;
 
 using std::vector;
 

@@ -4,42 +4,43 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <vector>
+#include <glm/gtc/matrix_transform.hpp>
 
 struct Point
 {
-  glm::vec3 pos;
-  glm::vec3 color;
+    glm::vec3 pos;
+    glm::vec3 color;
 };
 
 struct Line
 {
-  glm::vec3 start;
-  glm::vec3 end;
-  glm::vec3 color;
+    glm::vec3 start;
+    glm::vec3 end;
+    glm::vec3 color;
 };
 
 struct Cube
 {
-  glm::vec3 center;
-  float size;
-  glm::vec3 color;
+    glm::vec3 center;
+    float size;
+    glm::vec3 color;
 };
 
 struct Circle
 {
-  glm::vec3 center;
-  float size;
-  glm::vec3 color;
+    glm::vec3 center;
+    float size;
+    glm::vec3 color;
 };
 
 struct Sphere
 {
-  glm::vec3 center;
-  float size;
-  glm::vec3 color;
+    glm::vec3 center;
+    float size;
+    glm::vec3 color;
 };
 
-/* 
+/*
 struct Capsule
 {
   glm::vec3 center;
@@ -56,19 +57,31 @@ struct Capsule
     glm::vec4 color;  // rgba
 };
 
+struct Ground
+{
+    glm::vec3 pos;
+    float size;
+};
+
 struct Gizmos
 {
-  size_t circle_points = 50;
-  std::vector<Point> static_points;
-  std::vector<Point> static_line_points;
-  std::vector<Point> points;
-  std::vector<Line> lines;
-  std::vector<Point> line_points;
-  std::vector<Cube> wireframe_cubes;
-  std::vector<Cube> cubes;
-  std::vector<Circle> circles;
-  std::vector<Sphere> spheres;
-  std::vector<Capsule> capsules;
+    size_t circle_points = 50;
+    std::vector<Point> static_points;
+    std::vector<Point> static_line_points;
+    std::vector<Point> points;
+    std::vector<Line> lines;
+    std::vector<Point> line_points;
+    std::vector<Cube> wireframe_cubes;
+    std::vector<Cube> cubes;
+    std::vector<Circle> circles;
+    std::vector<Sphere> spheres;
+    std::vector<Capsule> capsules;
+    std::vector<Ground> ground;
+
+    glm::mat4 ground_model = glm::rotate(
+        glm::mat4(1.0f),
+        glm::radians(90.0f),
+        glm::vec3(1.0f, 0.0f, 0.0f));
 };
 
 void LoadBasics();

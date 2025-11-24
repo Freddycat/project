@@ -112,7 +112,7 @@ void gameLoop(SDL_Event &event)
 
     // -- end updating --
     // -- start render --
-    render(graphics, camera, gizmos, worldCtx, world, player, gui, manager.registry, player.weapon, input);
+    render(g.time_elapsed, graphics, camera, gizmos, worldCtx, world, player, gui, manager.registry, player.weapon, input);
 
     frameNumber++;
 

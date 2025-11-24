@@ -27,7 +27,7 @@ bool initializeSDL()
 
   g.window = SDL_CreateWindow(
       "Game Window",
-      800, 600,
+      g.window_width, g.window_height,
       SDL_WINDOW_OPENGL);
 
   if (!g.window)

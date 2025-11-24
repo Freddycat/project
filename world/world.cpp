@@ -74,6 +74,55 @@ void loadMap(Gizmos &gizmos, entt::registry &colliders, World &world)
 
                 glm::vec3 box_min = pos - glm::vec3(radius);
                 glm::vec3 box_max = pos + glm::vec3(radius);
+                vec3 yellow{1.0, 1.0, 0.0};
+                glm::vec3 corners[8] = {
+                    {box_min.x, box_min.y, box_min.z},
+                    {box_max.x, box_min.y, box_min.z},
+                    {box_max.x, box_max.y, box_min.z},
+                    {box_min.x, box_max.y, box_min.z},
+                    {box_min.x, box_min.y, box_max.z},
+                    {box_max.x, box_min.y, box_max.z},
+                    {box_max.x, box_max.y, box_max.z},
+                    {box_min.x, box_max.y, box_max.z},
+                };
+
+                // 12 edges
+                int edges[12][2] = {
+                    {0, 1}, {1, 2}, {2, 3}, {3, 0}, // bottom
+                    {4, 5},
+                    {5, 6},
+                    {6, 7},
+                    {7, 4}, // top
+                    {0, 4},
+                    {1, 5},
+                    {2, 6},
+                    {3, 7} // verticals
+                };
+
+                for (int i = 0; i < 12; ++i)
+                {
+                    int a = edges[i][0];
+                    int b = edges[i][1];
+
+                    gizmos.static_line_points.push_back({corners[a], yellow});
+                    gizmos.static_line_points.push_back({corners[b], yellow});
+                }
+
+                /*
+                                Line lines[12] = {
+                                    {corners[0], corners[1]},
+                                    {corners[1], corners[2]},
+                                    {corners[2], corners[3]},
+                                    {corners[3], corners[0]},
+                                    {corners[4], corners[5]},
+                                    {corners[5], corners[6]},
+                                    {corners[6], corners[7]},
+                                    {corners[7], corners[4]},
+                                    {corners[0], corners[4]},
+                                    {corners[1], corners[5]},
+                                    {corners[2], corners[6]},
+                                    {corners[3], corners[7]},
+                                }; */
 
                 entt::entity hitbox = colliders.create();
 
@@ -108,6 +157,8 @@ void World::InitializeWorld(
 {
 
     loadMap(gizmos, ctx.collidables, world);
+    Ground ground{{-256.0, -5.0, -256.0}, 8};
+    gizmos.ground.push_back(ground);
 
     cam.SetCam(shaderID);
 
