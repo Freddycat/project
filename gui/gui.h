@@ -17,18 +17,27 @@ struct Graphics;
 struct Camera;
 struct World;
 struct WorldCtx;
+struct Line;
+
+using std::vector;
 
 struct Gui
 {
-    void DrawImGui(const std::string time, Graphics &graphics, Gizmos &gizmos, Player &player, Camera &camera, WorldCtx &ctx, World &world, entt::registry &registry, entt::entity &weapon, Input &input);
-    void AppTime(const std::string time, Graphics &graphics, Gizmos &gizmos);
+    void DrawImGui(const std::string time,
+                   Graphics &graphics, Gizmos &gizmos, Player &player, Camera &camera,
+                   WorldCtx &ctx, World &world, Input &input,
+                   vector<Line> &lines,
+                   entt::registry &colliders);
+
+    void AppTime(const std::string time, Graphics &graphics, Gizmos &gizmos, entt::registry &colliders);
     void MouseInfo(Input &input);
     void CamInfo(Camera &camera);
     void PlayerInfo(Player &player, Gizmos &gizmos);
     void WorldInfo(WorldCtx &world);
-    void WeaponInfo(Player &player, entt::registry &registry, entt::entity &weapon);
+    void WeaponInfo(Player &player);
+    void GraphicsInfo(Graphics &graphics);
     void DrawScreenInfo(Camera &camera, WorldCtx &ctx, World &world, Input &input);
-    void DrawGameInfo(Camera &camera, World &world);
+    void DrawGameInfo(Camera &camera, WorldCtx &world, vector<Line> &lines);
 };
 
 #endif

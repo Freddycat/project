@@ -13,7 +13,6 @@
 #include "global.h"
 #include "graphics.h"
 
-#include <unistd.h>
 #include <limits.h>
 
 #include <filesystem>

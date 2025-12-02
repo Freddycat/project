@@ -3,30 +3,24 @@
 #include <glm/gtc/constants.hpp>
 #include <iostream>
 
-Cube CreateCube(glm::vec3 pos, float size, glm::vec3 color, std::vector<Cube> &cubes)
+void CreateShapeSym(vec3 &pos, float size, vec4 &color, std::vector<ShapeSym> &shapes)
 {
-  Cube cube{
-      pos,
-      size,
-      color};
+    ShapeSym shape{
+        pos,
+        size,
+        color};
 
-  cubes.push_back(cube);
-  std::cout << "created cube" << std::endl;
-  return cube;
+    shapes.push_back(shape);
+    std::cout << "created shape" << std::endl;
 }
 
-Circle CreateCircle(glm::vec3 pos, float size, glm::vec3 color, std::vector<Circle> &circles)
+void CreateShape(vec3 &pos, vec3 size, vec4 &color, std::vector<Shape> &shapes)
 {
-  Circle circle{
-      pos,
-      size,
-      color};
+    Shape shape{
+        pos,
+        size,
+        color};
 
-  circles.push_back(circle);
-  std::cout << "created circle" << std::endl;
-  return circle;
-}
-
-void drawCapsule()
-{
+    shapes.push_back(shape);
+    std::cout << "created shape" << std::endl;
 }

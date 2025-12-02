@@ -32,12 +32,12 @@ struct SphereCollider
 
 struct CollisionResult
 {
+    bool hit = false;      // whether we collided
     float fraction = 1.0f; // how far along delta we can move
     vec3 normal;      // normal of surface we hit
-    bool hit = false;      // whether we collided
 };
 
-struct MouseHit
+struct PointHit
 {
     bool hit = false;
 };
@@ -48,7 +48,9 @@ bool capsule_vs_box(const vec3 &cap_start, const vec3 &cap_end,
 
 bool point_vs_box(const vec3 pos, const vec3 &box_start, const vec3 &box_end); */
 
-bool MouseHit(const vec3 pos, const vec3 &box_start, const vec3 &box_end);
+CollisionResult RayHit(const vec3 &origin, const vec3 &direction,
+                       const vec3 &boxmin, const vec3 &boxmax, const float range);
+bool PointHit(const vec3 pos, const vec3 &box_start, const vec3 &box_end);
 CollisionResult TestCollisions(ColliderCtx &ctx, vec3 pos, vec3 next_pos, vec3 cap_start, vec3 cap_end, float radius);
 
 #endif // COLLISIONS

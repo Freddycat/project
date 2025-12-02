@@ -13,12 +13,11 @@
 #include "shaders.h"
 #include "render.h"
 #include "global.h"
-#include "weapon.h"
+#include "Weapons.h"
 #include "world.h"
 #include "player.h"
 #include "playerCtx.h"
 #include "collisions.h"
-#include "weaponEventQueue.h"
 
 SDL_Window *window = nullptr;
 SDL_GLContext glContext;
@@ -29,7 +28,7 @@ std::string message = "so this is the message";
 int number = 42;
 int frameNumber = 0;
 
-int target_framerate = 60;
+int target_framerate = 144;
 std::chrono::milliseconds target_frametime = std::chrono::milliseconds(int(1000 / target_framerate));
 std::chrono::steady_clock::time_point frame_last;
 std::chrono::steady_clock::time_point frame_now;
@@ -42,12 +41,13 @@ Player player;
 World world;
 Camera camera;
 Gui gui;
-WeaponManager manager;
 Global g;
+
 ColliderCtx colliderCtx;
 WorldCtx worldCtx;
+WorldFX worldFX;
 PlayerCtx playerCtx;
-WeaponEvents wepque;
+vector<WeaponEvent> weapQue;
 
 void gameLoop(SDL_Event &event)
 {
@@ -84,35 +84,56 @@ void gameLoop(SDL_Event &event)
     input.InputKeyboard(player);
     input.GetMouseInput(playerCtx);
     player.MovePlayer(g.time_elapsed, playerCtx, colliderCtx);
-    camera.CenterCam(graphics.vertexID, input, playerCtx);
     input.GetMouseWorldPos(camera, player.cam_center);
-
     player.UpdateCrosshair(gizmos.points, input.mouse.xhair_pos, playerCtx);
-    player.UpdatePlayerDot(gizmos.points, gizmos.capsules);
+    player.UpdatePlayerCap(playerCtx, gizmos, gizmos.points, gizmos.capsules);
+    camera.CenterCam(input, playerCtx);
+    /*
+        for (auto &entity : manager.registry.view<Weapon>())
+        {
+            glm::vec3 newPos = player.pos;
+            newPos.z += player.cam_center;
+            auto &weapon = manager.registry.get<Weapon>(entity);
+            weapon.UpdateWeapon(playerCtx, g.time_elapsed, wepque, player.weapon);
+        }
+     */
+    /*
+        for (auto &entity : manager.registry.view<WeaponHandle>())
+        {
 
-    UpdateWorldTargets(colliderCtx.collidables, playerCtx, world);
+            auto &weaponHandle = manager.registry.get<WeaponHandle>(entity);
+            auto &weapon = *weaponHandle.weapon;
+            weapon.UpdateWeapon(playerCtx, g.time_elapsed, wepque, player.weapon);
+        } */
 
-    for (auto &entity : manager.registry.view<Weapon>())
-    {
-        glm::vec3 newPos = player.pos;
-        newPos.z += player.cam_center;
-        auto &weapon = manager.registry.get<Weapon>(entity);
-        weapon.UpdateWeapon(playerCtx, g.time_elapsed, wepque, manager.registry);
-    }
+    player.weapons[0].UpdateWeapon(playerCtx, g.time_elapsed, weapQue, player.weapons[0].id);
 
-    WorldQueue(wepque, worldCtx);
+    UpdateWorldTargets(colliderCtx.collidables, playerCtx, input, worldCtx);
 
-    worldCtx.UpdateProjectiles(g.time_elapsed, gizmos.points);
+    WorldEvents worldQue;
+
+    WorldCreateQueue(weapQue, worldCtx, colliderCtx.collidables);
+
+    worldCtx.UpdateProjectiles(g.time_elapsed, gizmos, worldQue, worldFX, colliderCtx.collidables, player.weapons[0]);
     worldCtx.UpdateBlasts(g.time_elapsed, gizmos.circles);
-    worldCtx.UpdateLasers(g.time_elapsed, gizmos.lines);
-    
+    worldCtx.UpdateBeams(g.time_elapsed, gizmos.lines, worldCtx.beams.list, worldQue, worldFX, colliderCtx.collidables);
+
+    WorldCreateQueue(weapQue, worldCtx, colliderCtx.collidables);
+    WorldFXQueue(worldCtx, worldFX, colliderCtx.collidables);
+
+    WorldHitQueue(worldQue, worldCtx);
+
     worldCtx.EraseBlasts();
     worldCtx.EraseProjectiles();
-    worldCtx.EraseLasers();
+    worldCtx.EraseBeams();
+
+    EraseEntt(colliderCtx.collidables);
+
+    WorldClearQueue(weapQue, worldFX);
 
     // -- end updating --
     // -- start render --
-    render(g.time_elapsed, graphics, camera, gizmos, worldCtx, world, player, gui, manager.registry, player.weapon, input);
+    render(g.time_elapsed, graphics, camera, gizmos, worldCtx, world, player, gui, input, colliderCtx.collidables);
 
     frameNumber++;
 
@@ -120,7 +141,14 @@ void gameLoop(SDL_Event &event)
     std::this_thread::sleep_until(next_frametime);
 }
 
+#if defined(_WIN32)
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
 std::filesystem::path getExecutableDir()
+
 {
 #if defined(_WIN32)
     wchar_t buffer[MAX_PATH];
@@ -129,7 +157,7 @@ std::filesystem::path getExecutableDir()
 #else
     // Linux, BSD, etc. using /proc/self/exe
     char buffer[1024];
-    ssize_t len = readlink("/proc/self/exe", buffer, sizeof(buffer)-1);
+    ssize_t len = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
     buffer[len] = '\0';
     return std::filesystem::path(buffer).parent_path();
 #endif
@@ -170,11 +198,9 @@ void gameStart()
     SetupShaders(graphics, gizmos, camera);
 
     world.InitializeWorld(
-        player, camera, colliderCtx, world, gizmos,
-        graphics.vertexID,
+        player, camera, colliderCtx, worldCtx, world, gizmos,
         graphics.vbo_point,
-        graphics.vbo_line,
-        manager.registry);
+        graphics.vbo_line);
 
     frame_last = std::chrono::steady_clock::now();
     frame_now = frame_last;

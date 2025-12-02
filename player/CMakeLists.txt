@@ -10,7 +10,7 @@ target_include_directories(player
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/graphics
     ${CMAKE_SOURCE_DIR}/physics
-    ${CMAKE_SOURCE_DIR}/weapon
+    ${CMAKE_SOURCE_DIR}/Weapons
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/include/glm
 )

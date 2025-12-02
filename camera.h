@@ -38,8 +38,8 @@ struct Camera
     float origin_y;
     float zoom_amount = 0.3f;
 
-    void SetCam(GLuint &shaderID);
-    void CenterCam(GLuint &shaderID, Input &input, PlayerCtx &player);
+    void SetCam();
+    void CenterCam(Input &input, PlayerCtx &player);
 };
 
 #endif

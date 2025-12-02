@@ -16,7 +16,7 @@ add_subdirectory(helper)
 add_subdirectory(player)
 add_subdirectory(world)
 add_subdirectory(gui)
-add_subdirectory(weapon)
+add_subdirectory(Weapons)
 
 find_package(OpenGL REQUIRED)
 
@@ -65,7 +65,7 @@ target_link_libraries(project PUBLIC
     helper
     world
     player
-    weapon
+    Weapons
     gui
 )
 

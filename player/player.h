@@ -8,7 +8,7 @@
 struct World;
 struct Input;
 struct Blast;
-struct Laser;
+struct Beam;
 struct Weapon;
 struct PlayerCtx;
 struct ColliderCtx;
@@ -48,17 +48,20 @@ struct Player
     bool mouse1;
 
     entt::entity weapon;
+    vector<Weapon> weapons;
 
     Point pos_dot;
     Point xhair_dot;
+    Point facing_line_start;
+    Point facing_line_end;
 
-    Capsule playerCap{
-        {0.0, 0.0, 0.0, 0.0},
-        {radius, radius, height, 0.0},
+    Shape playerCap{
+        {0.0, 0.0, 0.0},
+        {radius, radius, height},
         {0.8, 0.8, 0.8, 1.0}};
 
-    void MovePlayer(float time_elapsed, PlayerCtx &ctx,ColliderCtx &colliderCtx);
-    void UpdatePlayerDot(std::vector<Point> &points, std::vector<Capsule> &capsules);
+    void MovePlayer(float time_elapsed, PlayerCtx &ctx, ColliderCtx &colliderCtx);
+    void UpdatePlayerCap(PlayerCtx &ctx, Gizmos &gizmos, std::vector<Point> &points, std::vector<Shape> &capsules);
     void UpdateCrosshair(std::vector<Point> &points, glm::vec3 pos, PlayerCtx &ctx);
 };
 

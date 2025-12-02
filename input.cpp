@@ -52,10 +52,14 @@ void Input::GetMouseWorldPos(Camera &camera, float offset)
     glm::vec3 direction = glm::normalize(glm::vec3(ray_far_world - ray_near_world));
     float distance_world = -origin.z / direction.z;
     float distance_offset = (offset - origin.z) / direction.z;
+    float camera_offset = (camera.position.z - origin.z) / direction.z;
     glm::vec3 world_pos = origin + distance_world * direction;
     glm::vec3 offset_pos = origin + distance_offset * direction;
+    
     mouse.world_pos = world_pos;
     mouse.xhair_pos = offset_pos;
+    mouse.camera_pos = origin;
+    mouse.cam_to_mouse = direction;
 }
 
 void Input::InputKeyboard(Player &player)

@@ -71,13 +71,52 @@ CollisionResult capsule_vs_box(const glm::vec3 start_pos, glm::vec3 end_pos, con
     return result;
 }
 
-bool MouseHit(const vec3 pos, const vec3 &box_start, const vec3 &box_end)
+CollisionResult RayHit(const vec3 &origin, const vec3 &direction,
+                       const vec3 &boxmin, const vec3 &boxmax,
+                        const float range)
+{
+
+    float fraction = 1;
+    float near = 0;
+    float far = range;
+    CollisionResult result;
+
+    for (int i = 0; i < 3; ++i)
+    {
+        if (direction[i] == 0.0f)
+        {
+            if (origin[i] < boxmin[i] || origin[i] > boxmax[i])
+            {
+                return result;
+            }
+        }
+        else
+        {
+            float t1 = (boxmin[i] - origin[i]) / direction[i];
+            float t2 = (boxmax[i] - origin[i]) / direction[i];
+            if (t1 > t2)
+                std::swap(t1, t2);
+
+            near = std::max(near, t1);
+            far = std::min(far, t2);
+
+            if (near > far)
+                return result; // no intersection
+            if (far < 0)
+                return result; // box is behind the ray
+        }
+    }
+    result.hit = true;
+    result.fraction = glm::clamp(near / range, 0.0f, 1.0f);
+    return result;
+}
+
+bool PointHit(const vec3 pos, const vec3 &box_start, const vec3 &box_end)
 {
     bool hit =
         pos.x >= box_start.x && pos.x <= box_end.x &&
         pos.y >= box_start.y && pos.y <= box_end.y &&
         pos.z >= box_start.z && pos.z <= box_end.z;
-
 
     if (hit)
         std::cout << "mouse hit" << std::endl;

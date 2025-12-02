@@ -9,6 +9,9 @@ target_include_directories(gui PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/graphics
     ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/player
+    ${CMAKE_SOURCE_DIR}/Weapons
+    ${CMAKE_SOURCE_DIR}/world
     ${CMAKE_SOURCE_DIR}/include/glm
     ${CMAKE_SOURCE_DIR}/include/imgui
     ${CMAKE_SOURCE_DIR}/include/imgui/backends
@@ -17,5 +20,5 @@ target_include_directories(gui PUBLIC
 target_link_libraries(
     gui
     PRIVATE
-    weapon
+    Weapons
     EnTT::EnTT)

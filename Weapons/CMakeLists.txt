@@ -1,10 +1,10 @@
 
 add_library(
-    weapon
-    weapon.cpp
+    Weapons
+    Weapons.cpp
 )
 
-target_include_directories(weapon PUBLIC
+target_include_directories(Weapons PUBLIC
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/graphics
@@ -15,7 +15,7 @@ target_include_directories(weapon PUBLIC
 )
 
 target_link_libraries(
-    weapon
+    Weapons
     PUBLIC
     SDL3::SDL3
     EnTT::EnTT)

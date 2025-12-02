@@ -1,9 +1,9 @@
 #version 460 core
 
-layout (location = 0) in vec3 aPos;
+layout (location = 0) in vec3 vertPos;
 layout(location = 1) in vec3 inCenter;
 layout (location = 2) in vec4 inSize;
-layout (location = 3) in vec4 aColor;
+layout (location = 3) in vec4 inColor;
 
 // uniform mat4 uProjection;
 // uniform mat4 uView;
@@ -11,14 +11,14 @@ layout (location = 3) in vec4 aColor;
 out vec3 fColor;
 
 layout(std140, binding = 0) uniform Camera {
+    mat4 projection;
     mat4 view;
-    mat4 proj;
 };
 
 void main() {
     // determine if vertex is top/bottom hemisphere or cylinder
-    float z = aPos.z;
-    vec3 scaled = aPos;
+    float z = vertPos.z;
+    vec3 scaled = vertPos;
     float radius = inSize.x * 0.5;
 
     if (z > 0.0) {             // top hemisphere
@@ -31,5 +31,5 @@ void main() {
 
     vec3 worldPos = inCenter.xyz + scaled;
     gl_Position = proj * view * vec4(worldPos, 1.0);
-    fColor = aColor.xyz;
+    fColor = inColor.xyz;
 }

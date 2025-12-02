@@ -49,6 +49,7 @@ void Player::MovePlayer(float time_elapsed, PlayerCtx &ctx, ColliderCtx &collide
 
     // Apply movement
     pos += delta;
+    head_pos = pos + glm::vec3(0.0f, 0.0f, height);
 
     speed = glm::length(velocity);
 
@@ -63,11 +64,17 @@ void Player::MovePlayer(float time_elapsed, PlayerCtx &ctx, ColliderCtx &collide
     ctx.pos = head_pos;
 }
 
-void Player::UpdatePlayerDot(std::vector<Point> &points, std::vector<Capsule> &capsules)
+void Player::UpdatePlayerCap(PlayerCtx &ctx, Gizmos &gizmos, std::vector<Point> &points, std::vector<Shape> &capsules)
 {
-    // points[0].pos = {pos.x, pos.y, 0.0f};
-    // points[0].color = glm::vec3(1.0f, 1.0f, 1.0f);
-    capsules[0].center = {pos.x, pos.y, 16.0f, 0.0f};
+    static vec4 color = {1, 0, 0, 1};
+    capsules[0].center = {pos.x, pos.y, 16.0f};
+    facing_line_start.pos = ctx.pos;
+    vec3 endpos = ctx.pos + ctx.facing * 100.0f;
+    facing_line_end.pos = endpos;
+    facing_line_start.color = color;
+    facing_line_end.color = color;
+    gizmos.line_points.push_back(facing_line_start);
+    gizmos.line_points.push_back(facing_line_end);
 }
 
 void Player::UpdateCrosshair(std::vector<Point> &points, glm::vec3 pos, PlayerCtx &ctx)
@@ -75,7 +82,7 @@ void Player::UpdateCrosshair(std::vector<Point> &points, glm::vec3 pos, PlayerCt
     Point xhair;
 
     xhair.pos = pos;
-    xhair.color = glm::vec3(1.0f, 1.0f, 1.0f);
+    xhair.color = glm::vec4(1, 1, 1, 1);
 
     points.push_back(xhair);
 

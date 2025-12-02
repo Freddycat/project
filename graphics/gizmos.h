@@ -6,89 +6,78 @@
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 
+using glm::vec3;
+using glm::vec2;
+using glm::vec4;
+using std::vector;
+
 struct Point
 {
-    glm::vec3 pos;
-    glm::vec3 color;
+    vec3 pos;
+    vec4 color;
 };
 
 struct Line
 {
-    glm::vec3 start;
-    glm::vec3 end;
-    glm::vec3 color;
+    Point start;
+    Point end;
 };
 
-struct Cube
+struct ShapeSym
 {
-    glm::vec3 center;
+    vec3 center;
     float size;
-    glm::vec3 color;
+    vec4 color;
 };
 
-struct Circle
+struct Shape
 {
-    glm::vec3 center;
-    float size;
-    glm::vec3 color;
+    vec3 center;
+    vec3 size;
+    vec4 color;
 };
 
-struct Sphere
+struct GrassBlade
 {
-    glm::vec3 center;
-    float size;
-    glm::vec3 color;
+    vec3 pos;
+    vec3 size;
+    vec4 color;
 };
 
-/*
-struct Capsule
+struct Vertex
 {
-  glm::vec3 center;
-  float width;
-  float height;
-  glm::vec3 color;
-};
- */
-
-struct Capsule
-{
-    glm::vec4 center; // x, y, z, unused
-    glm::vec4 size;   // x, y, z, unused
-    glm::vec4 color;  // rgba
+    vec3 pos;
+    vec2 uv;
 };
 
-struct Ground
+struct Plane
 {
-    glm::vec3 pos;
-    float size;
+    glm::mat4 transform;
 };
 
 struct Gizmos
 {
     size_t circle_points = 50;
-    std::vector<Point> static_points;
-    std::vector<Point> static_line_points;
-    std::vector<Point> points;
-    std::vector<Line> lines;
-    std::vector<Point> line_points;
-    std::vector<Cube> wireframe_cubes;
-    std::vector<Cube> cubes;
-    std::vector<Circle> circles;
-    std::vector<Sphere> spheres;
-    std::vector<Capsule> capsules;
-    std::vector<Ground> ground;
-
-    glm::mat4 ground_model = glm::rotate(
-        glm::mat4(1.0f),
-        glm::radians(90.0f),
-        glm::vec3(1.0f, 0.0f, 0.0f));
+    vector<Point> static_points;
+    vector<Line> static_lines;
+    vector<Point> points;
+    vector<Line> lines;
+    vector<Point> line_points;
+    vector<Point> static_line_points;
+    vector<ShapeSym> wireframe_cubes;
+    vector<ShapeSym> cubes;
+    vector<ShapeSym> circles;
+    vector<ShapeSym> spheres;
+    vector<Shape> capsules;
+    vector<Shape> triangles;
+    vector<Plane> plane;
+    vector<GrassBlade> grass;
 };
 
 void LoadBasics();
 
-Cube CreateCube(glm::vec3 pos, float size, glm::vec3 color, std::vector<Cube> &cubes);
-Circle CreateCircle(glm::vec3 pos, float size, glm::vec3 color, std::vector<Circle> &circles);
+void CreateShapeSym(vec3 &pos, float size, vec4 &color, vector<ShapeSym> &shapes);
+void CreateShape(vec3 &pos, vec3 size, vec4 &color, vector<Shape> &shapes);
 
-void UpdateCircles(float time_elapsed, std::vector<Circle> &circles);
 void drawCapsule();
 #endif // GIZMOS_H
