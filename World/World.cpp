@@ -5,8 +5,7 @@
 
 // #include "app.h"
 #include "helper/jsonHelper.h"
-#include "world.h"
-#include "loadmap.h"
+#include "World.h"
 #include "Weapons.h"
 #include "camera.h"
 #include "player.h"
@@ -110,22 +109,6 @@ void loadMap(Gizmos &gizmos, entt::registry &colliders, WorldCtx &ctx)
                     gizmos.static_lines.push_back({corners[a], yellow});
                     gizmos.static_lines.push_back({corners[b], yellow});
                 }
-
-                /*
-                                Line lines[12] = {
-                                    {corners[0], corners[1]},
-                                    {corners[1], corners[2]},
-                                    {corners[2], corners[3]},
-                                    {corners[3], corners[0]},
-                                    {corners[4], corners[5]},
-                                    {corners[5], corners[6]},
-                                    {corners[6], corners[7]},
-                                    {corners[7], corners[4]},
-                                    {corners[0], corners[4]},
-                                    {corners[1], corners[5]},
-                                    {corners[2], corners[6]},
-                                    {corners[3], corners[7]},
-                                }; */
 
                 entt::entity hitbox = colliders.create();
 
@@ -712,14 +695,10 @@ void WorldCtx::EraseProjectiles()
 
 void SpawnGrass(Gizmos &gizmos)
 {
-
-    float minDistance = 3;
-
-    // load noise
-
     auto filePath = g.home / "shaders" / "perlinNoise.png";
+    const std::string path_string = filePath.string();
+    const char *path = path_string.c_str();
 
-    const char *path = filePath.c_str();
     unsigned int texture;
     int width, height, nrChannels;
 

@@ -1,12 +1,12 @@
-#include "gui.h"
+#include "GUI.h"
 #include "input.h"
 #include "camera.h"
-#include "graphics.h"
+#include "Graphics.h"
 #include "gizmos.h"
 #include "player.h"
 #include "playerCtx.h"
 #include "Weapons.h"
-#include "world.h"
+#include "World.h"
 #include "worldCtx.h"
 #include "global.h"
 
@@ -33,11 +33,11 @@ void Gui::DrawImGui(
         running = !running;
     }
 
-    AppTime(time, graphics, gizmos, colliders);
+    AppTime(time, graphics, gizmos);
     MouseInfo(input);
     CamInfo(camera);
     PlayerInfo(player, gizmos);
-    WorldInfo(ctx);
+    WorldInfo(ctx, colliders);
     WeaponInfo(player);
     GraphicsInfo(graphics);
     DrawScreenInfo(camera, ctx, world, input);
@@ -45,7 +45,7 @@ void Gui::DrawImGui(
     ImGui::End();
 }
 
-void Gui::AppTime(const std::string time, Graphics &graphics, Gizmos &gizmos, entt::registry &colliders)
+void Gui::AppTime(const std::string time, Graphics &graphics, Gizmos &gizmos)
 {
     static float time_accumulator = 0.0;
     static int frames = 0;
@@ -71,8 +71,6 @@ void Gui::AppTime(const std::string time, Graphics &graphics, Gizmos &gizmos, en
         ImGui::Text("Max Lines: %d", graphics.max_lines);
         ImGui::Text("Circles: %d", gizmos.circles.size());
         ImGui::Text("Max Circles: %d", graphics.max_circles);
-        ImGui::Text("Projectiles: %d", colliders.view<Projectile>().size());
-        ImGui::Text("Beams: %d", colliders.view<Beam>().size());
         ImGui::EndChild();
         ImGui::TreePop();
     }
@@ -86,7 +84,7 @@ void Gui::MouseInfo(Input &input)
         ImGui::BeginChild("mouse info", ImVec2(0.0f, 0.0f), flags);
         ImGui::Text("Screen Pos: (%.1f, %.1f)", mouse.screen_pos.x, mouse.screen_pos.y);
         ImGui::Text("World Pos: (%.1f, %.1f, %.1f)", mouse.world_pos.x, mouse.world_pos.y, mouse.world_pos.z);
-        ImGui::Text("Camera Pos: (%.1f, %.1f, %.1f)", mouse.xhair_pos.x, mouse.xhair_pos.y, mouse.xhair_pos.z);
+        ImGui::Text("xhair: (%.1f, %.1f, %.1f)", mouse.xhair_pos.x, mouse.xhair_pos.y, mouse.xhair_pos.z);
         ImGui::EndChild();
         ImGui::TreePop();
     }
@@ -261,9 +259,9 @@ void Gui::WeaponInfo(Player &player)
 void DrawGraphicsGui(Graphics &graphics)
 {
     static float noiseFrequency = 1.0f; // lower = more zoomed-out
-    static float noiseSpeedX = 0.1f;      // 0 = no scrolling
-    static float noiseSpeedY = 0.1f;      // 0 = no scrolling
-    static float gradientScale = 1.0f;   // how strong the sway direction reacts
+    static float noiseSpeedX = 0.1f;    // 0 = no scrolling
+    static float noiseSpeedY = 0.1f;    // 0 = no scrolling
+    static float gradientScale = 1.0f;  // how strong the sway direction reacts
 
     ImGui::SliderFloat("Noise Frequency", &noiseFrequency, 0.001f, 4.0f);
     ImGui::SliderFloat("Noise Speed X", &noiseSpeedX, 0.0f, 2.0f);
@@ -277,7 +275,7 @@ void DrawGraphicsGui(Graphics &graphics)
     glUniform1f(glGetUniformLocation(graphics.shaders[SHADER_GRASS], "noise_speed_y"), noiseSpeedY);
     glUniform1f(glGetUniformLocation(graphics.shaders[SHADER_GRASS], "gradient_scale"), gradientScale);
 
-    //Gfx::UnbindVAO();
+    // Gfx::UnbindVAO();
 }
 
 void Gui::GraphicsInfo(Graphics &graphics)
@@ -296,33 +294,29 @@ void Gui::GraphicsInfo(Graphics &graphics)
     }
 }
 
-void Gui::WorldInfo(WorldCtx &world)
+void Gui::WorldInfo(WorldCtx &world, entt::registry &colliders)
 {
-    auto &blasts = world.blasts.list;
-    auto &beams = world.beams.list;
-    auto &projectiles = world.projectiles.list;
 
     if (ImGui::TreeNode("World info"))
     {
         ImGui::BeginChild("World info", ImVec2(0.0f, 0.0f), flags);
-        ImGui::Text("blasts: %d", (int)blasts.size());
-        for (size_t i = 0; i < blasts.size(); i++)
-        {
-            ImGui::Text("Blast %d - Pos: (%.1f, %.1f, %.1f) Time: %.2f", (int)i,
-                        blasts[i].pos.x,
-                        blasts[i].pos.y,
-                        blasts[i].pos.z,
-                        blasts[i].cooldown);
-        }
+/* 
+        ImGui::Text("Beams: %d", colliders.view<Beam>().size());
         for (size_t i = 0; i < beams.size(); i++)
         {
+
             ImGui::Text("Beam %d - Time: %.2f", (int)i,
                         blasts[i].cooldown);
         }
-        for (size_t i = 0; i < projectiles.size(); i++)
+         */
+        auto view = colliders.view<Projectile>();
+
+        ImGui::Text("Projectiles: %d", view.size());
+
+        for (auto &entity : view)
         {
-            ImGui::Text("Projectile %d - dist: %.2f", (int)i,
-                        projectiles[i].distance);
+            auto & projectile = view.get<Projectile>(entity);
+            ImGui::Text("Projectile Pos: %f, %f, %f", projectile.pos.x, projectile.pos.y, projectile.pos.z);
         }
         // need to pass multiple or somehing
         // ImGui::Text("Cells: %d", (int)world.cells.size());
@@ -342,6 +336,7 @@ void Gui::PlayerInfo(Player &player, Gizmos &gizmos)
         ImGui::Text("Player Vel: (%.1f, %.1f)", player.velocity.x, player.velocity.y);
         ImGui::Text("Player WishDir: (%.1f, %.1f)", player.wish_dir.x, player.wish_dir.y);
         ImGui::Text("Player Speed: (%.1f)", player.speed);
+        ImGui::Text("Player Height: (%.1f)", player.head_pos.z);
 
         float height = gizmos.capsules[0].size.z;
         if (ImGui::InputFloat("Height", &height))

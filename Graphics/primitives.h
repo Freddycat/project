@@ -17,7 +17,7 @@ extern vector<vec3> base_sphere;
 extern vector<vec3> base_cylinder;
 extern vector<vec3> base_capsule;
 extern vector<vec3> base_ground;
-extern vector<Vertex> base_plane;
+extern vector<Vertex_Basic> base_plane;
 
 void LoadBasics();
 

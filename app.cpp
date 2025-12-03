@@ -14,7 +14,7 @@
 #include "render.h"
 #include "global.h"
 #include "Weapons.h"
-#include "world.h"
+#include "World.h"
 #include "player.h"
 #include "playerCtx.h"
 #include "collisions.h"

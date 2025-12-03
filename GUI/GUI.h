@@ -29,11 +29,11 @@ struct Gui
                    vector<Line> &lines,
                    entt::registry &colliders);
 
-    void AppTime(const std::string time, Graphics &graphics, Gizmos &gizmos, entt::registry &colliders);
+    void AppTime(const std::string time, Graphics &graphics, Gizmos &gizmos);
     void MouseInfo(Input &input);
     void CamInfo(Camera &camera);
     void PlayerInfo(Player &player, Gizmos &gizmos);
-    void WorldInfo(WorldCtx &world);
+    void WorldInfo(WorldCtx &world, entt::registry &colliders);
     void WeaponInfo(Player &player);
     void GraphicsInfo(Graphics &graphics);
     void DrawScreenInfo(Camera &camera, WorldCtx &ctx, World &world, Input &input);

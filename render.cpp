@@ -15,7 +15,7 @@
 #include "shaders.h"
 #include "primitives.h"
 #include "player.h"
-#include "world.h"
+#include "World.h"
 #include "app.h"
 
 void render(float delta, Graphics &graphics, Camera &camera, Gizmos &gizmos, WorldCtx &ctx, World &world, Player &player, Gui &gui, Input &input, entt::registry &colliders)

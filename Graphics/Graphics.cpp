@@ -1,5 +1,5 @@
 
-#include "graphics.h"
+#include "Graphics.h"
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>

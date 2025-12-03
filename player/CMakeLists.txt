@@ -8,7 +8,7 @@ target_include_directories(player
     PUBLIC
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/graphics
+    ${CMAKE_SOURCE_DIR}/Graphics
     ${CMAKE_SOURCE_DIR}/physics
     ${CMAKE_SOURCE_DIR}/Weapons
     ${CMAKE_SOURCE_DIR}/include

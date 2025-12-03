@@ -18,7 +18,7 @@ vector<vec3> base_sphere;
 vector<vec3> base_cylinder;
 vector<vec3> base_capsule;
 vector<vec3> base_ground;
-vector<Vertex> base_plane;
+vector<Vertex_Basic> base_plane;
 
 void LoadBasics()
 {
@@ -297,26 +297,8 @@ void LoadBasics()
             base_ground.push_back(p3);
         }
     }
-    /*
-    // -- PLANE --
-    {
-        glm::vec3 p0 = {0.5f, -0.5f, 0.0f};
-        glm::vec3 p1 = {-0.5f, -0.5f, 0.0f};
-        glm::vec3 p2 = {0.5f, 0.5f, 0.0f};
-        glm::vec3 p3 = {-0.5f, 0.5f, 0.0f};
-
-        // First triangle (bottom right)
-        base_plane.push_back(p0);
-        base_plane.push_back(p1);
-        base_plane.push_back(p2);
-
-        // Second triangle (top left)
-        base_plane.push_back(p1);
-        base_plane.push_back(p3);
-        base_plane.push_back(p2);
-    }
-    */
-    std::vector<Vertex> plane = {
+    
+    std::vector<Vertex_Basic> plane = {
         {{-0.5, -0.5, 0}, {0, 0}},
         {{0.5, -0.5, 0}, {1, 0}},
         {{0.5, 0.5, 0}, {1, 1}},

@@ -44,7 +44,7 @@ struct GrassBlade
     vec4 color;
 };
 
-struct Vertex
+struct Vertex_Basic
 {
     vec3 pos;
     vec2 uv;

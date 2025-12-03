@@ -5,7 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "shaders.h"
-#include "graphics.h"
+#include "Graphics.h"
 #include "camera.h"
 
 #include "global.h"
@@ -19,7 +19,8 @@
 void LoadNoise(GLuint &shader)
 {
     auto filePath = g.home / "shaders" / "perlinNoise.png";
-    const char *path = filePath.c_str();
+    const std::string path_string = filePath.string();
+    const char *path = path_string.c_str();
     GLuint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
@@ -34,25 +35,25 @@ void LoadNoise(GLuint &shader)
         GLenum format;
         if (nrChannels == 1)
         {
-        std::cout << "RED" << std::endl;
+            std::cout << "RED" << std::endl;
 
             format = GL_RED; // Grayscale
         }
         else if (nrChannels == 3)
         {
-        std::cout << "RGB" << std::endl;
+            std::cout << "RGB" << std::endl;
 
             format = GL_RGB; // Standard color
         }
         else if (nrChannels == 4)
         {
-        std::cout << "RGBA" << std::endl;
+            std::cout << "RGBA" << std::endl;
 
             format = GL_RGBA; // Color with alpha
         }
         else
         {
-        std::cout << "DEFAULT" << std::endl;
+            std::cout << "DEFAULT" << std::endl;
 
             // Handle error or default to GL_RGB
             format = GL_RGB;
@@ -284,11 +285,11 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera)
 
     GLuint debugAttrib = Gfx::CreateVAO();
     Gfx::UseVAO(debugAttrib);
-    GLuint debugBuffer = Gfx::CreateVBO(base_plane.size() * sizeof(Vertex), base_plane.data(), GL_STATIC_DRAW);
-    Gfx::AddVertexAttrib(0, 3, sizeof(Vertex), offsetof(Vertex, pos));
+    GLuint debugBuffer = Gfx::CreateVBO(base_plane.size() * sizeof(Vertex_Basic), base_plane.data(), GL_STATIC_DRAW);
+    Gfx::AddVertexAttrib(0, 3, sizeof(Vertex_Basic), offsetof(Vertex_Basic, pos));
 
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, uv));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex_Basic), (void *)offsetof(Vertex_Basic, uv));
 
     GLuint debugInstance = Gfx::CreateVBO(graphics.max_ground * sizeof(Plane), nullptr, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, debugInstance);

@@ -9,23 +9,17 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 
 add_subdirectory(include/SDL)
 add_subdirectory(include/entt)
+add_subdirectory(include/assimp)
 
-add_subdirectory(graphics)
+add_subdirectory(Graphics)
+add_subdirectory(GUI)
 add_subdirectory(physics)
 add_subdirectory(helper)
 add_subdirectory(player)
-add_subdirectory(world)
-add_subdirectory(gui)
+add_subdirectory(World)
 add_subdirectory(Weapons)
 
 find_package(OpenGL REQUIRED)
-
-#include_directories(
-#  ${CMAKE_SOURCE_DIR}/include
-#  ${CMAKE_SOURCE_DIR}/include/imgui
-#  ${CMAKE_SOURCE_DIR}/include/imgui/backends
-#  ${CMAKE_SOURCE_DIR}/include/glad
-#)
 
 add_executable(
     project
@@ -60,27 +54,30 @@ target_link_libraries(project PUBLIC
     SDL3::SDL3
     EnTT::EnTT
     OpenGL::GL
-    graphics
+    assimp
+    Graphics
+    GUI
     physics
     helper
-    world
+    World
     player
     Weapons
-    gui
 )
 
-# Copy shaders folder into the build directory
-file(COPY ${CMAKE_SOURCE_DIR}/graphics/shaders DESTINATION ${CMAKE_BINARY_DIR})
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(SHADER_OUT_DIR ${CMAKE_BINARY_DIR}/Debug/shaders)
+    set(MAP_OUT_DIR ${CMAKE_BINARY_DIR}/Debug/maps)
 
-# Copy maps folder
-file(COPY ${CMAKE_SOURCE_DIR}/world/maps DESTINATION ${CMAKE_BINARY_DIR})
+else()
+    set(SHADER_OUT_DIR ${CMAKE_BINARY_DIR}/shaders)
+    set(MAP_OUT_DIR ${CMAKE_BINARY_DIR}/maps)
+endif()
 
 add_custom_target(copy_resources ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_SOURCE_DIR}/graphics/shaders
-            ${CMAKE_BINARY_DIR}/shaders
-
+    ${CMAKE_SOURCE_DIR}/Graphics/shaders
+    ${SHADER_OUT_DIR}
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_SOURCE_DIR}/world/maps
-            ${CMAKE_BINARY_DIR}/maps
+    ${CMAKE_SOURCE_DIR}/World/maps
+    ${MAP_OUT_DIR}
 )

@@ -1,7 +1,7 @@
 #ifndef WEAPON_EVENTS_H
 #define WEAPON_EVENTS_H
 
-#include "world.h"
+#include "World.h"
 #include "partenum.h"
 
 #include <iostream>

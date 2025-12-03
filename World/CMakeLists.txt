@@ -1,14 +1,14 @@
 
 add_library(
-    world
-    world.cpp
+    World
+    World.cpp
 )
 
-target_include_directories(world
+target_include_directories(World
     PUBLIC
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/graphics
+    ${CMAKE_SOURCE_DIR}/Graphics
     ${CMAKE_SOURCE_DIR}/Weapons
     ${CMAKE_SOURCE_DIR}/camera
     ${CMAKE_SOURCE_DIR}/player
@@ -18,9 +18,9 @@ target_include_directories(world
 )
 
 target_link_libraries(
-    world
+    World
     PUBLIC
     SDL3::SDL3
     EnTT::EnTT
-    graphics
+    Graphics
     helper)

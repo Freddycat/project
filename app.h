@@ -7,11 +7,11 @@
 #include <string>
 
 #include "input.h"
-#include "gui.h"
+#include "GUI.h"
 #include "gizmos.h"
 #include "camera.h"
 #include "global.h"
-#include "graphics.h"
+#include "Graphics.h"
 
 #include <limits.h>
 

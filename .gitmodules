@@ -16,3 +16,6 @@
 [submodule "include/jsonSrc"]
 	path = include/jsonSrc
 	url = https://github.com/nlohmann/json
+[submodule "include/assimp"]
+	path = include/assimp
+	url = https://github.com/assimp/assimp
