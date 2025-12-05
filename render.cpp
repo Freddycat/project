@@ -158,30 +158,21 @@ void render(float delta, Graphics &graphics, Camera &camera, Gizmos &gizmos, Wor
         glBindBuffer(GL_ARRAY_BUFFER, graphics.buffers[BUFF_CAPSULES]);
         glBufferSubData(GL_ARRAY_BUFFER, 0, gizmos.capsules.size() * sizeof(Shape), gizmos.capsules.data());
     }
-
+    glLineWidth(1.0f);
     glDrawArraysInstanced(GL_LINES, 0, base_capsule.size(), gizmos.capsules.size());
     Gfx::UnbindVAO();
 
     // -- GROUND --
-    /*
+
         Gfx::Use(graphics.shaders[SHADER_GROUND]);
-        std::cout << "using ground" << std::endl;
         Gfx::UseVAO(graphics.attribs[BUFF_GROUND]);
-        std::cout << "using ground" << std::endl;
-        GLint loc = glGetUniformLocation(graphics.shaders[BUFF_GROUND], "model");
-        std::cout << "ground model" << std::endl;
-        glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(gizmos.ground_model));
-        std::cout << "ground model matrix" << std::endl;
 
-        // update time uniform
-        glUniform1f(glGetUniformLocation(graphics.shaders[BUFF_GROUND], "u_time"), delta);
-
+        glBindBuffer(GL_ARRAY_BUFFER, graphics.buffers[BUFF_GROUND]);
         glBufferSubData(GL_ARRAY_BUFFER, 0,
-                        gizmos.ground.size() * sizeof(Ground),
-                        gizmos.ground.data());
-        glDrawArraysInstanced(GL_TRIANGLES, 0, base_ground.size(), gizmos.ground.size());
+                        gizmos.plane.size() * sizeof(Plane),
+                        gizmos.plane.data());
+        glDrawArraysInstanced(GL_TRIANGLES, 0, base_plane.size(), gizmos.plane.size());
         Gfx::UnbindVAO();
-     */
 
     // -- GRASS --
     Gfx::Use(graphics.shaders[SHADER_GRASS]);
@@ -190,29 +181,30 @@ void render(float delta, Graphics &graphics, Camera &camera, Gizmos &gizmos, Wor
     if (!gizmos.grass.empty())
     {
         Gfx::SetFloat(graphics.shaders[SHADER_GRASS], "time", g.game_time);
-        Gfx::SetVec3(graphics.shaders[SHADER_GRASS], "characterPos", player.pos);
+        Gfx::SetVec3(graphics.shaders[SHADER_GRASS], "characterPos", player.position);
         glBindBuffer(GL_ARRAY_BUFFER, graphics.buffers[BUFF_GRASS]);
         glBufferSubData(GL_ARRAY_BUFFER, 0, gizmos.grass.size() * sizeof(GrassBlade), gizmos.grass.data());
     }
 
     glDrawArraysInstanced(GL_TRIANGLES, 0, base_triangle.size(), gizmos.grass.size());
     Gfx::UnbindVAO();
-/* 
-    // -- DEBUG --
-    Gfx::Use(graphics.shaders[SHADER_DEBUG]);
-    Gfx::UseVAO(graphics.attribs[BUFF_DEBUG]);
 
-    // update time uniform
-    // glUniform1f(glGetUniformLocation(graphics.shaders[BUFF_DEBUG], "time"), delta);
-    glBindBuffer(GL_ARRAY_BUFFER, graphics.buffers[BUFF_DEBUG]);
+    /*
+        // -- DEBUG --
+        Gfx::Use(graphics.shaders[SHADER_DEBUG]);
+        Gfx::UseVAO(graphics.attribs[BUFF_DEBUG]);
 
-    glBufferSubData(GL_ARRAY_BUFFER, 0,
-                    gizmos.plane.size() * sizeof(Plane),
-                    gizmos.plane.data());
+        // update time uniform
+        // glUniform1f(glGetUniformLocation(graphics.shaders[BUFF_DEBUG], "time"), delta);
+        glBindBuffer(GL_ARRAY_BUFFER, graphics.buffers[BUFF_DEBUG]);
 
-    glDrawArraysInstanced(GL_TRIANGLES, 0, base_ground.size(), gizmos.plane.size());
-    Gfx::UnbindVAO();
- */
+        glBufferSubData(GL_ARRAY_BUFFER, 0,
+                        gizmos.plane.size() * sizeof(Plane),
+                        gizmos.plane.data());
+
+        glDrawArraysInstanced(GL_TRIANGLES, 0, base_ground.size(), gizmos.plane.size());
+        Gfx::UnbindVAO();
+     */
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

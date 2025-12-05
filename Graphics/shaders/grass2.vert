@@ -65,10 +65,18 @@ void main() {
 
   vec3 local = vertPos * inSize;
 
+  vec3 camRight = vec3(view[0][0], view[1][0], view[2][0]);
+  vec3 camUp = vec3(view[0][1], view[1][1], view[2][1]);
+
+  vec3 worldOffset =
+      camRight * local.x + camUp * local.y + vec3(0.0, 0.0, local.z);
+
+  local = worldOffset;
+/* 
   // 1. Rotate to face camera
   float angle = radians(45);
   mat2 rot = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
-  local.xy = rot * local.xy;
+  local.xy = rot * local.xy; */
 
   vec3 up = normalize(local);
   vec3 forward = normalize(vec3(1.0, 1.0, 0.0));
@@ -77,14 +85,9 @@ void main() {
   float influence = 0.5; // tweak
 
   vec3 rotation_axis = normalize(mix(axis, scroll_axis, influence));
-
-  // 5. Apply rotation
   mat4 sway_mat = rotationMatrix(rotation_axis, lean);
   local = (sway_mat * vec4(local, 1.0)).xyz;
-  /*
-    mat4 sway_mat = rotationMatrix(mixed_axis, sway_angle); // was forward
-    local = (sway_mat * vec4(local, 1.0)).xyz;
-   */
+
   vec3 toChar = inBase - characterPos;
 
   // vec2 dir = normalize(inBase.xy - characterPos.xy);

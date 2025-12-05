@@ -20,12 +20,13 @@ struct Camera
     glm::vec3 position = glm::vec3(500.0f, 500.0f, 500.0f);
     glm::vec3 target = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 offset = glm::vec3(500.0f, 500.0f, 500.0f);
-    glm::vec3 up_axis = glm::vec3(0, 0, -1);
+    glm::vec3 up_axis = glm::vec3(0, 0, 1); // was using -1 for ortho
+
+    glm::vec3 center_world_pos;
 
     glm::vec3 forward;
     glm::vec3 right;
     glm::vec3 up;
-    glm::vec3 map_up;
     glm::vec3 map_forward;
 
     glm::mat4 projection{1.0f};

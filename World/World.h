@@ -22,7 +22,6 @@ struct ColliderCtx;
 struct WorldCtx;
 struct PlayerCtx;
 struct WeaponEvent;
-struct Ground;
 
 using std::vector;
 

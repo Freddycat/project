@@ -6,6 +6,7 @@
 #include "camera.h"
 #include "player.h"
 #include "playerCtx.h"
+#include "collisions.h"
 #include <SDL3/SDL.h>
 #include <iostream>
 #define GLM_ENABLE_EXPERIMENTAL
@@ -38,26 +39,69 @@ void Input::GetMouseInput(PlayerCtx &player)
 
 void Input::GetMouseWorldPos(Camera &camera, float offset)
 {
-    float ndc_x = (2.0f * mouse.screen_pos.x) / g.window_width - 1.0f;
-    float ndc_y = 1.0f - (2.0f * mouse.screen_pos.y) / g.window_height;
+
+    float win_w = g.window_width;
+    float win_h = g.window_height;
+
+    float ndc_x = (2.0f * mouse.screen_pos.x) / win_w - 1.0f;
+    float ndc_y = 1.0f - (2.0f * mouse.screen_pos.y) / win_h;
 
     glm::vec4 ray_clip(ndc_x, ndc_y, -1.0f, 1.0f);    // these just clip screen space
     glm::vec4 ray_far_clip(ndc_x, ndc_y, 1.0f, 1.0f); // these just clip screen space
     glm::vec4 ray_near_world = camera.inverse_view * ray_clip;
     glm::vec4 ray_far_world = camera.inverse_view * ray_far_clip;
+
     ray_near_world /= ray_near_world.w;
     ray_far_world /= ray_far_world.w;
 
-    glm::vec3 origin = glm::vec3(ray_near_world);
-    glm::vec3 direction = glm::normalize(glm::vec3(ray_far_world - ray_near_world));
-    float distance_world = -origin.z / direction.z;
+    vec3 origin = glm::vec3(ray_near_world);
+
+    glm::vec3 near_point = glm::unProject(
+        glm::vec3(mouse.screen_pos.x, win_h - mouse.screen_pos.y, 0.0f),
+        camera.view,
+        camera.projection,
+        glm::vec4(0, 0, g.window_width, win_h));
+
+    glm::vec3 far_point = glm::unProject(
+        glm::vec3(mouse.screen_pos.x, win_h - mouse.screen_pos.y, 1.0f),
+        camera.view,
+        camera.projection,
+        glm::vec4(0, 0, g.window_width, win_h));
+
+    vec3 dist = near_point - far_point;
+
+    vec3 direction = glm::normalize(dist);
+
+    // vec3 direction = glm::normalize(glm::vec3(ray_far_world - ray_near_world));
+
+    vec3 ground_start{10000.0, 10000.0, 0.0};
+    vec3 ground_end{-10000.0, -10000.0, -2.0};
+
+    float range = 4000.0;
+
+    CollisionResult ground_hit = RayHit(near_point, direction, ground_start, ground_end, range);
+
+    // if (ground_hit.hit)
+    // std::cout << " hit! " << std::endl;
+
+    float distance = range * ground_hit.fraction;
+
+    glm::vec3 world_pos = near_point + distance * direction;
+    glm::vec3 head_pos = glm::vec3{world_pos.x, world_pos.y, world_pos.z + offset};
+    glm::vec3 up{0, 0, 1};
+    float t = (offset - near_point.z) / direction.z;
+    glm::vec3 xhair_pos = near_point + t * direction;
+
+    // float distance = -origin.z / direction.z;
+
+    std::cout << " distance " << distance << std::endl;
+
     float distance_offset = (offset - origin.z) / direction.z;
     float camera_offset = (camera.position.z - origin.z) / direction.z;
-    glm::vec3 world_pos = origin + distance_world * direction;
     glm::vec3 offset_pos = origin + distance_offset * direction;
-    
+
     mouse.world_pos = world_pos;
-    mouse.xhair_pos = offset_pos;
+    mouse.xhair_pos = xhair_pos;
     mouse.camera_pos = origin;
     mouse.cam_to_mouse = direction;
 }
@@ -67,20 +111,20 @@ void Input::InputKeyboard(Player &player)
 
     const bool *keyboard = SDL_GetKeyboardState(nullptr);
 
-    player.wish_dir = {0.0f, 0.0f};
+    player.input_direction = {0.0f, 0.0f};
 
     if (keyboard[SDL_SCANCODE_W])
-        player.wish_dir.y -= 1.0f;
+        player.input_direction.y -= 1.0f;
 
     if (keyboard[SDL_SCANCODE_S])
-        player.wish_dir.y += 1.0f;
+        player.input_direction.y += 1.0f;
 
     if (keyboard[SDL_SCANCODE_A])
-        player.wish_dir.x -= 1.0f;
+        player.input_direction.x -= 1.0f;
 
     if (keyboard[SDL_SCANCODE_D])
-        player.wish_dir.x += 1.0f;
+        player.input_direction.x += 1.0f;
 
-    if (glm::length2(player.wish_dir) > 0.0f)
-        player.wish_dir = glm::normalize(player.wish_dir);
+    if (glm::length2(player.input_direction) > 0.0f)
+        player.input_direction = glm::normalize(player.input_direction);
 }

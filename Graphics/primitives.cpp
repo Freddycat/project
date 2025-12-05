@@ -17,12 +17,11 @@ vector<vec3> base_circle;
 vector<vec3> base_sphere;
 vector<vec3> base_cylinder;
 vector<vec3> base_capsule;
-vector<vec3> base_ground;
 vector<Vertex_Basic> base_plane;
 
 void LoadBasics()
 {
-    int segments = 50;
+    int segments = 16;
     float size = 1.0f;
     float half = size / 2.0f;
     int rings = 12;
@@ -275,7 +274,7 @@ void LoadBasics()
     }
 
     // -- GROUND --
-
+/* 
     int N = 64;
     float scale = 1.0f;
 
@@ -289,14 +288,14 @@ void LoadBasics()
             glm::vec3 p2 = {(x + 1) * scale, 0, (z + 1) * scale};
             glm::vec3 p3 = {x * scale, 0, (z + 1) * scale};
 
-            base_ground.push_back(p0);
-            base_ground.push_back(p1);
-            base_ground.push_back(p2);
-            base_ground.push_back(p0);
-            base_ground.push_back(p2);
-            base_ground.push_back(p3);
+            base_plane.push_back(p0);
+            base_plane.push_back(p1);
+            base_plane.push_back(p2);
+            base_plane.push_back(p0);
+            base_plane.push_back(p2);
+            base_plane.push_back(p3);
         }
-    }
+    } */
     
     std::vector<Vertex_Basic> plane = {
         {{-0.5, -0.5, 0}, {0, 0}},

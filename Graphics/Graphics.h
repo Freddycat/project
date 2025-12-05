@@ -100,7 +100,7 @@ struct Graphics
     size_t max_cubes = 50;
     size_t max_spheres = 50;
     size_t max_capsules = 50;
-    size_t max_ground = 64;
+    size_t max_plane = 64;
     size_t max_grass = 10000;
 
     std::array<GLuint, SHADER_COUNT> shaders;

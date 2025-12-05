@@ -151,9 +151,15 @@ void World::InitializeWorld(
     auto &tf = ground.transform;
 
     tf = glm::translate(tf, vec3(0.0, 0.0, 0.0));
-    tf = glm::rotate(tf, glm::radians(00.0f), vec3(-1.0, 0.0, 0.0));
-    tf = glm::scale(tf, vec3(500.0, 500.0, 500.0));
+    tf = glm::rotate(tf, glm::radians(0.0f), vec3(-1.0, 0.0, 0.0));
+    tf = glm::scale(tf, vec3(2500.0, 2500.0, 0.0));
 
+    BoxColliderAxis ground_collider;
+    ground_collider.start = vec3{1500.0, 1500.0, 0.0};
+    ground_collider.end = vec3{-1500.0, -1500.0, 0.0};
+
+    entt::entity ground_entity = ctx.collidables.create();
+    ctx.collidables.emplace<BoxColliderAxis>(ground_entity, ground_collider);
     gizmos.plane.push_back(ground);
 
     SpawnGrass(gizmos);
@@ -163,8 +169,9 @@ void World::InitializeWorld(
     cam.SetCam();
 
     // player
-    player.pos.x = 0.0f;
-    player.pos.y = 0.0f;
+    player.SetOrientation(cam);
+    player.position.x = 0.0f;
+    player.position.y = 0.0f;
     // Weapon weapon;
 
     // auto weapon_entt = registry.create();
@@ -715,14 +722,14 @@ void SpawnGrass(Gizmos &gizmos)
 
     float instances = 1;  // one grass per scan
     float maxUp = 3;      // max grass deviation from ground
-    float maxHeight = 16; // max grass height
+    float maxHeight = 32; // max grass height
 
     glm::vec3 center = glm::vec3(0.0f, 0.0f, 0.0f);
     float planeWidth = 2000;  // world plane size
     float planeHeight = 2000; // world plane size
 
-    float texture_repeat = 1; // use less or more of the texture, ie less than 1 or repeat if greater than 1 (can just skip for now for 1)
-    float scan_res = planeWidth * 0.33;     // reasonable resolution of the scan in samples
+    float texture_repeat = 1;           // use less or more of the texture, ie less than 1 or repeat if greater than 1 (can just skip for now for 1)
+    float scan_res = planeWidth * 0.33; // reasonable resolution of the scan in samples
     // only supporting squares for now
 
     size_t blade_count = 0;
@@ -739,7 +746,7 @@ void SpawnGrass(Gizmos &gizmos)
             float v = y / scan_res;
             float world_x = u * planeWidth - planeWidth * 0.5f + center.x;
             float world_y = v * planeHeight - planeHeight * 0.5f + center.y;
-            
+
             float intensity = static_cast<float>(data[y * width + x]) / 255.0f;
 
             int numInstances = int(intensity * instances + 0.5f);

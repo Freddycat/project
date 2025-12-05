@@ -128,7 +128,7 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera)
     graphics.max_cubes_wireframe = std::max<size_t>(64, gizmos.wireframe_cubes.capacity());
     graphics.max_cubes = std::max<size_t>(64, gizmos.cubes.capacity());
     graphics.max_spheres = std::max<size_t>(64, gizmos.spheres.capacity());
-    graphics.max_ground = std::max<size_t>(64, gizmos.plane.capacity());
+    graphics.max_plane = std::max<size_t>(64, gizmos.plane.capacity());
     graphics.max_grass = std::max<size_t>(5000, gizmos.grass.capacity());
 
     std::filesystem::path shaderpath = g.home / "shaders";
@@ -263,23 +263,42 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera)
 
     // ------------
     // -- GROUND --
-    /*
-        GLuint groundAttrib = Gfx::CreateVAO();
-        Gfx::UseVAO(groundAttrib);
-        GLuint groundBuffer = Gfx::CreateVBO(base_ground.size() * sizeof(vec3), base_ground.data(), GL_STATIC_DRAW);
 
-        Gfx::AddVertexAttrib(0, 3, sizeof(vec3), 0);
-        GLuint groundInstance = Gfx::CreateVBO(graphics.max_ground * sizeof(Shape), nullptr, GL_DYNAMIC_DRAW);
+    GLuint groundAttrib = Gfx::CreateVAO();
+    Gfx::UseVAO(groundAttrib);
+    GLuint groundBuffer = Gfx::CreateVBO(base_plane.size() * sizeof(Vertex_Basic), base_plane.data(), GL_STATIC_DRAW);
 
-        glBindBuffer(GL_ARRAY_BUFFER, groundInstance);
+    Gfx::AddVertexAttrib(0, 3, sizeof(Vertex_Basic),offsetof(Vertex_Basic, pos));
+    
+    Gfx::AddVertexAttrib(1, 2, sizeof(Vertex_Basic), offsetof(Vertex_Basic, uv));
+    
+    GLuint groundInstance = Gfx::CreateVBO(graphics.max_plane * sizeof(Plane), nullptr, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, groundInstance);
 
-        Gfx::AddVertexAttrib(1, 2, sizeof(Plane), offsetof(Ground, uv));
-        glVertexAttribDivisor(1, 1);
-        Gfx::UnbindVAO();
+    auto v4s = sizeof(glm::vec4);
 
-        graphics.attribs[BUFF_GROUND] = groundAttrib;
-        graphics.buffers[BUFF_GROUND] = groundInstance;
-     */
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Plane), (void *)offsetof(Plane, transform));
+
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Plane), (void *)(offsetof(Plane, transform) + 1 * v4s));
+
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Plane), (void *)(offsetof(Plane, transform) + 2 * v4s));
+
+    glEnableVertexAttribArray(5);
+    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(Plane), (void *)(offsetof(Plane, transform) + 3 * v4s));
+
+    // glVertexAttribDivisor(1, 1);
+    glVertexAttribDivisor(2, 1);
+    glVertexAttribDivisor(3, 1);
+    glVertexAttribDivisor(4, 1);
+    glVertexAttribDivisor(5, 1);
+    Gfx::UnbindVAO();
+
+    graphics.attribs[BUFF_GROUND] = groundAttrib;
+    graphics.buffers[BUFF_GROUND] = groundInstance;
+
     // ------------
     // -- DEBUG --
 
@@ -291,10 +310,10 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera)
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex_Basic), (void *)offsetof(Vertex_Basic, uv));
 
-    GLuint debugInstance = Gfx::CreateVBO(graphics.max_ground * sizeof(Plane), nullptr, GL_DYNAMIC_DRAW);
+    GLuint debugInstance = Gfx::CreateVBO(graphics.max_plane * sizeof(Plane), nullptr, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, debugInstance);
 
-    auto v4s = sizeof(glm::vec4);
+    //auto v4s = sizeof(glm::vec4);
 
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Plane), (void *)offsetof(Plane, transform));

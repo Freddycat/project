@@ -11,6 +11,12 @@ struct ColliderCtx
     entt::registry collidables;
 };
 
+struct PlaneCollider
+{
+    vec3 start;
+    vec3 end;
+};
+
 struct BoxColliderAxis
 {
     vec3 start;

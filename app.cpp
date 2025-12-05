@@ -84,7 +84,7 @@ void gameLoop(SDL_Event &event)
     input.InputKeyboard(player);
     input.GetMouseInput(playerCtx);
     player.MovePlayer(g.time_elapsed, playerCtx, colliderCtx);
-    input.GetMouseWorldPos(camera, player.cam_center);
+    input.GetMouseWorldPos(camera, player.shoulder_height.z);
     player.UpdateCrosshair(gizmos.points, input.mouse.xhair_pos, playerCtx);
     player.UpdatePlayerCap(playerCtx, gizmos, gizmos.points, gizmos.capsules);
     camera.CenterCam(input, playerCtx);

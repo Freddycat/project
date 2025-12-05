@@ -28,7 +28,7 @@ out vec4 color;
 
 uniform float time;
 uniform vec3 characterPos;
-uniform vec2 noiseScroll = vec2(-0.00, 0.0);
+uniform vec2 noiseScroll = vec2(0.0, 0.0);
 uniform sampler2D noise;
 
 float t = time * 1;

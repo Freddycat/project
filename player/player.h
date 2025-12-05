@@ -10,8 +10,11 @@ struct Input;
 struct Blast;
 struct Beam;
 struct Weapon;
+struct Camera;
 struct PlayerCtx;
 struct ColliderCtx;
+
+using glm::vec2, glm::vec3;
 
 struct Player
 {
@@ -20,23 +23,21 @@ struct Player
     float velocity_x = 0.0f;
     float velocity_y = 0.0f;
 
-    glm::vec2 wish_dir;
+    vec2 input_direction;
 
-    glm::vec3 pos;
-
-    glm::vec3 velocity;
-
-    glm::vec3 move_direction;
-
-    glm::vec3 next_pos;
-
-    glm::vec3 head_pos;
+    vec3 // - positions
+        position,
+        velocity,
+        direction,
+        next_pos,
+        shoulder_height,
+        cam_forward,
+        cam_right,
+        cam_up;
 
     float speed = 0.0f;
 
     float accel = 120.0f;
-
-    float orientation = -45.0f;
 
     float radius = 16.0f;
     float height = 32.0f;
@@ -60,6 +61,7 @@ struct Player
         {radius, radius, height},
         {0.8, 0.8, 0.8, 1.0}};
 
+    void SetOrientation(Camera &cam);
     void MovePlayer(float time_elapsed, PlayerCtx &ctx, ColliderCtx &colliderCtx);
     void UpdatePlayerCap(PlayerCtx &ctx, Gizmos &gizmos, std::vector<Point> &points, std::vector<Shape> &capsules);
     void UpdateCrosshair(std::vector<Point> &points, glm::vec3 pos, PlayerCtx &ctx);

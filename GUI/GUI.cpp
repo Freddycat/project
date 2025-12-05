@@ -331,12 +331,12 @@ void Gui::PlayerInfo(Player &player, Gizmos &gizmos)
     if (ImGui::TreeNode("Player info"))
     {
         ImGui::BeginChild("Player info", ImVec2(0.0f, 0.0f), flags);
-        ImGui::Text("Player Pos: (%.1f, %.1f)", player.pos.x, player.pos.y);
+        ImGui::Text("Player Pos: (%.1f, %.1f)", player.position.x, player.position.y);
         ImGui::Text("Player Accel: (%.1f)", player.accel);
         ImGui::Text("Player Vel: (%.1f, %.1f)", player.velocity.x, player.velocity.y);
-        ImGui::Text("Player WishDir: (%.1f, %.1f)", player.wish_dir.x, player.wish_dir.y);
+        ImGui::Text("Player WishDir: (%.1f, %.1f)", player.input_direction.x, player.input_direction.y);
         ImGui::Text("Player Speed: (%.1f)", player.speed);
-        ImGui::Text("Player Height: (%.1f)", player.head_pos.z);
+        ImGui::Text("Player Height: (%.1f)", player.shoulder_height.z);
 
         float height = gizmos.capsules[0].size.z;
         if (ImGui::InputFloat("Height", &height))
