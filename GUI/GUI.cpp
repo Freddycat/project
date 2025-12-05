@@ -83,8 +83,8 @@ void Gui::MouseInfo(Input &input)
     {
         ImGui::BeginChild("mouse info", ImVec2(0.0f, 0.0f), flags);
         ImGui::Text("Screen Pos: (%.1f, %.1f)", mouse.screen_pos.x, mouse.screen_pos.y);
-        ImGui::Text("World Pos: (%.1f, %.1f, %.1f)", mouse.world_pos.x, mouse.world_pos.y, mouse.world_pos.z);
-        ImGui::Text("xhair: (%.1f, %.1f, %.1f)", mouse.xhair_pos.x, mouse.xhair_pos.y, mouse.xhair_pos.z);
+        ImGui::Text("World Pos: (%.3f, %.3f, %.3f)", mouse.world_pos.x, mouse.world_pos.y, mouse.world_pos.z);
+        ImGui::Text("xhair: (%.3f, %.3f, %.3f)", mouse.xhair_pos.x, mouse.xhair_pos.y, mouse.xhair_pos.z);
         ImGui::EndChild();
         ImGui::TreePop();
     }
@@ -102,6 +102,13 @@ void Gui::CamInfo(Camera &camera)
             camera.offset.x = offset[0];
             camera.offset.y = offset[1];
             camera.offset.z = offset[2];
+        }
+
+        float min = 0.0;
+        float max = 4000.0;
+        if (ImGui::SliderScalar("forward offset", ImGuiDataType_Float, &camera.cam_zoom_offset, &min, &max))
+        {
+            camera.offset = glm::vec3(camera.cam_zoom_offset);
         }
 
         float pos[3] = {camera.position.x, camera.position.y, camera.position.z};
@@ -300,22 +307,22 @@ void Gui::WorldInfo(WorldCtx &world, entt::registry &colliders)
     if (ImGui::TreeNode("World info"))
     {
         ImGui::BeginChild("World info", ImVec2(0.0f, 0.0f), flags);
-/* 
-        ImGui::Text("Beams: %d", colliders.view<Beam>().size());
-        for (size_t i = 0; i < beams.size(); i++)
-        {
+        /*
+                ImGui::Text("Beams: %d", colliders.view<Beam>().size());
+                for (size_t i = 0; i < beams.size(); i++)
+                {
 
-            ImGui::Text("Beam %d - Time: %.2f", (int)i,
-                        blasts[i].cooldown);
-        }
-         */
+                    ImGui::Text("Beam %d - Time: %.2f", (int)i,
+                                blasts[i].cooldown);
+                }
+                 */
         auto view = colliders.view<Projectile>();
 
         ImGui::Text("Projectiles: %d", view.size());
 
         for (auto &entity : view)
         {
-            auto & projectile = view.get<Projectile>(entity);
+            auto &projectile = view.get<Projectile>(entity);
             ImGui::Text("Projectile Pos: %f, %f, %f", projectile.pos.x, projectile.pos.y, projectile.pos.z);
         }
         // need to pass multiple or somehing

@@ -17,9 +17,10 @@ struct Camera
 
     glm::vec2 window_center = glm::vec2(0.0f, 0.0f);
 
-    glm::vec3 position = glm::vec3(500.0f, 500.0f, 500.0f);
+    glm::vec3 position = glm::vec3(2000.0f, 2000.0f, 2000.0f);
     glm::vec3 target = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 offset = glm::vec3(500.0f, 500.0f, 500.0f);
+    float cam_zoom_offset = 2000.0;
+    glm::vec3 offset = glm::vec3(cam_zoom_offset);
     glm::vec3 up_axis = glm::vec3(0, 0, 1); // was using -1 for ortho
 
     glm::vec3 center_world_pos;
@@ -29,9 +30,9 @@ struct Camera
     glm::vec3 up;
     glm::vec3 map_forward;
 
-    glm::mat4 projection{1.0f};
-    glm::mat4 view{1.0f};
-    glm::mat4 inverse_view{1.0f};
+    glm::dmat4 projection{1.0f};
+    glm::dmat4 view{1.0f};
+    glm::dmat4 inverse_view{1.0f};
 
     float center_x;
     float center_y;

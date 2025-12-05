@@ -54,8 +54,13 @@ bool capsule_vs_box(const vec3 &cap_start, const vec3 &cap_end,
 
 bool point_vs_box(const vec3 pos, const vec3 &box_start, const vec3 &box_end); */
 
-CollisionResult RayHit(const vec3 &origin, const vec3 &direction,
-                       const vec3 &boxmin, const vec3 &boxmax, const float range);
+CollisionResult RayHit(const glm::dvec3 &origin,
+                       const glm::dvec3 &direction,
+                       const glm::dvec3 &boxmin,
+                       const glm::dvec3 &boxmax,
+                       float range);
+/* CollisionResult RayHit(const glm::dvec3 &origin, const glm::dvec3 &direction,
+                       const vec3 &boxmin, const vec3 &boxmax, const float range); */
 bool PointHit(const vec3 pos, const vec3 &box_start, const vec3 &box_end);
 CollisionResult TestCollisions(ColliderCtx &ctx, vec3 pos, vec3 next_pos, vec3 cap_start, vec3 cap_end, float radius);
 

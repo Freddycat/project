@@ -15,11 +15,11 @@ struct Mouse
 {
     vec2 screen_pos;
     vec2 center_pos;
-    vec3 world_pos = {0.0f, 0.0f, 0.0f};
-    vec3 xhair_pos = {0.0f, 0.0f, 0.0f};
-    vec3 camera_pos = {0.0f, 0.0f, 0.0f};
-    vec3 cam_to_mouse = {0.0f, 0.0f, 0.0f};
-    float ray_range = 2000;
+    glm::dvec3 world_pos = {0.0f, 0.0f, 0.0f};
+    glm::dvec3 xhair_pos = {0.0f, 0.0f, 0.0f};
+    glm::dvec3 camera_pos = {0.0f, 0.0f, 0.0f};
+    glm::dvec3 cam_to_mouse = {0.0f, 0.0f, 0.0f};
+    float ray_range = 4000;
 };
 
 struct Input

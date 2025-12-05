@@ -38,6 +38,7 @@ struct World
 
     struct Compass
     {
+        float o = 100.0; //z offset
         glm::vec4 color[3] = {
             {1, 0, 0, 0.8},
             {0, 1, 0, 0.8},

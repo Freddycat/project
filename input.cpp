@@ -56,53 +56,51 @@ void Input::GetMouseWorldPos(Camera &camera, float offset)
 
     vec3 origin = glm::vec3(ray_near_world);
 
-    glm::vec3 near_point = glm::unProject(
-        glm::vec3(mouse.screen_pos.x, win_h - mouse.screen_pos.y, 0.0f),
+    glm::dvec3 near_point = glm::unProject(
+        glm::dvec3(mouse.screen_pos.x, win_h - mouse.screen_pos.y, 0.0f),
         camera.view,
         camera.projection,
-        glm::vec4(0, 0, g.window_width, win_h));
+        glm::dvec4(0, 0, g.window_width, win_h));
 
-    glm::vec3 far_point = glm::unProject(
-        glm::vec3(mouse.screen_pos.x, win_h - mouse.screen_pos.y, 1.0f),
+    glm::dvec3 far_point = glm::unProject(
+        glm::dvec3(mouse.screen_pos.x, win_h - mouse.screen_pos.y, 1.0f),
         camera.view,
         camera.projection,
-        glm::vec4(0, 0, g.window_width, win_h));
+        glm::dvec4(0, 0, g.window_width, win_h));
 
-    vec3 dist = near_point - far_point;
+    vec3 dist = far_point - near_point;
 
-    vec3 direction = glm::normalize(dist);
+    glm::dvec3 direction = glm::normalize(dist);
 
     // vec3 direction = glm::normalize(glm::vec3(ray_far_world - ray_near_world));
 
-    vec3 ground_start{10000.0, 10000.0, 0.0};
-    vec3 ground_end{-10000.0, -10000.0, -2.0};
+    glm::dvec3 ground_start{10000.0, 10000.0, 0.0};
+    glm::dvec3 ground_end{-10000.0, -10000.0, -2.0};
 
     float range = 4000.0;
 
     CollisionResult ground_hit = RayHit(near_point, direction, ground_start, ground_end, range);
 
-    // if (ground_hit.hit)
-    // std::cout << " hit! " << std::endl;
+    if (ground_hit.hit)
+    std::cout << " hit! " << std::endl;
 
-    float distance = range * ground_hit.fraction;
+    double distance = range * ground_hit.fraction;
 
-    glm::vec3 world_pos = near_point + distance * direction;
+    glm::dvec3 world_pos = near_point + distance * direction;
     glm::vec3 head_pos = glm::vec3{world_pos.x, world_pos.y, world_pos.z + offset};
     glm::vec3 up{0, 0, 1};
-    float t = (offset - near_point.z) / direction.z;
+    double t = (offset - near_point.z) / direction.z;
     glm::vec3 xhair_pos = near_point + t * direction;
 
     // float distance = -origin.z / direction.z;
 
-    std::cout << " distance " << distance << std::endl;
-
     float distance_offset = (offset - origin.z) / direction.z;
     float camera_offset = (camera.position.z - origin.z) / direction.z;
-    glm::vec3 offset_pos = origin + distance_offset * direction;
+    //glm::vec3 offset_pos = origin + distance_offset * direction;
 
     mouse.world_pos = world_pos;
     mouse.xhair_pos = xhair_pos;
-    mouse.camera_pos = origin;
+    mouse.camera_pos = near_point;
     mouse.cam_to_mouse = direction;
 }
 

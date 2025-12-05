@@ -300,6 +300,8 @@ void World::InitCompas(std::vector<Point> &line_pts)
 {
     for (auto line : compass.lines)
     {
+        line.start.pos.z += compass.o;
+        line.end.pos.z += compass.o;
         line_pts.push_back(line.start);
         line_pts.push_back(line.end);
     }
@@ -357,6 +359,8 @@ void UpdateWorldTargets(entt::registry &colliders, PlayerCtx &ctx, Input &input,
     {
         auto &hitbox = colliders.get<BoxColliderAxis>(target.collider);
         bool hit = RayHit(input.mouse.camera_pos, input.mouse.cam_to_mouse, hitbox.start, hitbox.end, input.mouse.ray_range).hit;
+        if (hit)
+            std::cout << "target!" << std::endl;
         if (hit && !target.showing_info)
         {
             std::cout << "hit target!" << std::endl;
@@ -617,7 +621,7 @@ void WorldCtx::UpdateBeams(float time_elapsed, std::vector<Line> &lines, std::ve
                 CollisionResult hit = RayHit(beam.start, direction, box.start, box.end, distance);
                 if (hit.hit)
                 {
-                    std::cout << "hit!" << std::endl;
+                    //std::cout << "hit!" << std::endl;
                     distance = distance * hit.fraction;
                     beam.end = beam.start + direction * distance;
                     Hit hit;

@@ -71,7 +71,44 @@ CollisionResult capsule_vs_box(const glm::vec3 start_pos, glm::vec3 end_pos, con
     return result;
 }
 
-CollisionResult RayHit(const vec3 &origin, const vec3 &direction,
+CollisionResult RayHit(const glm::dvec3 &origin,
+                       const glm::dvec3 &direction,
+                       const glm::dvec3 &boxmin,
+                       const glm::dvec3 &boxmax,
+                       float range)
+{
+    double near = 0.0;
+    double far  = range;
+    CollisionResult result;
+
+    for (int i = 0; i < 3; ++i)
+    {
+        if (direction[i] == 0.0)
+        {
+            if (origin[i] < boxmin[i] || origin[i] > boxmax[i])
+                return result;
+        }
+        else
+        {
+            double t1 = (boxmin[i] - origin[i]) / direction[i];
+            double t2 = (boxmax[i] - origin[i]) / direction[i];
+            if (t1 > t2) std::swap(t1, t2);
+
+            near = std::max(near, t1);
+            far  = std::min(far,  t2);
+
+            if (near > far) return result;
+            if (far < 0.0)   return result;
+        }
+    }
+
+    result.hit = true;
+    result.fraction = glm::clamp(near / range, 0.0, 1.0);
+    return result;
+}
+
+/* 
+CollisionResult RayHit(const glm::dvec3 &origin, const glm::dvec3 &direction,
                        const vec3 &boxmin, const vec3 &boxmax,
                         const float range)
 {
@@ -109,7 +146,7 @@ CollisionResult RayHit(const vec3 &origin, const vec3 &direction,
     result.hit = true;
     result.fraction = glm::clamp(near / range, 0.0f, 1.0f);
     return result;
-}
+} */
 
 bool PointHit(const vec3 pos, const vec3 &box_start, const vec3 &box_end)
 {
