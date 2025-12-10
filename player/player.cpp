@@ -6,6 +6,7 @@
 #include "playerCtx.h"
 #include "camera.h"
 #include <collisions.h>
+#include <print>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -21,10 +22,6 @@ void Player::SetOrientation(Camera &cam)
 
 void Player::MovePlayer(float time_elapsed, PlayerCtx &ctx, ColliderCtx &colliderCtx)
 {
-
-    // Always rotate player's wish_dir to wishdir
-    // float theta = glm::radians(orientation);
-
     vec3 indir;
     indir.x = input_direction.x;
     indir.y = input_direction.y;
@@ -61,6 +58,7 @@ void Player::MovePlayer(float time_elapsed, PlayerCtx &ctx, ColliderCtx &collide
 
     // Apply movement
     position += delta;
+
     shoulder_height = position + glm::vec3(0.0f, 0.0f, cam_center);
 
     speed = glm::length(velocity);
@@ -72,8 +70,10 @@ void Player::MovePlayer(float time_elapsed, PlayerCtx &ctx, ColliderCtx &collide
         velocity.x = 0.0f;
     if (std::abs(velocity.y) < 0.1f)
         velocity.y = 0.0f;
-    // update player ctxt for other functions
+    // update player context for other functions
     ctx.pos = shoulder_height;
+    //std::print("pos: {}\n", glm::to_string(position));
+    //std::print("shoulder: {}\n", glm::to_string(shoulder_height));
 }
 
 void Player::UpdatePlayerCap(PlayerCtx &ctx, Gizmos &gizmos, std::vector<Point> &points, std::vector<Shape> &capsules)

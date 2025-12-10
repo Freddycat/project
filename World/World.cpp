@@ -1,21 +1,21 @@
-#include <glad/glad.h>
-#include <math.h>
 #include <algorithm>
+#include <glad/glad.h>
 #include <iostream>
+#include <math.h>
+#include <print>
 
-// #include "app.h"
-#include "helper/jsonHelper.h"
-#include "World.h"
 #include "Weapons.h"
+#include "World.h"
 #include "camera.h"
-#include "player.h"
-#include "input.h"
-#include "playerCtx.h"
-#include "worldCtx.h"
-#include "gizmos.h"
 #include "collisions.h"
-#include "stb/stb_image.h"
+#include "gizmos.h"
 #include "global.h"
+#include "helper/jsonHelper.h"
+#include "input.h"
+#include "player.h"
+#include "playerCtx.h"
+#include "stb/stb_image.h"
+#include "worldCtx.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
@@ -43,7 +43,8 @@ void loadMap(Gizmos &gizmos, entt::registry &colliders, WorldCtx &ctx)
                 // std::string radius_string = object["radius"];
 
                 glm::vec3 pos;
-                if (object.contains("position") && object["position"].is_array())
+                if (object.contains("position") &&
+                    object["position"].is_array())
                 {
                     pos.x = object["position"][0].get<float>();
                     pos.y = object["position"][1].get<float>();
@@ -69,10 +70,7 @@ void loadMap(Gizmos &gizmos, entt::registry &colliders, WorldCtx &ctx)
 
                 glm::vec4 color = glm::vec4(1.0, 1.0, 1.0, 1.0);
 
-                ShapeSym sphere{
-                    pos,
-                    radius,
-                    color};
+                Shape sphere{pos, vec3(radius), color};
 
                 glm::vec3 box_min = pos - glm::vec3(radius);
                 glm::vec3 box_max = pos + glm::vec3(radius);
@@ -106,22 +104,15 @@ void loadMap(Gizmos &gizmos, entt::registry &colliders, WorldCtx &ctx)
                     int a = edges[i][0];
                     int b = edges[i][1];
 
-                    gizmos.static_lines.push_back({corners[a], yellow});
-                    gizmos.static_lines.push_back({corners[b], yellow});
+                    // gizmos.static_line_points.push_back({corners[a], yellow});
+                    // gizmos.static_line_points.push_back({corners[b], yellow});
                 }
 
                 entt::entity hitbox = colliders.create();
 
-                Targets target{
-                    hitbox,
-                    pos,
-                    size,
-                    hp,
-                    hp};
+                Targets target{hitbox, pos, size, hp, hp};
 
-                colliders.emplace<BoxColliderAxis>(hitbox,
-                                                   box_min,
-                                                   box_max);
+                colliders.emplace<BoxColliderAxis>(hitbox, box_min, box_max);
 
                 ctx.targets.push_back(target);
                 gizmos.spheres.push_back(sphere);
@@ -131,20 +122,54 @@ void loadMap(Gizmos &gizmos, entt::registry &colliders, WorldCtx &ctx)
     }
 }
 
-void World::InitializeWorld(
-    Player &player,
-    Camera &cam,
-    ColliderCtx &ctx,
-    WorldCtx &worldCtx,
-    World &world,
-    Gizmos &gizmos,
-    GLuint &vbo_points,
-    GLuint &vbo_lines)
+World::World(Player &player, Camera &cam, ColliderCtx &ctx, WorldCtx &worldCtx,
+             World &world, Gizmos &gizmos)
 {
 
     loadMap(gizmos, ctx.collidables, worldCtx);
 
     Plane ground;
+
+    Light a;
+    a.position = vec4{100.0, 100.0, 100.0, 0.0};
+    Light b;
+    b.position = vec4{0.0, 100.0, 100.0, 0.0};
+    Light c;
+    c.position = vec4{0.0, 0.0, 100.0, 0.0};
+    Light d;
+    d.position = vec4{100.0, 0.0, 100.0, 0.0};
+
+    Light a1;
+    c.position = vec4{-168.0, -255.0, 100.0, 0.0};
+    Light a2;
+    d.position = vec4{-220.0, -150.0, 100.0, 0.0};
+
+    gizmos.lights.push_back(a1);
+    gizmos.lights.push_back(a2);
+
+    gizmos.lights.push_back(a);
+    gizmos.lights.push_back(b);
+    gizmos.lights.push_back(c);
+    gizmos.lights.push_back(d);
+
+    Sun sun;
+    gizmos.sun = sun;
+
+    size_t light_ct = 0;
+
+    for (auto &light : gizmos.lights)
+    {
+        light_ct++;
+
+        vec3 pos = light.position;
+
+        std::print("lightpos: {}\n", glm::to_string(light.position));
+        auto lightEntt = ctx.collidables.create();
+        BoxColliderAxis box{pos - vec3(10.0), pos + vec3(10.0)};
+        Selector ID{light_ct};
+        ctx.collidables.emplace<BoxColliderAxis>(lightEntt, box);
+        ctx.collidables.emplace<Selector>(lightEntt, ID);
+    }
 
     ground.transform = glm::mat4(1.0f);
 
@@ -154,17 +179,15 @@ void World::InitializeWorld(
     tf = glm::rotate(tf, glm::radians(0.0f), vec3(-1.0, 0.0, 0.0));
     tf = glm::scale(tf, vec3(2500.0, 2500.0, 0.0));
 
-    BoxColliderAxis ground_collider;
-    ground_collider.start = vec3{1500.0, 1500.0, 0.0};
-    ground_collider.end = vec3{-1500.0, -1500.0, 0.0};
+    // BoxColliderAxis ground_collider;
+    // ground_collider.start = vec3{1500.0, 1500.0, 0.0};
+    // ground_collider.end = vec3{-1500.0, -1500.0, 0.0};
 
-    entt::entity ground_entity = ctx.collidables.create();
-    ctx.collidables.emplace<BoxColliderAxis>(ground_entity, ground_collider);
-    gizmos.plane.push_back(ground);
+    // entt::entity ground_entity = ctx.collidables.create();
+    // ctx.collidables.emplace<BoxColliderAxis>(ground_entity, ground_collider);
+    gizmos.planes.push_back(ground);
 
     SpawnGrass(gizmos);
-    // GrassBlade test{glm::vec3(0, 0, 0), glm::vec3(30, 30, 30), glm::vec4(0, 1, 0, 1)};
-    // gizmos.grass.push_back(test);
 
     cam.SetCam();
 
@@ -172,15 +195,6 @@ void World::InitializeWorld(
     player.SetOrientation(cam);
     player.position.x = 0.0f;
     player.position.y = 0.0f;
-    // Weapon weapon;
-
-    // auto weapon_entt = registry.create();
-
-    // auto &weaponHandle = registry.emplace<WeaponHandle>(weapon_entt);
-
-    // weaponHandle.weapon = std::make_unique<Weapon>();
-
-    // auto &weapon = *weaponHandle.weapon;
 
     Weapon weapon;
 
@@ -189,35 +203,7 @@ void World::InitializeWorld(
     weapon.add<BlastPart>();
     weapon.add<TestComponent>();
 
-    if (auto *blast = weapon.get<BlastPart>())
-    { // Assuming BlastPart has a member uint8_t affects;
-        // and assuming GunPart maps to 1 and BeamPart maps to 2 in the corrected enum.
-
-        blast->affects |= PART_MASK<GunPart>::value;
-        // blast->affects is now 1 (0x1)
-        std::cout << "blast->affects after GUN: Dec=" << blast->affects
-                  << ", Hex=0x" << std::hex << blast->affects << std::dec << std::endl;
-
-        /*  blast->affects |= PART_MASK<BeamPart>::value;
-         // blast->affects is now 1 | 2 = 3 (0x3)
-         std::cout << "blast->affects after BEAM: Dec=" << blast->affects
-                   << ", Hex=0x" << std::hex << blast->affects << std::dec << std::endl; */
-    }
-
     player.weapons.push_back(weapon);
-
-    // weapon.id = weapon_entt;
-    // player.weapon = weapon_entt;
-
-    // entt::entity prtl_part = registry.create();
-    // entt::entity beam_part = registry.create();
-    // registry.emplace<BeamPart>(weapon.id);
-    // registry.emplace<GunPart>(weapon.id);
-    // registry.emplace<BlastPart>(prtl_part);
-    // registry.emplace<BlastPart>(beam_part);
-    // auto &prtl_component = registry.get<GunPart>(weapon.id);
-    // auto &beam_component = registry.get<BeamPart>(weapon.id);
-    // beam_component.id = beam_part;
 
     gizmos.points.push_back(player.pos_dot);
     gizmos.points.push_back(player.xhair_dot);
@@ -236,12 +222,13 @@ void World::InitializeWorld(
             glm::vec3 start = origin;
             start.x -= (grid_width * grid_square_size) / 2.0f;
             start.y -= (grid_width * grid_square_size) / 2.0f;
-            cell.pos = start + glm::vec3(x + 0.5f, y + 0.5f, 0.0f) * grid_square_size;
+            cell.pos =
+                start + glm::vec3(x + 0.5f, y + 0.5f, 0.0f) * grid_square_size;
 
             cells.push_back(cell);
         }
     }
-    std::cout << "cells.size(): " << cells.size() << std::endl;
+    // std::cout << "cells.size(): " << cells.size() << std::endl;
 
     House house;
     house.cell = 1820;
@@ -254,45 +241,44 @@ void World::InitializeWorld(
 
 void World::InitWorld(ColliderCtx &ctx, WorldCtx &worldCtx, Gizmos &gizmos)
 {
-    InitGrid(gizmos.static_line_points, glm::vec2(0.0f, 0.0f), grid_width, grid_square_size);
+    InitGrid(gizmos.static_line_points, glm::vec2(0.0f, 0.0f), grid_width,
+             grid_square_size);
 
     InitCompas(gizmos.static_line_points);
 
     World::InitCube(ctx, worldCtx, gizmos.cubes);
 }
 
-void World::InitCube(ColliderCtx &ctx, WorldCtx &worldCtx, std::vector<ShapeSym> &cubes)
+void World::InitCube(ColliderCtx &ctx, WorldCtx &worldCtx, vector<Shape> &cubes)
 {
     auto &reg = ctx.collidables;
 
     glm::vec4 color = {0, 1, 1, 1};
+    Material material;
     float size = 100.0f;
 
-    std::cout << "trying to find cell" << std::endl;
+    // std::cout << "trying to find cell" << std::endl;
 
     for (auto &cell : cells)
         if (cell.id == 1820)
         {
             glm::vec3 center = cell.pos;
             center.z += size / 2;
-            std::cout << "found cell" << center.x << center.y << center.z << std::endl;
+            // std::cout << "found cell" << center.x << center.y << center.z << std::endl;
             for (auto &house : structures)
             {
-                std::cout << "found house" << std::endl;
-                CreateShapeSym(center, size, color, cubes);
+                // std::cout << "found house" << std::endl;
+                CreateShape(center, vec3(size), color, cubes);
 
                 glm::vec3 offset_cube_start = center;
                 glm::vec3 offset_cube_end = center;
 
-                offset_cube_start.x -= size / 2;
-                offset_cube_start.y -= size / 2;
-                offset_cube_start.z -= size / 2;
-                offset_cube_end.x += size / 2;
-                offset_cube_end.y += size / 2;
-                offset_cube_end.z += size / 2;
+                offset_cube_start -= size / 2;
+                offset_cube_end += size / 2;
 
                 house.id = reg.create();
-                reg.emplace<BoxColliderAxis>(house.id, offset_cube_start, offset_cube_end);
+                reg.emplace<BoxColliderAxis>(house.id, offset_cube_start,
+                                             offset_cube_end);
             }
         }
 }
@@ -312,12 +298,13 @@ void DrawCell(float x, float y, float cellSize)
    glBegin(GL_QUADS);
    glVertex2f(x, y);
    glVertex2f(x + cellSize, y);
-   glVertex2f(x + cellSize, y + cellSize);
-   glVertex2f(x, y + cellSize);
-   glEnd(); */
+   glVertex2f(x + cellSize, y +
+   cellSize); glVertex2f(x, y +
+   cellSize); glEnd(); */
 }
 
-void InitGrid(std::vector<Point> &line_pts, glm::vec2 origin, int width, float cellSize)
+void InitGrid(std::vector<Point> &line_pts, glm::vec2 origin, int width,
+              float cellSize)
 {
 
     glm::vec2 start = origin - (width * cellSize) / 2.0f;
@@ -358,7 +345,9 @@ void UpdateWorldTargets(entt::registry &colliders, PlayerCtx &ctx, Input &input,
     for (auto &target : worldCtx.targets)
     {
         auto &hitbox = colliders.get<BoxColliderAxis>(target.collider);
-        bool hit = RayHit(input.mouse.camera_pos, input.mouse.cam_to_mouse, hitbox.start, hitbox.end, input.mouse.ray_range).hit;
+        bool hit = RayHitBox(input.mouse.camera_pos, input.mouse.cam_to_mouse,
+                             hitbox.start, hitbox.end, input.mouse.ray_range)
+                       .hit;
         if (hit)
             std::cout << "target!" << std::endl;
         if (hit && !target.showing_info)
@@ -369,8 +358,10 @@ void UpdateWorldTargets(entt::registry &colliders, PlayerCtx &ctx, Input &input,
         {
             std::cout << "left target!" << std::endl;
         }
+
         target.show_info = hit;
         target.showing_info = hit;
+
         if (target.hp <= target.max_hp)
         {
             target.hp += 0.5;
@@ -378,7 +369,66 @@ void UpdateWorldTargets(entt::registry &colliders, PlayerCtx &ctx, Input &input,
     }
 }
 
-void WorldCreateQueue(vector<WeaponEvent> &weapQue, WorldCtx &ctx, entt::registry &colliders)
+void UpdateWorldEdit(entt::registry &colliders, PlayerCtx &ctx, Input &input, WorldCtx &worldCtx, Gizmos &gizmos)
+{
+    for (auto &light : gizmos.lights)
+    {
+        Point p;
+        p.pos = light.position;
+        p.color = vec4{1.0};
+        gizmos.points.push_back(p);
+    }
+
+    auto view = colliders.view<BoxColliderAxis, Selector>();
+    for (auto enitity : view)
+    {
+        auto &box = colliders.get<BoxColliderAxis>(enitity);
+
+        bool hit = RayHitBox(input.mouse.camera_pos, input.mouse.cam_to_mouse, box.start, box.end, input.mouse.ray_range)
+                       .hit;
+
+        if (hit)
+        {
+            vec4 color{0.0, 1.0, 1.0, 1.0};
+            vec3 center = (box.start + box.end) * 0.5f;
+            vec3 size = box.end - box.start;
+            CreateShape(center, size, color, gizmos.wireframe_cubes);
+
+            auto &light = colliders.get<Selector>(enitity);
+            if (input.mouse.click_l)
+            {
+                vec3 light_pos;
+
+                if (light.ID < gizmos.lights.size())
+                    light_pos = gizmos.lights[light.ID].position;
+
+                if (!light.dragging)
+                {
+                    vec3 mouse_pos = input.mouse.world_pos;
+                    light.offset = light_pos - mouse_pos;
+                }
+
+                light.dragging = true;
+            }
+            else
+            {
+                light.dragging = false;
+            }
+            if (light.dragging)
+            {
+                if (light.ID < gizmos.lights.size())
+                {
+                    gizmos.lights[light.ID].position = vec4(input.mouse.world_pos, 0.0) + vec4(light.offset, 0.0);
+                    glm::vec3 halfSize = size * 0.5f; // preserve original size
+                    box.start = input.mouse.world_pos + light.offset - halfSize;
+                    box.end = input.mouse.world_pos + light.offset + halfSize;
+                }
+            }
+        }
+    }
+}
+
+void WorldCreateQueue(vector<WeaponEvents> &weapQue, WorldCtx &ctx, entt::registry &colliders)
 {
     static uint8_t i;
 
@@ -409,12 +459,13 @@ void WorldCreateQueue(vector<WeaponEvent> &weapQue, WorldCtx &ctx, entt::registr
             colliders.emplace<Blast>(entity, blast);
             std::cout << "created " << i << "blasts" << std::endl;
         }
-        std::cout << "created " << i << " entities:" << (int)entity << std::endl;
+        std::cout << "created " << i << " entities:" << (int)entity
+                  << std::endl;
     }
     weapQue.clear();
 }
 
-void WorldFXQueue(WorldCtx &ctx, WorldFX &fxque, entt::registry &colliders)
+void WorldFXQueue(WorldCtx &ctx, WorldEnv &fxque, entt::registry &colliders)
 {
     for (auto &blst : fxque.explosions)
     {
@@ -439,13 +490,13 @@ void WorldHitQueue(WorldEvents &que, WorldCtx &ctx)
     que.hits.clear();
 }
 
-void WorldClearQueue(vector<WeaponEvent> &weapQue, WorldFX &worldFX)
+void WorldClearQueue(vector<WeaponEvents> &weapQue, WorldEnv &worldEnv)
 {
     /*
     weapQue.projectiles.clear();
     weapQue.beams.clear(); */
 
-    worldFX.explosions.clear();
+    worldEnv.explosions.clear();
 }
 
 void printEffects(WorldEffects effect)
@@ -464,7 +515,8 @@ void printEffects(WorldEffects effect)
 WorldEffects e = static_cast<WorldEffects>(
     static_cast<uint8_t>(WorldEffects::EFFECT_EXPLOSIVE));
 
-Projectile CreateProjectile(vector<Projectile> &list, Projectile &projectile, entt::registry &colliders)
+Projectile CreateProjectile(vector<Projectile> &list, Projectile &projectile,
+                            entt::registry &colliders)
 {
 
     list.push_back(projectile);
@@ -480,7 +532,8 @@ Projectile CreateProjectile(vector<Projectile> &list, Projectile &projectile, en
     return projectile;
 }
 
-Blast CreateBlast(vector<Blast> &list, Blast &blast, entt::registry &colliders)
+Blast CreateBlast(vector<Blast> &list, Blast &blast,
+                  entt::registry &colliders)
 {
     list.push_back(blast);
     std::cout << "created blast" << std::endl;
@@ -495,7 +548,8 @@ Beam CreateBeam(vector<Beam> &list, Beam &beam, entt::registry &colliders)
     return beam;
 }
 
-void EffectBlast(entt::entity id, entt::registry &colliders, WorldFX &que, vec3 &pos)
+void EffectBlast(entt::entity id, entt::registry &colliders, WorldEnv &que,
+                 vec3 &pos)
 {
     auto &data = colliders.get<Blast>(id);
 
@@ -509,7 +563,9 @@ void EffectBlast(entt::entity id, entt::registry &colliders, WorldFX &que, vec3 
     que.explosions.push_back(blast);
 }
 
-void WorldCtx::UpdateProjectiles(float time_elapsed, Gizmos &gizmos, WorldEvents &worldQue, WorldFX &FXque, entt::registry &colliders, Weapon &weapon)
+void WorldCtx::UpdateProjectiles(float time_elapsed, Gizmos &gizmos,
+                                 WorldEvents &worldQue, WorldEnv &FXque,
+                                 entt::registry &colliders, Weapon &weapon)
 {
     static glm::vec4 color = {1, 0, 1, 1};
 
@@ -530,7 +586,8 @@ void WorldCtx::UpdateProjectiles(float time_elapsed, Gizmos &gizmos, WorldEvents
         for (auto entity : view)
         {
             auto &box = colliders.get<BoxColliderAxis>(entity);
-            CollisionResult hit = RayHit(pos, dir, box.start, box.end, distance);
+            CollisionResult hit =
+                RayHitBox(pos, dir, box.start, box.end, distance);
             if (hit.hit)
             {
                 distance = distance * hit.fraction;
@@ -572,7 +629,8 @@ void WorldCtx::UpdateProjectiles(float time_elapsed, Gizmos &gizmos, WorldEvents
     }
 }
 
-void WorldCtx::UpdateBlasts(float time_elapsed, std::vector<ShapeSym> &circles)
+void WorldCtx::UpdateBlasts(float time_elapsed,
+                            std::vector<Shape> &circles)
 {
     static glm::vec4 color = {1, 0, 0, 1};
 
@@ -582,12 +640,10 @@ void WorldCtx::UpdateBlasts(float time_elapsed, std::vector<ShapeSym> &circles)
         {
             blast.time_left -= time_elapsed;
 
-            blast.size = blast.max_size * (1.0f - float(blast.time_left / blast.cooldown));
+            blast.size = blast.max_size *
+                         (1.0f - float(blast.time_left / blast.cooldown));
 
-            ShapeSym circle{// color, center, size
-                            blast.pos,
-                            blast.size,
-                            color};
+            Shape circle{blast.pos, vec3(blast.size), color};
             circles.push_back(circle);
 
             if (blast.time_left < 0.0f)
@@ -598,7 +654,9 @@ void WorldCtx::UpdateBlasts(float time_elapsed, std::vector<ShapeSym> &circles)
     }
 }
 
-void WorldCtx::UpdateBeams(float time_elapsed, std::vector<Line> &lines, std::vector<Beam> &beams, WorldEvents &worldQue, WorldFX &worldFXque, entt::registry &colliders)
+void WorldCtx::UpdateBeams(float time_elapsed, std::vector<Line> &lines,
+                           std::vector<Beam> &beams, WorldEvents &worldQue,
+                           WorldEnv &worldFXque, entt::registry &colliders)
 {
     static glm::vec4 color = {1, 0, 0, 1};
 
@@ -618,10 +676,11 @@ void WorldCtx::UpdateBeams(float time_elapsed, std::vector<Line> &lines, std::ve
 
                 auto direction = glm::normalize(vec3(beam.end - beam.start));
                 float distance = glm::distance(beam.start, beam.end);
-                CollisionResult hit = RayHit(beam.start, direction, box.start, box.end, distance);
+                CollisionResult hit =
+                    RayHitBox(beam.start, direction, box.start, box.end, distance);
                 if (hit.hit)
                 {
-                    //std::cout << "hit!" << std::endl;
+                    // std::cout << "hit!" << std::endl;
                     distance = distance * hit.fraction;
                     beam.end = beam.start + direction * distance;
                     Hit hit;
@@ -687,21 +746,19 @@ void EraseEntt(entt::registry &reg)
 void WorldCtx::EraseBeams()
 {
     auto &list = beams.list;
-    list.erase(
-        std::remove_if(list.begin(), list.end(),
-                       [](const Beam &b)
-                       { return b.remove; }),
-        list.end());
+    list.erase(std::remove_if(list.begin(), list.end(),
+                              [](const Beam &b)
+                              { return b.remove; }),
+               list.end());
 }
 
 void WorldCtx::EraseProjectiles()
 {
     auto &list = projectiles.list;
-    list.erase(
-        std::remove_if(list.begin(), list.end(),
-                       [](const Projectile &b)
-                       { return b.remove; }),
-        list.end());
+    list.erase(std::remove_if(list.begin(), list.end(),
+                              [](const Projectile &b)
+                              { return b.remove; }),
+               list.end());
 }
 
 void SpawnGrass(Gizmos &gizmos)
@@ -714,16 +771,13 @@ void SpawnGrass(Gizmos &gizmos)
     int width, height, nrChannels;
 
     unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 1);
-
-    if (data)
-    {
-        std::cout << "Loaded" << std::endl;
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
-
+    /*
+        if (data) {
+            std::cout << "Loaded" << std::endl;
+        } else {
+            std::cout << "Failed to load texture" << std::endl;
+        }
+     */
     float instances = 1;  // one grass per scan
     float maxUp = 3;      // max grass deviation from ground
     float maxHeight = 32; // max grass height
@@ -732,14 +786,17 @@ void SpawnGrass(Gizmos &gizmos)
     float planeWidth = 2000;  // world plane size
     float planeHeight = 2000; // world plane size
 
-    float texture_repeat = 1;           // use less or more of the texture, ie less than 1 or repeat if greater than 1 (can just skip for now for 1)
-    float scan_res = planeWidth * 0.33; // reasonable resolution of the scan in samples
+    float texture_repeat =
+        1; // use less or more of the texture, ie less than 1 or repeat if
+           // greater than 1 (can just skip for now for 1)
+    float scan_res =
+        planeWidth * 0.33; // reasonable resolution of the scan in samples
     // only supporting squares for now
 
     size_t blade_count = 0;
     const size_t MAX_GRASS_BLADES = 400000; // just putting a cap on it
 
-    std::cout << "loading grass" << std::endl;
+    // std::cout << "loading grass" << std::endl;
 
     for (int y = 0; y < scan_res; ++y)
     {
@@ -755,7 +812,8 @@ void SpawnGrass(Gizmos &gizmos)
 
             int numInstances = int(intensity * instances + 0.5f);
 
-            for (int i = 0; i < numInstances && blade_count < MAX_GRASS_BLADES; ++i)
+            for (int i = 0; i < numInstances && blade_count < MAX_GRASS_BLADES;
+                 ++i)
             {
                 float seed = x * 73.0f + y * 97.0f + i * 13.0f;
                 float randX = glm::fract(sin(seed) * 43758.5453);
@@ -772,6 +830,7 @@ void SpawnGrass(Gizmos &gizmos)
                 size.y = 2;
                 size.z = intensity * maxHeight;
                 glm::vec4 color{0, 0.5, 0, 1};
+                //glm::vec4 color{0.5, 0.1, 0.1, 1};
                 GrassBlade grass{pos, size, color};
 
                 gizmos.grass.push_back(grass);

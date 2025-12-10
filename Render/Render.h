@@ -1,5 +1,5 @@
+#ifndef RENDER_H
 #define RENDER_H
-#ifdef RENDER_H
 
 #include <entt/entt.hpp>
 

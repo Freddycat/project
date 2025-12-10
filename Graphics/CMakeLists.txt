@@ -10,6 +10,8 @@ add_library(
 target_include_directories(Graphics PUBLIC
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Models
+    ${CMAKE_SOURCE_DIR}/Graphics/Models
     ${CMAKE_SOURCE_DIR}/World
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/include/glm

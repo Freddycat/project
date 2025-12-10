@@ -1,5 +1,5 @@
+#ifndef GRAPHICS_H
 #define GRAPHICS_H
-#ifdef GRAPHICS_H
 
 #include <string>
 #include <vector>
@@ -13,6 +13,7 @@
 enum BufferID
 {
     BUFF_POINTS,
+    BUFF_POINTS_STATIC,
     BUFF_LINES,
     BUFF_LINES_STATIC,
     BUFF_TRIANGLES,
@@ -24,6 +25,7 @@ enum BufferID
     BUFF_GROUND,
     BUFF_GRASS,
     BUFF_DEBUG,
+    BUFF_LIGHT,
     BUFF_COUNT
 };
 
@@ -37,8 +39,9 @@ enum AttributeID
 
 enum ShaderID
 {
-    SHADER_VERTS,
-    SHADER_SIZE,
+    SHADER_BASIC,
+    SHADER_GIZMO,
+    SHADER_SIZED,
     SHADER_SCALE,
     SHADER_GROUND,
     SHADER_GRASS,
@@ -50,45 +53,7 @@ struct Graphics
 {
     GLuint
         cameraUBO,
-
-        vert,
-        vert_inst_size,
-        vert_inst_transform,
-        vert_ground,
-        vert_grass,
-
-        vao_point, vbo_point, // points
-
-        vao_line, vbo_line, // lines
-                            // grass
-        vao_grass, vbo_grass_buff,
-        vbo_grass,
-
-        vao_wireframecube,
-        vbo_wireframecube_buf,
-        vbo_wireframecubes,
-
-        vao_circle, // circles
-        vbo_circle_buf,
-        vbo_circles,
-
-        // SOLID OBJECTS
-        vao_sphere,
-        vbo_sphere_buf,
-        vbo_spheres,
-        // solid cubes
-        vao_cube,
-        vbo_cube_buf,
-        vbo_cubes,
-
-        capID, // capsules
-        vao_cap,
-        vbo_cap_buf,
-        vbo_caps,
-
-        vao_ground,
-        vbo_ground_buf,
-        vbo_ground;
+        lightSSBO;
 
     size_t max_points_static = 10000;
     size_t max_line_points_static = 10000;
@@ -100,8 +65,9 @@ struct Graphics
     size_t max_cubes = 50;
     size_t max_spheres = 50;
     size_t max_capsules = 50;
-    size_t max_plane = 64;
+    size_t max_planes = 64;
     size_t max_grass = 10000;
+    size_t max_lights = 48;
 
     std::array<GLuint, SHADER_COUNT> shaders;
     std::array<GLuint, BUFF_COUNT> attribs;
@@ -112,9 +78,10 @@ struct Graphics
 namespace Gfx
 {
     void CheckGLError(const char *functionName);
-    extern GLuint shaderID;
-    GLuint InitializeShader(const std::filesystem::path &vertexPath, const std::filesystem::path &fragmentPath);
 
+    GLuint InitializeShaderFromPaths(const std::filesystem::path &vertexPath, const std::filesystem::path &fragmentPath);
+    std::string LoadShader(const std::filesystem::path &shaderPath, const std::filesystem::path &includePath);
+    GLuint CompileShader(const std::filesystem::path &vertPath, const std::filesystem::path &fragPath);
     void Use(GLuint shaderID);
     void SetBool(GLuint shaderID, const std::string &name, bool value);
     void SetInt(GLuint shaderID, const std::string &name, int value);

@@ -1,193 +1,242 @@
 
 #include "Graphics.h"
+#include "global.h"
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <print>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
 
-namespace Gfx
+#define STB_INCLUDE_IMPLEMENTATION
+#define STB_INCLUDE_LINE_GLSL
+#include "stb_include.h"
+
+using std::filesystem::path;
+
+std::string Gfx::LoadShader(const path &shaderPath, const path &includePath)
 {
-    void CheckGLError(const char *functionName)
+
+    std::string shaderStr = shaderPath.string();
+    std::string includeStr = includePath.string();
+
+    // stupid stupid stupid
+    std::vector<char> shaderChar(shaderStr.begin(), shaderStr.end());
+    shaderChar.push_back('\0'); // null terminate
+    // making a const char string for stb_include
+    std::vector<char> includeChar(includeStr.begin(), includeStr.end());
+    includeChar.push_back('\0'); // null terminate
+
+    char error[256] = {0};
+
+    char *result = stb_include_file(shaderChar.data(), nullptr, includeChar.data(), error);
+
+    if (!result)
     {
-        GLenum error = glGetError();
-        if (error != GL_NO_ERROR)
-        {
-            std::cerr << "OpenGL Error in " << functionName << ": " << error << std::endl;
-        }
+        std::print("Failed to load shader: {}", error);
+        return "";
     }
-    GLuint shaderID = 0;
-    GLuint InitializeShader(const std::filesystem::path &vertexPath, const std::filesystem::path &fragmentPath)
+    std::string shaderSrc(result);
+    free(result); // stb_include_file allocates with malloc
+    return shaderSrc;
+}
+
+void Gfx::CheckGLError(const char *functionName)
+{
+    GLenum error = glGetError();
+    if (error != GL_NO_ERROR)
     {
-        std::cout << "Vertex Shader Path: " << vertexPath << std::endl;
-        std::cout << "Fragment Shader Path: " << fragmentPath << std::endl;
-        // 1. Retrieve the vertex / fragment source code from filePath
-        std::string vertexCode;
-        std::string fragmentCode;
-        std::ifstream vShaderFile;
-        std::ifstream fShaderFile;
-        // Ensure ifstream objects can throw exceptions
-        vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-        fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        std::print("OpenGL Error in {}\n", functionName, ": ", error);
+    }
+}
+// old paths way
+GLuint Gfx::InitializeShaderFromPaths(const std::filesystem::path &vertexPath, const std::filesystem::path &fragmentPath)
+{
+    // 1. Retrieve the vertex / fragment source code from filePath
+    std::string vertexCode;
+    std::string fragmentCode;
+    std::ifstream vShaderFile;
+    std::ifstream fShaderFile;
+    // Ensure ifstream objects can throw exceptions
+    vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
-        if (!std::filesystem::exists(vertexPath))
-        {
-            throw std::runtime_error("ERROR::SHADER::VERTEX_FILE_NOT_FOUND: " + vertexPath.string());
-        }
-        if (!std::filesystem::exists(fragmentPath))
-        {
-            throw std::runtime_error("ERROR::SHADER::FRAGMENT_FILE_NOT_FOUND: " + fragmentPath.string());
-        }
-        try
-        {
-            // Open files
-            vShaderFile.open(vertexPath.string());
-            fShaderFile.open(fragmentPath.string());
-            // Read file's buffer contents into streams
-            std::stringstream vShaderStream, fShaderStream;
-            vShaderStream << vShaderFile.rdbuf();
-            fShaderStream << fShaderFile.rdbuf();
-            // Close file handlers
-            vShaderFile.close();
-            fShaderFile.close();
-            // Convert stream into string
-            vertexCode = vShaderStream.str();
-            fragmentCode = fShaderStream.str();
-        }
-        catch (std::ifstream::failure e)
-        {
-            throw std::runtime_error("ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ");
-        }
+    if (!std::filesystem::exists(vertexPath))
+    {
+        throw std::runtime_error("ERROR::SHADER::VERTEX_FILE_NOT_FOUND: " + vertexPath.string());
+    }
+    if (!std::filesystem::exists(fragmentPath))
+    {
+        throw std::runtime_error("ERROR::SHADER::FRAGMENT_FILE_NOT_FOUND: " + fragmentPath.string());
+    }
+    try
+    {
+        // Open files
+        vShaderFile.open(vertexPath);
+        fShaderFile.open(fragmentPath);
+        // Read file's buffer contents into streams
+        std::stringstream vShaderStream, fShaderStream;
+        vShaderStream << vShaderFile.rdbuf();
+        fShaderStream << fShaderFile.rdbuf();
+        // Close file handlers
+        vShaderFile.close();
+        fShaderFile.close();
+        // Convert stream into string
+        vertexCode = vShaderStream.str();
+        fragmentCode = fShaderStream.str();
+    }
+    catch (std::ifstream::failure e)
+    {
+        throw std::runtime_error("ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ");
+    }
 
-        // 2. Compile shaders
-        const char *vShaderCode = vertexCode.c_str();
-        const char *fShaderCode = fragmentCode.c_str();
+    // 2. Compile shaders
+    const char *vShaderCode = vertexCode.c_str();
+    const char *fShaderCode = fragmentCode.c_str();
+}
 
-        unsigned int vertexShaderId, fragmentShaderId;
-        int success;
-        char infoLog[512];
+GLuint Gfx::CompileShader(const path &vertPath, const path &fragPath)
+{
 
-        // Create vertex shader
-        vertexShaderId = glCreateShader(GL_VERTEX_SHADER);     // Create a vertex shader
-        glShaderSource(vertexShaderId, 1, &vShaderCode, NULL); // Attach the vertex shader source code
-        glCompileShader(vertexShaderId);                       // Compile the vertex shader
-        // Check for vertex shader compile errors
-        glGetShaderiv(vertexShaderId, GL_COMPILE_STATUS, &success);
-        if (!success)
-        {
-            glGetShaderInfoLog(vertexShaderId, 512, NULL, infoLog);
-            std::cout << infoLog << std::endl;
-            throw std::runtime_error("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n");
-        }
+    path home = g.home / "shaders";
 
-        // Create fragment shader
-        fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);   // Create a fragment shader
-        glShaderSource(fragmentShaderId, 1, &fShaderCode, NULL); // Attach the fragment shader source code
-        glCompileShader(fragmentShaderId);                       // Compile the fragment shader
-        // Check for fragment shader compile errors
-        glGetShaderiv(fragmentShaderId, GL_COMPILE_STATUS, &success);
-        if (!success)
-        {
-            glGetShaderInfoLog(fragmentShaderId, 512, NULL, infoLog);
-            std::cout << infoLog << std::endl;
-            glDeleteShader(vertexShaderId);
-            throw std::runtime_error("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n");
-        }
+    std::print("Vertex Shader Path: {}\n", vertPath.string());
+    std::print("Fragment Shader Path: {}\n", fragPath.string());
 
-        // Shader program
-        GLuint programID = glCreateProgram();
-        glAttachShader(programID, vertexShaderId);
-        glAttachShader(programID, fragmentShaderId);
-        glLinkProgram(programID);
-        // Check for shader program linking errors
-        glGetProgramiv(programID, GL_LINK_STATUS, &success);
-        if (!success)
-        {
-            glGetProgramInfoLog(programID, 512, NULL, infoLog);
-            std::cout << infoLog << std::endl;
-            glDeleteShader(vertexShaderId);
-            glDeleteShader(fragmentShaderId);
-            throw std::runtime_error("ERROR::PROGRAM::LINKING_FAILED\n");
-        }
+    std::string vertStr = LoadShader(vertPath, home);
+    std::string fragStr = LoadShader(fragPath, home);
 
-        GLint count;
-        glGetProgramiv(programID, GL_ACTIVE_ATTRIBUTES, &count);
-        std::cout << "Active attributes: " << count << std::endl;
+    //std::print("Vert str: {}\n", vertStr);
+    //std::print("Frag str: {}\n", fragStr);
 
-        // Delete vertex and fragment shader instances as they have been linked
-        glDetachShader(programID, vertexShaderId);
-        glDetachShader(programID, fragmentShaderId);
+    const char *vertexCode = vertStr.c_str();
+    const char *fragmentCode = fragStr.c_str();
+    unsigned int vertexShaderId, fragmentShaderId;
+    int success;
+    char infoLog[512];
+
+    // Create vertex shader
+    vertexShaderId = glCreateShader(GL_VERTEX_SHADER);    // Create a vertex shader
+    glShaderSource(vertexShaderId, 1, &vertexCode, NULL); // Attach the vertex shader source code
+    glCompileShader(vertexShaderId);                      // Compile the vertex shader
+    // Check for vertex shader compile errors
+    glGetShaderiv(vertexShaderId, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(vertexShaderId, 512, NULL, infoLog);
+        std::cout << infoLog << std::endl;
+        throw std::runtime_error("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n");
+    }
+
+    // Create fragment shader
+    fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);    // Create a fragment shader
+    glShaderSource(fragmentShaderId, 1, &fragmentCode, NULL); // Attach the fragment shader source code
+    glCompileShader(fragmentShaderId);                        // Compile the fragment shader
+    // Check for fragment shader compile errors
+    glGetShaderiv(fragmentShaderId, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(fragmentShaderId, 512, NULL, infoLog);
+        std::cout << infoLog << std::endl;
+        glDeleteShader(vertexShaderId);
+        throw std::runtime_error("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n");
+    }
+
+    // Shader program
+    GLuint program = glCreateProgram();
+    glAttachShader(program, vertexShaderId);
+    glAttachShader(program, fragmentShaderId);
+    glLinkProgram(program);
+    // Check for shader program linking errors
+    glGetProgramiv(program, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        glGetProgramInfoLog(program, 512, NULL, infoLog);
+        std::cout << infoLog << std::endl;
         glDeleteShader(vertexShaderId);
         glDeleteShader(fragmentShaderId);
-
-        return programID;
+        throw std::runtime_error("ERROR::PROGRAM::LINKING_FAILED\n");
     }
+
+    GLint count;
+    glGetProgramiv(program, GL_ACTIVE_ATTRIBUTES, &count);
+    std::print("Active attributes: {}\n", count);
+
+    // Delete vertex and fragment shader instances as they have been linked
+    glDetachShader(program, vertexShaderId);
+    glDetachShader(program, fragmentShaderId);
+    glDeleteShader(vertexShaderId);
+    glDeleteShader(fragmentShaderId);
+
+    return program;
+}
+
+namespace Gfx
+{
 
     void CheckGLError(const char *functionName);
-    extern GLuint shaderID;
-    GLuint InitializeShader(const std::string &vertexPath, const std::string &fragmentPath);
 
-    void Use(GLuint shaderID)
+    void Use(GLuint shader)
     {
-        glUseProgram(shaderID);
+        glUseProgram(shader);
     }
 
-    void SetBool(GLuint shaderID, const std::string &name, bool value)
+    void SetBool(GLuint shader, const std::string &name, bool value)
     {
-        glUniform1i(glGetUniformLocation(shaderID, name.c_str()), (int)value);
+        glUniform1i(glGetUniformLocation(shader, name.c_str()), (int)value);
     }
 
-    void SetInt(GLuint shaderID, const std::string &name, int value)
+    void SetInt(GLuint shader, const std::string &name, int value)
     {
-        glUniform1i(glGetUniformLocation(shaderID, name.c_str()), value);
+        glUniform1i(glGetUniformLocation(shader, name.c_str()), value);
     }
-    
-    void SetFloat(GLuint shaderID, const std::string &name, float value)
+
+    void SetFloat(GLuint shader, const std::string &name, float value)
     {
-        glUniform1f(glGetUniformLocation(shaderID, name.c_str()), value);
+        glUniform1f(glGetUniformLocation(shader, name.c_str()), value);
     }
-    
-    void SetMat3(GLuint shaderID, const std::string &name, const GLfloat *mat)
+
+    void SetMat3(GLuint shader, const std::string &name, const GLfloat *mat)
     {
-        glUniformMatrix3fv(glGetUniformLocation(shaderID, name.c_str()), 1, GL_FALSE, mat);
+        glUniformMatrix3fv(glGetUniformLocation(shader, name.c_str()), 1, GL_FALSE, mat);
     }
-    
-    void SetMat4(GLuint shaderID, const std::string &name, const GLfloat *mat)
+
+    void SetMat4(GLuint shader, const std::string &name, const GLfloat *mat)
     {
-        glUniformMatrix4fv(glGetUniformLocation(shaderID, name.c_str()), 1, GL_FALSE, mat);
+        glUniformMatrix4fv(glGetUniformLocation(shader, name.c_str()), 1, GL_FALSE, mat);
     }
-    
-    void SetVec2(GLuint shaderID, const std::string &name, glm::vec2 vec)
+
+    void SetVec2(GLuint shader, const std::string &name, glm::vec2 vec)
     {
-        glUniform2f(glGetUniformLocation(shaderID, name.c_str()), vec.x, vec.y);
+        glUniform2f(glGetUniformLocation(shader, name.c_str()), vec.x, vec.y);
     }
-    
-    void SetVec3(GLuint shaderID, const std::string &name, glm::vec3 vec)
+
+    void SetVec3(GLuint shader, const std::string &name, glm::vec3 vec)
     {
-        glUniform3f(glGetUniformLocation(shaderID, name.c_str()), vec.x, vec.y, vec.z);
+        glUniform3f(glGetUniformLocation(shader, name.c_str()), vec.x, vec.y, vec.z);
     }
-    
-    void SetVec4(GLuint shaderID, const std::string &name, glm::vec4 vec)
+
+    void SetVec4(GLuint shader, const std::string &name, glm::vec4 vec)
     {
-        glUniform4f(glGetUniformLocation(shaderID, name.c_str()), vec.x, vec.y, vec.z, vec.w);
+        glUniform4f(glGetUniformLocation(shader, name.c_str()), vec.x, vec.y, vec.z, vec.w);
     }
-    
+
     GLuint CreateVAO()
     {
-        unsigned int vaoID;
-        glGenVertexArrays(1, &vaoID);
-        return vaoID;
+        unsigned int vao;
+        glGenVertexArrays(1, &vao);
+        return vao;
     }
 
     GLuint CreateVBO(GLsizeiptr verticesByteSize, const void *vertices, GLenum usage)
     {
-        GLuint vboID;
-        glGenBuffers(1, &vboID);
-        glBindBuffer(GL_ARRAY_BUFFER, vboID);
+        GLuint vbo;
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, verticesByteSize, vertices, usage);
-        return vboID;
+        return vbo;
     }
 
     void AddVertexAttrib(GLuint location, GLuint attribLen, GLuint stride, GLuint offset)
@@ -198,16 +247,16 @@ namespace Gfx
 
     GLuint CreateEBO(GLsizeiptr indicesByteSize, GLuint *indices, GLenum usage)
     {
-        GLuint eboID;
-        glGenBuffers(1, &eboID);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
+        GLuint ebo;
+        glGenBuffers(1, &ebo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesByteSize, indices, usage);
-        return eboID;
+        return ebo;
     }
 
-    void UseVAO(GLuint vaoID)
+    void UseVAO(GLuint vao)
     {
-        glBindVertexArray(vaoID);
+        glBindVertexArray(vao);
     }
 
     void UnbindVAO()

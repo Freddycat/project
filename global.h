@@ -26,7 +26,9 @@ struct Global
     float game_time;
     float time_elapsed;
 
-    bool console_on = true;
+    bool devMenu_on = true;
+    bool devMode_on = false;
+    bool edit_shiftMod = false;
 };
 
 extern Global g;

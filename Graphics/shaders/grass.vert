@@ -24,7 +24,7 @@ mat4 rotationMatrix(vec3 axis, float angle) {
       oc * axis.z * axis.z + c, 0.0, 0.0, 0.0, 0.0, 1.0);
 }
 
-out vec4 color;
+out vec4 VertColor;
 uniform vec3 characterPos;
 
 uniform sampler2D noise;
@@ -43,18 +43,20 @@ vec2 uv = (inBase.xy / 500.0) * noise_frequency + time * new_scroll;
 
 vec2 texel = 1.0 / textureSize(noise, 0);
 
-float min_intensity = 0.1;
-float in_n = texture(noise, uv).r;
-float n = mix(min_intensity, 1.0, in_n);
-float n_left = texture(noise, uv - vec2(texel.x, 0)).r;
-float n_right = texture(noise, uv + vec2(texel.x, 0)).r;
-float n_down = texture(noise, uv - vec2(0, texel.y)).r;
-float n_up = texture(noise, uv + vec2(0, texel.y)).r;
+// 1. Sample procedural noise
+float windNoiseDir = texture(noise, uv).r * 2.0 - 1.0; // [-1,1]
+// 2. Remap to angle
+float windAngle = windNoiseDir * 6.2831853; // [-2π,2π]
 
-// black intensity:
-// vec2 gradient = gradient_scale * vec2(n_left - n_right, n_down - n_up);
-// white intensity:
-// colors
+float windNoiseStrength =
+    texture(noise, uv + vec2(13.1, 7.3)).r * 2.0 - 1.0; // [-1,1]
+
+// 3. Optional easing
+float lean = pow(abs(windNoiseStrength), 2.0) * 0.25 * sign(windNoiseStrength);
+
+// 4. Convert to rotation axis
+vec3 axis = vec3(sin(windAngle), 0.0, cos(windAngle));
+
 vec3 base = inColor.rgb;        // bottom color
 vec3 tip = vec3(0.8, 1.0, 0.4); // top color
 vec3 shaded = mix(base, tip, vertPos.z);
@@ -63,37 +65,27 @@ void main() {
 
   vec3 local = vertPos * inSize;
 
+  vec3 camRight = vec3(view[0][0], view[1][0], view[2][0]);
+  vec3 camUp = vec3(view[0][1], view[1][1], view[2][1]);
+
+  vec3 worldOffset =
+      camRight * local.x + camUp * local.y + vec3(0.0, 0.0, local.z);
+
+  local = worldOffset;
+/* 
   // 1. Rotate to face camera
   float angle = radians(45);
   mat2 rot = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
-  local.xy = rot * local.xy;
+  local.xy = rot * local.xy; */
 
   vec3 up = normalize(local);
   vec3 forward = normalize(vec3(1.0, 1.0, 0.0));
   vec3 right = normalize(cross(forward, up));
 
-  vec2 gradient = gradient_scale * vec2(n_right - n_left, n_up - n_down);
+  float influence = 0.5; // tweak
 
-  if (length(gradient) < 0.0001) {
-    gradient = vec2(0.0, 1.0); // default non-zero gradient
-  }
-
-  vec2 sway_direction_2D = -normalize(gradient);
-
-  float sway_magnitude = length(gradient);
-
-  float lean_angle = radians(80.0);
-
-  float sway_angle = sway_magnitude * lean_angle;
-
-  vec3 rotation_axis =
-      normalize(vec3(sway_direction_2D.y, -sway_direction_2D.x, 0.0));
-
-  float influence = 0.8; // tweak
-  vec3 mixed_axis = normalize(mix(rotation_axis, scroll_axis, influence));
-
-  // add a fix here to modulate the rotation?
-  mat4 sway_mat = rotationMatrix(mixed_axis, sway_angle); // was forward
+  vec3 rotation_axis = normalize(mix(axis, scroll_axis, influence));
+  mat4 sway_mat = rotationMatrix(rotation_axis, lean);
   local = (sway_mat * vec4(local, 1.0)).xyz;
 
   vec3 toChar = inBase - characterPos;
@@ -113,5 +105,5 @@ void main() {
   vec3 worldPos = inBase + local;
 
   gl_Position = projection * view * vec4(worldPos, 1.0);
-  color = vec4(shaded, 1.0);
+  VertColor = vec4(shaded, 1.0);
 }

@@ -1,8 +1,8 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-#include <vector>
 #include <glm/glm.hpp>
+#include <vector>
 
 struct Camera;
 struct Player;
@@ -15,11 +15,17 @@ struct Mouse
 {
     vec2 screen_pos;
     vec2 center_pos;
-    glm::dvec3 world_pos = {0.0f, 0.0f, 0.0f};
-    glm::dvec3 xhair_pos = {0.0f, 0.0f, 0.0f};
-    glm::dvec3 camera_pos = {0.0f, 0.0f, 0.0f};
-    glm::dvec3 cam_to_mouse = {0.0f, 0.0f, 0.0f};
-    float ray_range = 4000;
+    glm::vec3 world_pos = {0.0f, 0.0f, 0.0f};
+    glm::vec3 xhair_pos = {0.0f, 0.0f, 0.0f};
+    glm::vec3 camera_pos = {0.0f, 0.0f, 0.0f};
+    glm::vec3 cam_to_mouse = {0.0f, 0.0f, 0.0f};
+    float ray_range = 5000;
+    bool click_l = false;
+    bool click_r = false;
+};
+
+struct Keyboard{
+    bool mod_shift = false;
 };
 
 struct Input
@@ -39,6 +45,7 @@ struct Input
     void InputKeyboard(Player &player);
     void InputMouse(Player &player);
 
+    Keyboard KB;
     Mouse mouse;
 };
 

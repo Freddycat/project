@@ -1,3 +1,4 @@
 build/
 include/jsonSrc/
 .vscode/
+.cache/

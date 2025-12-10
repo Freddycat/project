@@ -21,12 +21,20 @@ struct Weapon;
 struct ColliderCtx;
 struct WorldCtx;
 struct PlayerCtx;
-struct WeaponEvent;
+struct WeaponEvents;
 
 using std::vector;
 
 struct World
 {
+    World(
+        Player &player,
+        Camera &cam,
+        ColliderCtx &ctx,
+        WorldCtx &worldCtx,
+        World &world,
+        Gizmos &gizmos);
+        
     glm::vec3 origin = glm::vec3(0.0, 0.0, 0.0);
 
     int grid_width = 64;
@@ -53,19 +61,10 @@ struct World
              {{0, 0, 100}, color[2]}}};
     } compass;
 
-    void InitializeWorld(
-        Player &player,
-        Camera &cam,
-        ColliderCtx &ctx,
-        WorldCtx &worldCtx,
-        World &world,
-        Gizmos &gizmos,
-        GLuint &vbo_point,
-        GLuint &vbo_line);
 
     void InitWorld(ColliderCtx &ctx, WorldCtx &worldCtx, Gizmos &gizmos);
     void InitCompas(std::vector<Point> &line_pts);
-    void InitCube(ColliderCtx &ctx, WorldCtx &worldCtx, std::vector<ShapeSym> &cubes);
+    void InitCube(ColliderCtx &ctx, WorldCtx &worldCtx, std::vector<Shape> &cubes);
 };
 
 void InitGrid(std::vector<Point> &line_pts, glm::vec2 origin, int amount, float cellSize);
@@ -87,7 +86,7 @@ Projectile CreateProjectile(vector<Projectile> &list, Projectile &pro, entt::reg
 Beam CreateBeam(vector<Beam> &list, Beam &beam, entt::registry &colliders);
 Blast CreateBlast(vector<Blast> &list, Blast &blast, entt::registry &colliders);
 
-struct WorldFX
+struct WorldEnv
 {
     vector<Blast> explosions;
 };
@@ -105,21 +104,21 @@ struct WorldCtx
     {
         std::vector<Projectile> list;
     } projectiles;
-    void UpdateProjectiles(float time_elapsed, Gizmos &gizmos, WorldEvents &worldQue, WorldFX &wrldFXque, entt::registry &colliders, Weapon &weapon);
+    void UpdateProjectiles(float time_elapsed, Gizmos &gizmos, WorldEvents &worldQue, WorldEnv &wrldFXque, entt::registry &colliders, Weapon &weapon);
     void EraseProjectiles();
 
     struct Blasts
     {
         std::vector<Blast> list;
     } blasts;
-    void UpdateBlasts(float time_elapsed, std::vector<ShapeSym> &circles);
+    void UpdateBlasts(float time_elapsed, std::vector<Shape> &circles);
     void EraseBlasts();
 
     struct Beams
     {
         std::vector<Beam> list;
     } beams;
-    void UpdateBeams(float time_elapsed, std::vector<Line> &lines, std::vector<Beam> &Beams, WorldEvents &worldque,WorldFX &worldFXque, entt::registry &colliders);
+    void UpdateBeams(float time_elapsed, std::vector<Line> &lines, std::vector<Beam> &Beams, WorldEvents &worldque,WorldEnv &worldFXque, entt::registry &colliders);
     void EraseBeams();
 };
 
@@ -133,14 +132,24 @@ struct Targets
     float hp;
     bool show_info = false;
     bool showing_info = false;
+    bool show_hitbox = false;
+    bool showing_hitbox = false;
+};
+
+struct Selector
+{
+    size_t ID = 0;
+    bool dragging = false;
+    vec3 offset{0.0};
 };
 
 void EraseEntt(entt::registry &reg);
 void UpdateWorldTargets(entt::registry &colliders, PlayerCtx &ctx, Input &input, WorldCtx &world);
-void WorldCreateQueue(vector<WeaponEvent> &weapQue, WorldCtx &ctx, entt::registry &colliders);
-void WorldFXQueue(WorldCtx &ctx, WorldFX &fxque, entt::registry &colliders);
+void UpdateWorldEdit(entt::registry &colliders, PlayerCtx &ctx, Input &input, WorldCtx &worldCtx, Gizmos &gizmos);
+void WorldCreateQueue(vector<WeaponEvents> &weapQue, WorldCtx &ctx, entt::registry &colliders);
+void WorldFXQueue(WorldCtx &ctx, WorldEnv &fxque, entt::registry &colliders);
 void WorldHitQueue(WorldEvents &que, WorldCtx &ctx);
-void WorldClearQueue(vector<WeaponEvent> &wepque,  WorldFX &worldFX);
+void WorldClearQueue(vector<WeaponEvents> &wepque,  WorldEnv &worldEnv);
 
 void LoadNoiseForGrass();
 void SpawnGrass(Gizmos &gizmos);

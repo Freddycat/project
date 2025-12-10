@@ -6,65 +6,38 @@
 
 #include <iostream>
 
-void Weapon::UpdateWeapon(PlayerCtx &ctx, float delta, vector<WeaponEvent> &events, entt::entity &id)
-{
+void Weapon::UpdateWeapon(PlayerCtx &ctx, float delta, vector<WeaponEvents> &events, entt::entity &id) {
     cooldown -= delta;
-    if (cooldown <= 0.0 && ctx.firing)
-    {
+    if (cooldown <= 0.0 && ctx.firing) {
         cooldown = fire_rate;
         std::cout << "should shoot" << std::endl;
         Weapon::FireWeapon(ctx, events, id);
     }
 }
-/* old entt
-void Weapon::FireWeapon(PlayerCtx &ctx, vector<WeaponEvent> &events, entt::registry &registry)
-{
-    for (auto weapon : registry.view<GunPart>())
-    {
-        auto &cmpt = registry.get<GunPart>(weapon);
-        cmpt.Shoot(ctx, cmpt, events.projectiles);
-    }
-    for (auto weapon : registry.view<BeamPart>())
-    {
-        auto &cmpt = registry.get<BeamPart>(weapon);
-        cmpt.Shoot(ctx, cmpt, events.beams);
-    }
-    for (auto part : registry.view<BlastPart>())
-    {
-        auto &cmpt = registry.get<BlastPart>(part);
-        cmpt.Shoot(ctx, cmpt, events.blasts);
-    }
-}
-    */
 
-void Weapon::FireWeapon(PlayerCtx &ctx, vector<WeaponEvent> &events, entt::entity &id)
-{
-    vector<WeaponEvent> newEvents;
-    vector<WeaponEvent> newBeams;
-    vector<WeaponEvent> newProjectiles;
+void Weapon::FireWeapon(PlayerCtx &ctx, vector<WeaponEvents> &events, entt::entity &id) {
+    vector<WeaponEvents> newEvents;
+    vector<WeaponEvents> newBeams;
+    vector<WeaponEvents> newProjectiles;
 
-    for (auto &part : parts)
-    {
+    for (auto &part : parts) {
         std::cout << "Storage addr: " << (void *)part.storage
                   << " type: " << part.type << std::endl;
     }
 
-    if (auto *beam = get<BeamPart>())
-    {
+    if (auto *beam = get<BeamPart>()) {
         std::cout << "foundbeam!" << std::endl;
         std::cout << beam->damage << std::endl;
         std::cout << beam->cooldown << std::endl;
     }
 
-    if (auto *blast = get<BlastPart>())
-    {
+    if (auto *blast = get<BlastPart>()) {
         std::cout << "foundblast!" << std::endl;
         std::cout << blast->damage << std::endl;
         std::cout << blast->blast_size << std::endl;
     }
 
-    if (auto *test = get<TestComponent>())
-    {
+    if (auto *test = get<TestComponent>()) {
         std::cout << "foundtest!" << std::endl;
         std::cout << test->damage << std::endl;
         std::cout << test->size << std::endl;
@@ -75,53 +48,43 @@ void Weapon::FireWeapon(PlayerCtx &ctx, vector<WeaponEvent> &events, entt::entit
     std::cout << "Beam  ID: " << PART_MASK<BeamPart>::value << std::endl;
     std::cout << "Test  ID: " << PART_MASK<TestComponent>::value << std::endl;
 
-    for (auto &part : parts)
-    {
-        switch (part.type)
-        {
-        case static_cast<uint8_t>(PART_NAME::BEAM):
-        {
-            WeaponEvent event;
+    for (auto &part : parts) {
+        switch (part.type) {
+        case static_cast<uint8_t>(PART_NAME::BEAM): {
+            WeaponEvents event;
             auto *beam = reinterpret_cast<BeamPart *>(part.storage);
             beam->Shoot(ctx, *beam, event.beams);
             newEvents.push_back(event);
             break;
         }
-        case static_cast<uint8_t>(PART_NAME::GUN):
-        {
-            WeaponEvent event;
+        case static_cast<uint8_t>(PART_NAME::GUN): {
+            WeaponEvents event;
             auto *gun = reinterpret_cast<GunPart *>(part.storage);
             gun->Shoot(ctx, *gun, event.projectiles, id);
             newEvents.push_back(event);
             break;
         }
-        case static_cast<uint8_t>(PART_NAME::BLAST):
-        {
+        case static_cast<uint8_t>(PART_NAME::BLAST): {
             auto *blast = reinterpret_cast<BlastPart *>(part.storage);
 
-            for (auto &event : newEvents)
-            {
-                if (blast->affects & PART_MASK<BeamPart>::value)
-                {
-                    for (auto &b : event.beams)
-                    {
+            for (auto &event : newEvents) {
+                if (blast->affects & PART_MASK<BeamPart>::value) {
+                    for (auto &b : event.beams) {
                         b.effects |= WorldEffects::EFFECT_EXPLOSIVE;
                         blast->Shoot(ctx, *blast, event.blasts, 1);
 
-                        std::cout << "blast->affects SHOOTING BEAM: Dec=" << blast->affects
-                                  << ", Hex=0x" << std::hex << blast->affects << std::dec << std::endl;
+                        // std::cout << "blast->affects SHOOTING BEAM: Dec=" << blast->affects
+                        //           << ", Hex=0x" << std::hex << blast->affects << std::dec << std::endl;
                     }
                 }
 
-                if (blast->affects & PART_MASK<GunPart>::value)
-                {
-                    for (auto &p : event.projectiles)
-                    {
+                if (blast->affects & PART_MASK<GunPart>::value) {
+                    for (auto &p : event.projectiles) {
                         p.effects |= WorldEffects::EFFECT_EXPLOSIVE;
                         blast->Shoot(ctx, *blast, event.blasts, 2);
 
-                        std::cout << "blast->affects SHOOTIN PROJ: Dec=" << blast->affects
-                                  << ", Hex=0x" << std::hex << blast->affects << std::dec << std::endl;
+                        // std::cout << "blast->affects SHOOTIN PROJ: Dec=" << blast->affects
+                        //           << ", Hex=0x" << std::hex << blast->affects << std::dec << std::endl;
                     }
                 }
             }
@@ -134,8 +97,7 @@ void Weapon::FireWeapon(PlayerCtx &ctx, vector<WeaponEvent> &events, entt::entit
         events.push_back(event);
 }
 
-Projectile GunPart::Shoot(PlayerCtx &ctx, GunPart &cmpnt, vector<Projectile> &que, entt::entity &id)
-{
+Projectile GunPart::Shoot(PlayerCtx &ctx, GunPart &cmpnt, vector<Projectile> &que, entt::entity &id) {
     auto &speed = cmpnt.bulletspeed;
     auto &range = cmpnt.maxrange;
     auto &damage = cmpnt.damage;
@@ -152,8 +114,7 @@ Projectile GunPart::Shoot(PlayerCtx &ctx, GunPart &cmpnt, vector<Projectile> &qu
     return pro;
 }
 
-void BeamPart::Shoot(PlayerCtx &ctx, BeamPart &beam, vector<Beam> &que)
-{
+void BeamPart::Shoot(PlayerCtx &ctx, BeamPart &beam, vector<Beam> &que) {
     auto &cooldown = beam.cooldown;
     auto &damage = beam.damage;
     auto &start = ctx.pos;
@@ -166,9 +127,8 @@ void BeamPart::Shoot(PlayerCtx &ctx, BeamPart &beam, vector<Beam> &que)
     que.push_back(bm);
 }
 
-void BlastPart::Shoot(PlayerCtx &ctx, BlastPart &blast, vector<Blast> &que, int i)
-{
-    std::cout << "int " << i << std::endl;
+void BlastPart::Shoot(PlayerCtx &ctx, BlastPart &blast, vector<Blast> &que, int i) {
+    // std::cout << "int " << i << std::endl;
     auto &size = blast.blast_size;
     auto &rate = blast.blast_rate;
     auto &pos = ctx.xhair;

@@ -1,0 +1,16 @@
+# .clang-format
+BasedOnStyle: LLVM
+IndentWidth: 4
+ColumnLimit: 0
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: true       # newline after function signature
+  BeforeElse: false         # keeps "} else {" on one line
+  BeforeCatch: false        # same for "} catch (..){"
+  AfterControlStatement: false
+  AfterStruct: false
+  AfterClass: false
+  AfterNamespace: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false

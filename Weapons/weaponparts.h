@@ -4,9 +4,9 @@
 #include "World.h"
 #include <iostream>
 
+#include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <vector>
-#include <entt/entt.hpp>
 
 using std::vector;
 
@@ -15,8 +15,7 @@ struct Beam;
 struct Projectile;
 struct PlayerCtx;
 
-struct GunPart
-{
+struct GunPart {
     entt::entity id;
     float damage = 8;
     float bulletspeed = 1000.0f;
@@ -26,8 +25,7 @@ struct GunPart
     uint8_t type;
 };
 
-struct BeamPart
-{
+struct BeamPart {
     entt::entity id;
     float damage = 5;
     float cooldown = 0.3f;
@@ -35,8 +33,7 @@ struct BeamPart
     uint8_t type;
 };
 
-struct BlastPart
-{
+struct BlastPart {
     // entt::entity root;
     // entt::entity id;
     float damage = 4;
@@ -47,8 +44,7 @@ struct BlastPart
     uint8_t affects;
 };
 
-struct TestComponent
-{
+struct TestComponent {
     float damage = 4;
     float size = 150.0f;
     float rate = 0.5f;
@@ -59,12 +55,18 @@ constexpr size_t MAX_WEAPON_SIZE =
               sizeof(BeamPart),
               sizeof(BlastPart)});
 
-struct Component
-{
-    alignas(max_align_t) char storage[MAX_WEAPON_SIZE];
+constexpr size_t MAX_COMPONENT_ALIGN =
+    std::max({alignof(BeamPart),
+              alignof(GunPart),
+              alignof(BlastPart),
+              alignof(TestComponent)});
+
+struct Component {
+    alignas(MAX_COMPONENT_ALIGN) unsigned char storage[MAX_WEAPON_SIZE];
+    //alignas(max_align_t) char storage[MAX_WEAPON_SIZE];
     void (*destroy)(void *);            // how to free it
     void (*copy)(void *, const void *); // optional, for cloning weapons
-    uint8_t type;                      // your own type ID enum
+    uint8_t type;                       // your own type ID enum
 };
 
 #endif // WEAPON_EVENTS_H

@@ -1,9 +1,9 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include <vector>
-#include <gizmos.h>
 #include <entt/entt.hpp>
+#include <gizmos.h>
+#include <vector>
 
 struct World;
 struct Input;
@@ -16,8 +16,7 @@ struct ColliderCtx;
 
 using glm::vec2, glm::vec3;
 
-struct Player
-{
+struct Player {
     float pos_x = 0.0f;
     float pos_y = 0.0f;
     float velocity_x = 0.0f;
@@ -25,15 +24,16 @@ struct Player
 
     vec2 input_direction;
 
-    vec3 // - positions
-        position,
-        velocity,
-        direction,
-        next_pos,
-        shoulder_height,
-        cam_forward,
-        cam_right,
-        cam_up;
+    // - positions
+    vec3 position = {0.0, 0.0, 0.0};
+    vec3 velocity = {0.0, 0.0, 0.0};
+    vec3 direction = {0.0, 0.0, 0.0};
+    vec3 next_pos = {0.0, 0.0, 0.0};
+    vec3 cam_forward = {0.0, 0.0, 0.0};
+    vec3 cam_right = {0.0, 0.0, 0.0};
+    vec3 cam_up = {0.0, 0.0, 0.0};
+
+    vec3 shoulder_height = {0.0, 0.0, 24.0};
 
     float speed = 0.0f;
 

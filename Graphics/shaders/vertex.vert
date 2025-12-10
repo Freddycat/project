@@ -8,9 +8,9 @@ layout(std140, binding = 0) uniform Camera {
     mat4 view;
 };
 
-out vec4 color;
+out vec4 VertColor;
 
 void main() {
 	gl_Position = projection * view * vec4(vertPos, 1.0);
-	color = inColor;
+	VertColor = inColor;
 }

@@ -1,11 +1,8 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.20)
 
 project(project)
 
-set(CMAKE_CXX_STANDARD 17)
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
+set(CMAKE_CXX_STANDARD 23)
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -16,6 +13,7 @@ add_subdirectory(include/SDL)
 add_subdirectory(include/entt)
 
 add_subdirectory(Graphics)
+add_subdirectory(Render)
 add_subdirectory(GUI)
 add_subdirectory(physics)
 add_subdirectory(helper)
@@ -27,9 +25,8 @@ find_package(OpenGL REQUIRED)
 
 add_executable(
     project
-    app.cpp
-    app_start.cpp
-    render.cpp
+    Game.cpp
+    game_start.cpp
     input.cpp
     camera.cpp
     glad.c
@@ -60,6 +57,7 @@ target_link_libraries(project PUBLIC
     OpenGL::GL
     assimp
     Graphics
+    Render
     GUI
     physics
     helper
@@ -72,6 +70,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(SHADER_OUT_DIR ${CMAKE_BINARY_DIR}/Debug/shaders)
     set(MAP_OUT_DIR ${CMAKE_BINARY_DIR}/Debug/maps)
 
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
+
 else()
     set(SHADER_OUT_DIR ${CMAKE_BINARY_DIR}/shaders)
     set(MAP_OUT_DIR ${CMAKE_BINARY_DIR}/maps)
@@ -81,7 +82,9 @@ add_custom_target(copy_resources ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/Graphics/shaders
     ${SHADER_OUT_DIR}
+    COMMAND ${CMAKE_COMMAND} -E echo "Shaders copied to ${SHADER_OUT_DIR}"
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/World/maps
     ${MAP_OUT_DIR}
+    COMMAND ${CMAKE_COMMAND} -E echo "Maps copied to ${MAP_OUT_DIR}"
 )

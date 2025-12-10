@@ -10,7 +10,7 @@ layout(std140, binding = 0) uniform Camera {
     mat4 view;
 };
 
-out vec4 color;
+out vec4 VertColor;
 
 void main() {
     // determine if vertex is top/bottom hemisphere or cylinder
@@ -28,5 +28,5 @@ void main() {
 
     vec3 worldPos = inCenter + scaled;
     gl_Position = projection * view * vec4(worldPos, 1.0);
-    color = inColor;
+    VertColor = inColor;
 }

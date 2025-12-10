@@ -71,14 +71,14 @@ CollisionResult capsule_vs_box(const glm::vec3 start_pos, glm::vec3 end_pos, con
     return result;
 }
 
-CollisionResult RayHit(const glm::dvec3 &origin,
-                       const glm::dvec3 &direction,
-                       const glm::dvec3 &boxmin,
-                       const glm::dvec3 &boxmax,
-                       float range)
+CollisionResult RayHitBox(const glm::dvec3 &origin,
+                          const glm::dvec3 &direction,
+                          const glm::dvec3 &boxmin,
+                          const glm::dvec3 &boxmax,
+                          float range)
 {
     double near = 0.0;
-    double far  = range;
+    double far = range;
     CollisionResult result;
 
     for (int i = 0; i < 3; ++i)
@@ -92,13 +92,16 @@ CollisionResult RayHit(const glm::dvec3 &origin,
         {
             double t1 = (boxmin[i] - origin[i]) / direction[i];
             double t2 = (boxmax[i] - origin[i]) / direction[i];
-            if (t1 > t2) std::swap(t1, t2);
+            if (t1 > t2)
+                std::swap(t1, t2);
 
             near = std::max(near, t1);
-            far  = std::min(far,  t2);
+            far = std::min(far, t2);
 
-            if (near > far) return result;
-            if (far < 0.0)   return result;
+            if (near > far)
+                return result;
+            if (far < 0.0)
+                return result;
         }
     }
 
@@ -107,8 +110,53 @@ CollisionResult RayHit(const glm::dvec3 &origin,
     return result;
 }
 
-/* 
-CollisionResult RayHit(const glm::dvec3 &origin, const glm::dvec3 &direction,
+CollisionResult RayHitPlaneZ(
+    const glm::vec3 &origin,
+    const glm::vec3 &direction,
+    float plane_z,
+    float range)
+{
+    CollisionResult result;
+
+    // Ray parallel to plane
+    if (direction.z == 0.0)
+        return result;
+
+    float t = (plane_z - origin.z) / direction.z;
+
+    // Intersection behind ray or out of range
+    if (t < 0.0 || t > range)
+        return result;
+
+    result.hit = true;
+    result.fraction = t / range;
+    return result;
+}
+
+CollisionResult RayHitPlane(
+    const glm::vec3 &origin,
+    const glm::vec3 &direction,
+    const glm::vec3 &planePoint,
+    const glm::vec3 &planeNormal,
+    float range)
+{
+    CollisionResult result;
+
+    float denom = glm::dot(direction, planeNormal);
+    if (fabs(denom) < 1e-6f)
+        return result; // parallel
+
+    float t = glm::dot(planePoint - origin, planeNormal) / denom;
+    if (t < 0.0f || t > range)
+        return result;
+
+    result.hit = true;
+    result.fraction = t / range;
+    return result;
+}
+
+/*
+CollisionResult RayHitBox(const glm::dvec3 &origin, const glm::dvec3 &direction,
                        const vec3 &boxmin, const vec3 &boxmax,
                         const float range)
 {
