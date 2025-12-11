@@ -2,13 +2,11 @@
 #define GRAPHICS_H
 
 #include <string>
-#include <vector>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <filesystem>
 #include <array>
 
-#include "gizmos.h"
 
 enum BufferID
 {
@@ -46,6 +44,7 @@ enum ShaderID
     SHADER_GROUND,
     SHADER_GRASS,
     SHADER_DEBUG,
+    SHADER_TRANSFORM,
     SHADER_COUNT
 };
 
@@ -79,7 +78,7 @@ namespace Gfx
 {
     void CheckGLError(const char *functionName);
 
-    GLuint InitializeShaderFromPaths(const std::filesystem::path &vertexPath, const std::filesystem::path &fragmentPath);
+    //GLuint InitializeShaderFromPaths(const std::filesystem::path &vertexPath, const std::filesystem::path &fragmentPath);
     std::string LoadShader(const std::filesystem::path &shaderPath, const std::filesystem::path &includePath);
     GLuint CompileShader(const std::filesystem::path &vertPath, const std::filesystem::path &fragPath);
     void Use(GLuint shaderID);

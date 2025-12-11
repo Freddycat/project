@@ -1,7 +1,8 @@
-#include <collisions.h>
 #include <iostream>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp>
+
+#include "colliders.h"
 
 CollisionResult capsule_vs_box(const glm::vec3 start_pos, glm::vec3 end_pos, const glm::vec3 cap_start, const glm::vec3 cap_end,
                                const float radius, const glm::vec3 box_start, const glm::vec3 box_end)
@@ -17,15 +18,11 @@ CollisionResult capsule_vs_box(const glm::vec3 start_pos, glm::vec3 end_pos, con
     float tmin = 0.0f;
     float tmax = 1.0f;
 
-    for (int i = 0; i < 3; i++)
-    {
-        if (std::abs(delta[i]) < 1e-8f)
-        {
+    for (int i = 0; i < 3; i++) {
+        if (std::abs(delta[i]) < 1e-8f) {
             if (cap_start[i] < ex_start[i] || cap_start[i] > ex_end[i])
                 return result; // no hit
-        }
-        else
-        {
+        } else {
 
             float invD = 1.0f / delta[i];
 
@@ -81,15 +78,11 @@ CollisionResult RayHitBox(const glm::dvec3 &origin,
     double far = range;
     CollisionResult result;
 
-    for (int i = 0; i < 3; ++i)
-    {
-        if (direction[i] == 0.0)
-        {
+    for (int i = 0; i < 3; ++i) {
+        if (direction[i] == 0.0) {
             if (origin[i] < boxmin[i] || origin[i] > boxmax[i])
                 return result;
-        }
-        else
-        {
+        } else {
             double t1 = (boxmin[i] - origin[i]) / direction[i];
             double t2 = (boxmax[i] - origin[i]) / direction[i];
             if (t1 > t2)
@@ -211,11 +204,10 @@ bool PointHit(const vec3 pos, const vec3 &box_start, const vec3 &box_end)
 
 CollisionResult TestCollisions(ColliderCtx &ctx, glm::vec3 pos, glm::vec3 next_pos, glm::vec3 cap_start, glm::vec3 cap_end, float radius)
 {
-    auto &reg = ctx.collidables;
+    auto &reg = ctx.colliders;
     CollisionResult result;
 
-    for (auto &view : reg.view<BoxColliderAxis>())
-    {
+    for (auto &view : reg.view<BoxColliderAxis>()) {
         auto &box = reg.get<BoxColliderAxis>(view);
         result = capsule_vs_box(pos, next_pos, cap_start, cap_end, radius, box.start, box.end);
         return result;

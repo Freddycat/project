@@ -136,13 +136,6 @@ struct Targets
     bool showing_hitbox = false;
 };
 
-struct Selector
-{
-    size_t ID = 0;
-    bool dragging = false;
-    vec3 offset{0.0};
-};
-
 void EraseEntt(entt::registry &reg);
 void UpdateWorldTargets(entt::registry &colliders, PlayerCtx &ctx, Input &input, WorldCtx &world);
 void UpdateWorldEdit(entt::registry &colliders, PlayerCtx &ctx, Input &input, WorldCtx &worldCtx, Gizmos &gizmos);

@@ -18,6 +18,7 @@ target_include_directories(player
 target_link_libraries(
     player
     PUBLIC
+    Graphics
     SDL3::SDL3
     EnTT::EnTT
     physics)

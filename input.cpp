@@ -1,7 +1,7 @@
 
 #include "input.h"
 #include "camera.h"
-#include "collisions.h"
+#include "colliders.h"
 #include "global.h"
 #include "player.h"
 #include "playerCtx.h"

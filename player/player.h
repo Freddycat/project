@@ -1,6 +1,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+#include "models.h"
 #include <entt/entt.hpp>
 #include <gizmos.h>
 #include <vector>
@@ -46,10 +47,9 @@ struct Player {
 
     float cam_center = height * 0.75f;
 
-    bool mouse1;
-
-    entt::entity weapon;
     vector<Weapon> weapons;
+    vector<Model> models;
+    vector<Transform> transforms;
 
     Point pos_dot;
     Point xhair_dot;

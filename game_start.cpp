@@ -13,6 +13,7 @@
 
 #include "Game.h"
 #include "global.h"
+#include "gizmos.h"
 
 Global g;
 

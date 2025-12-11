@@ -100,7 +100,7 @@ void GameLoop(
     if (!g.devMenu_on)
         player.weapons[0].UpdateWeapon(playerCtx, time_elapsed, weapCtx.events, player.weapons[0].id);
 
-    UpdateWorldTargets(colliderCtx.collidables, playerCtx, input, worldCtx);
+    UpdateWorldTargets(colliderCtx.colliders, playerCtx, input, worldCtx);
 
     // time_point UpdateThings = std::chrono::steady_clock::now();
     // float UpdateThingsTime = std::chrono::duration<float>(UpdateThings - frame_last).count() * 10.0;
@@ -108,13 +108,13 @@ void GameLoop(
 
     WorldEvents worldQue;
 
-    WorldCreateQueue(weapCtx.events, worldCtx, colliderCtx.collidables);
+    WorldCreateQueue(weapCtx.events, worldCtx, colliderCtx.colliders);
 
-    worldCtx.UpdateProjectiles(time_elapsed, gizmos, worldQue, worldEnv, colliderCtx.collidables, player.weapons[0]);
+    worldCtx.UpdateProjectiles(time_elapsed, gizmos, worldQue, worldEnv, colliderCtx.colliders, player.weapons[0]);
     worldCtx.UpdateBlasts(time_elapsed, gizmos.circles);
-    worldCtx.UpdateBeams(time_elapsed, gizmos.lines, worldCtx.beams.list, worldQue, worldEnv, colliderCtx.collidables);
+    worldCtx.UpdateBeams(time_elapsed, gizmos.lines, worldCtx.beams.list, worldQue, worldEnv, colliderCtx.colliders);
 
-    WorldFXQueue(worldCtx, worldEnv, colliderCtx.collidables);
+    WorldFXQueue(worldCtx, worldEnv, colliderCtx.colliders);
 
     WorldHitQueue(worldQue, worldCtx);
 
@@ -122,13 +122,13 @@ void GameLoop(
     worldCtx.EraseProjectiles();
     worldCtx.EraseBeams();
 
-    EraseEntt(colliderCtx.collidables);
+    EraseEntt(colliderCtx.colliders);
 
     WorldClearQueue(weapCtx.events, worldEnv);
 
     if (g.devMode_on)
     {
-        UpdateWorldEdit(colliderCtx.collidables, playerCtx, input, worldCtx, gizmos);
+        UpdateWorldEdit(colliderCtx.colliders, playerCtx, input, worldCtx, gizmos);
         //std::print("devmode on!\n");
     }
 
@@ -138,7 +138,7 @@ void GameLoop(
 
     // -- end updating --
     // -- start render --
-    render(time_elapsed, graphics, camera, gizmos, worldCtx, world, player, gui, input, colliderCtx.collidables);
+    render(time_elapsed, graphics, camera, gizmos, worldCtx, world, player, gui, input, colliderCtx.colliders);
 
     // time_point RenderThings = std::chrono::steady_clock::now();
     // float RenderThingsTime = std::chrono::duration<float>(RenderThings - frame_last).count() * 10.0;

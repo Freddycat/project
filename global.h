@@ -29,6 +29,7 @@ struct Global
     bool devMenu_on = true;
     bool devMode_on = false;
     bool edit_shiftMod = false;
+    bool enable_grass = true;
 };
 
 extern Global g;

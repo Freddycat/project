@@ -5,6 +5,7 @@
 
 #include "Graphics.h"
 #include "camera.h"
+#include "gizmos.h"
 #include "shaders.h"
 
 #include "global.h"
@@ -14,7 +15,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-void LoadNoise(GLuint &shader) {
+void LoadNoise(GLuint &shader)
+{
     auto filePath = g.home / "shaders" / "perlinNoise.png";
     const std::string path_string = filePath.string();
     const char *path = path_string.c_str();
@@ -71,18 +73,19 @@ void LoadNoise(GLuint &shader) {
 
 using glm::vec3;
 
-void BindBufferShape(GLuint &buffer, int start = 0) {
+void AddShapeAttribs(GLuint &buffer, int start = 0)
+{
     int s = start;
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    Gfx::AddVertexAttrib(s + 1, 3, sizeof(Shape), offsetof(Shape, center));
+    Gfx::AddVertexAttrib(s + 1, 3, sizeof(Shape), offsetof(Shape, pos));
     glVertexAttribDivisor(s + 1, 1);
     Gfx::AddVertexAttrib(s + 2, 3, sizeof(Shape), offsetof(Shape, size));
     glVertexAttribDivisor(s + 2, 1);
     Gfx::AddVertexAttrib(s + 3, 4, sizeof(Shape), offsetof(Shape, color));
     glVertexAttribDivisor(s + 3, 1);
 }
-/* 
-void BindBufferShapeSym(GLuint &buffer, int start = 0) {
+/*
+void AddShapeAttribsSym(GLuint &buffer, int start = 0) {
     int s = start;
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     Gfx::AddVertexAttrib(s + 1, 3, sizeof(ShapeSym), offsetof(ShapeSym, center));
@@ -93,7 +96,8 @@ void BindBufferShapeSym(GLuint &buffer, int start = 0) {
     // glVertexAttribDivisor(s + 3, 1);
 }
  */
-void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera) {
+void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera)
+{
     GLenum err = glGetError();
 
     LoadBasics();
@@ -110,15 +114,12 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera) {
     gizmos.lights.reserve(48);
 
     graphics.max_points = std::max<size_t>(256, gizmos.points.capacity());
-    graphics.max_line_points_static =
-        std::max<size_t>(1024, gizmos.static_lines.capacity());
+    graphics.max_line_points_static = std::max<size_t>(1024, gizmos.static_lines.capacity());
 
-    graphics.max_triangles =
-        std::max<size_t>(2048, gizmos.triangles.capacity());
+    graphics.max_triangles = std::max<size_t>(2048, gizmos.triangles.capacity());
 
     graphics.max_circles = std::max<size_t>(64, gizmos.circles.capacity());
-    graphics.max_cubes_wireframe =
-        std::max<size_t>(64, gizmos.wireframe_cubes.capacity());
+    graphics.max_cubes_wireframe = std::max<size_t>(64, gizmos.wireframe_cubes.capacity());
     graphics.max_cubes = std::max<size_t>(64, gizmos.cubes.capacity());
     graphics.max_spheres = std::max<size_t>(64, gizmos.spheres.capacity());
     graphics.max_planes = std::max<size_t>(64, gizmos.planes.capacity());
@@ -129,10 +130,11 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera) {
     std::filesystem::path glpath = g.home / "shaders";
 
     GLuint point_shader = Gfx::CompileShader(glpath / "vertex.vert", glpath / "basic.frag");
-    GLuint gizmo_shader = Gfx::CompileShader(glpath / "sized.vert", glpath / "basic.frag");
-    GLuint sized_shader = Gfx::CompileShader(glpath / "sized.vert", glpath / "scene_lights.frag");
+    GLuint gizmo_shader = Gfx::CompileShader(glpath / "scaled.vert", glpath / "basic.frag");
+    GLuint sized_shader = Gfx::CompileShader(glpath / "scaled.vert", glpath / "scene_lights.frag");
+    GLuint trans_shader = Gfx::CompileShader(glpath / "transform.vert", glpath / "scene_lights.frag");
     GLuint scale_shader = Gfx::CompileShader(glpath / "capsule.vert", glpath / "basic.frag");
-    GLuint ground_shader = Gfx::CompileShader(glpath / "vert_ground.glsl", glpath / "frag_ground.glsl");
+    GLuint ground_shader = Gfx::CompileShader(glpath / "ground.vert", glpath / "ground.frag");
     GLuint grass_shader = Gfx::CompileShader(glpath / "grass.vert", glpath / "basic.frag");
     GLuint debug_shader = Gfx::CompileShader(glpath / "debug.vert", glpath / "debug.frag");
 
@@ -143,6 +145,7 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera) {
     graphics.shaders[SHADER_GROUND] = ground_shader;
     graphics.shaders[SHADER_GRASS] = grass_shader;
     graphics.shaders[SHADER_DEBUG] = debug_shader;
+    graphics.shaders[SHADER_TRANSFORM] = trans_shader;
 
     Gfx::CheckGLError("ERROR COMPILING SHADERS:");
     LoadNoise(graphics.shaders[SHADER_GRASS]);
@@ -246,7 +249,7 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera) {
     Gfx::AddVertexAttrib(2, 2, sizeof(Vertex), offsetof(Vertex, uv));     // UV
     GLuint cubeInstance = Gfx::CreateVBO(graphics.max_cubes * sizeof(Shape),
                                          nullptr, GL_DYNAMIC_DRAW);
-    BindBufferShape(cubeInstance, 2);
+    AddShapeAttribs(cubeInstance, 2);
     Gfx::UnbindVAO();
 
     graphics.attribs[BUFF_CUBES] = cubeAttrib;
@@ -263,7 +266,7 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera) {
     Gfx::AddVertexAttrib(0, 3, sizeof(vec3), 0);
     GLuint circleInstance = Gfx::CreateVBO(
         graphics.max_circles * sizeof(Shape), nullptr, GL_DYNAMIC_DRAW);
-    BindBufferShape(circleInstance);
+    AddShapeAttribs(circleInstance);
     Gfx::UnbindVAO();
 
     graphics.attribs[BUFF_CIRCLES] = circleAttrib;
@@ -282,7 +285,7 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera) {
     Gfx::AddVertexAttrib(2, 2, sizeof(Vertex), offsetof(Vertex, uv));
     GLuint sphereInstance = Gfx::CreateVBO(
         graphics.max_spheres * sizeof(Shape), nullptr, GL_DYNAMIC_DRAW);
-    BindBufferShape(sphereInstance, 2);
+    AddShapeAttribs(sphereInstance, 2);
     Gfx::UnbindVAO();
 
     graphics.attribs[BUFF_SPHERES] = sphereAttrib;
@@ -297,7 +300,7 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera) {
     Gfx::AddVertexAttrib(0, 3, sizeof(vec3), 0); // vert pos
     GLuint capsuleInstance = Gfx::CreateVBO(
         graphics.max_capsules * sizeof(Shape), nullptr, GL_DYNAMIC_DRAW);
-    BindBufferShape(capsuleInstance);
+    AddShapeAttribs(capsuleInstance);
     Gfx::UnbindVAO();
 
     graphics.attribs[BUFF_CAPSULES] = capsuleAttrib;
@@ -412,8 +415,7 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera) {
 
     GLuint grassAttrib = Gfx::CreateVAO();
     Gfx::UseVAO(grassAttrib);
-    GLuint grassBuffer = Gfx::CreateVBO(base_triangle.size() * sizeof(vec3),
-                                        base_triangle.data(), GL_STATIC_DRAW);
+    GLuint grassBuffer = Gfx::CreateVBO(base_triangle.size() * sizeof(vec3), base_triangle.data(), GL_STATIC_DRAW);
     // vertPos
 
     Gfx::AddVertexAttrib(0, 3, sizeof(vec3), 0);
@@ -441,7 +443,8 @@ void SetupShaders(Graphics &graphics, Gizmos &gizmos, Camera &camera) {
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glEnable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
+    //glCullFace(GL_BACK);
     glLineWidth(1.0f);
 
     for (auto &shader : graphics.shaders) {

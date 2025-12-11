@@ -1,17 +1,17 @@
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+#include "playerCtx.h"
 #include <SDL3/SDL.h>
 #include <glad/glad.h>
-#include <chrono>
 #include <glm/glm.hpp>
-#include "player.h"
-#include "playerCtx.h"
-#include "camera.h"
-#include <collisions.h>
-#include <print>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-#include <iostream>
+#include "player.h"
+#include "camera.h"
+#include "colliders.h"
 
 void Player::SetOrientation(Camera &cam)
 {
@@ -28,7 +28,7 @@ void Player::MovePlayer(float time_elapsed, PlayerCtx &ctx, ColliderCtx &collide
     indir.z = 0.0;
 
     glm::vec3 wishdir = indir.x * cam_right + indir.y * cam_forward;
-    
+
     if (glm::length2(wishdir) > 0.0f)
         wishdir = glm::normalize(wishdir);
 
@@ -39,7 +39,7 @@ void Player::MovePlayer(float time_elapsed, PlayerCtx &ctx, ColliderCtx &collide
     glm::vec3 distance = velocity * time_elapsed;
 
     // Head pos
-    //shoulder_height = position + glm::vec3(0.0f, 0.0f, height * 0.75);
+    // shoulder_height = position + glm::vec3(0.0f, 0.0f, height * 0.75);
 
     // Test collisions
     // **look into more voids less collisions**
@@ -48,8 +48,7 @@ void Player::MovePlayer(float time_elapsed, PlayerCtx &ctx, ColliderCtx &collide
     // Move either full distance or portion till collision
     glm::vec3 delta = distance * collision.fraction;
 
-    if (collision.hit)
-    { // Slide along collision normal
+    if (collision.hit) { // Slide along collision normal
         glm::vec3 remaining = distance * (1.0f - collision.fraction);
         remaining -= glm::dot(remaining, collision.normal) * collision.normal;
         delta += remaining;
@@ -72,14 +71,25 @@ void Player::MovePlayer(float time_elapsed, PlayerCtx &ctx, ColliderCtx &collide
         velocity.y = 0.0f;
     // update player context for other functions
     ctx.pos = shoulder_height;
-    //std::print("pos: {}\n", glm::to_string(position));
-    //std::print("shoulder: {}\n", glm::to_string(shoulder_height));
+    // std::print("pos: {}\n", glm::to_string(position));
+    // std::print("shoulder: {}\n", glm::to_string(shoulder_height));
 }
 
 void Player::UpdatePlayerCap(PlayerCtx &ctx, Gizmos &gizmos, std::vector<Point> &points, std::vector<Shape> &capsules)
 {
     static vec4 color = {1, 0, 0, 1};
-    capsules[0].center = {position.x, position.y, 16.0f};
+    capsules[0].pos = {position.x, position.y, 16.0f};
+
+    auto &tf = transforms[0].transform;
+
+    glm::quat q = glm::quatLookAt(ctx.facing, vec3(0, 0, 1));
+    glm::mat4 rot = glm::toMat4(q);
+
+    tf = glm::mat4(1.0f);
+    tf = glm::translate(tf, position);
+    tf *= rot;
+    tf = glm::scale(tf, vec3(height));
+
     facing_line_start.pos = ctx.pos;
     vec3 endpos = ctx.pos + ctx.facing * 100.0f;
     facing_line_end.pos = endpos;

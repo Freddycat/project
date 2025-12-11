@@ -22,5 +22,6 @@ target_include_directories(Render PUBLIC
 target_link_libraries(
     Render
     PUBLIC
+    Graphics
     SDL3::SDL3
     EnTT::EnTT)

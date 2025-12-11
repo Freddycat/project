@@ -5,6 +5,7 @@
 #include "camera.h"
 #include "gizmos.h"
 #include "global.h"
+#include "imgui.h"
 #include "input.h"
 #include "player.h"
 #include "playerCtx.h"
@@ -269,7 +270,7 @@ void DrawGraphicsGui(Graphics &graphics)
     glUniform1f(glGetUniformLocation(graphics.shaders[SHADER_GRASS], "noise_speed_y"), noiseSpeedY);
     glUniform1f(glGetUniformLocation(graphics.shaders[SHADER_GRASS], "gradient_scale"), gradientScale);
 
-    // Gfx::UnbindVAO();
+    ImGui::Checkbox("Enable grass?", &g.enable_grass);
 }
 
 void Gui::GraphicsInfo(Graphics &graphics)
@@ -290,28 +291,29 @@ void Gui::GraphicsInfo(Graphics &graphics)
 void DrawEditorGui(Graphics &graphics, Gizmos &gizmos)
 {
     if (ImGui::CollapsingHeader("Sun")) {
-        float min = 0.00;
-        float max = 1.00;
-        ImGui::BeginChild("SunEditor", ImVec2(0, 150), true);
-        ImGui::SliderFloat("Sun Direction X",
-                         &gizmos.sun.direction.x, min, max);
-        ImGui::SliderFloat("Sun Direction Y",
-                         &gizmos.sun.direction.y, min, max);
-        ImGui::SliderFloat("Sun Direction Z",
-                         &gizmos.sun.direction.z, min, max);
-        ImGui::EndChild();
-    }
+        ImGui::BeginChild("SunEditor", ImVec2(0, 0), true); // width 0 = fill, height 0 = auto
 
-    if (ImGui::CollapsingHeader("Material")) {
-        float min = 0.00;
-        float max = 1.00;
-        ImGui::BeginChild("SunEditor", ImVec2(0, 150), true);
-        ImGui::SliderFloat("Sun Direction X",
-                         &gizmos.sun.direction.x, min, max);
-        ImGui::SliderFloat("Sun Direction Y",
-                         &gizmos.sun.direction.y, min, max);
-        ImGui::SliderFloat("Sun Direction Z",
-                         &gizmos.sun.direction.z, min, max);
+        float mindir = -1.0f;
+        float maxdir = 1.0f;
+
+        ImGui::Text("Sun Direction");
+        ImGui::SliderFloat3("##SunDirection", &gizmos.sun.direction.x, mindir, maxdir);
+
+        float minAmb = 0.0f;
+        float maxAmb = 1.0f;
+        ImGui::Text("Sun Ambient");
+        ImGui::SliderFloat3("##SunAmbient", &gizmos.sun.ambient.x, minAmb, maxAmb);
+
+        float minDiff = 0.0f;
+        float maxDiff = 10.0f;
+        ImGui::Text("Sun Diffuse");
+        ImGui::SliderFloat3("##SunDiffuse", &gizmos.sun.diffuse.x, minDiff, maxDiff);
+
+        float minSpec = 0.0f;
+        float maxSpec = 10.0f;
+        ImGui::Text("Sun Specular");
+        ImGui::SliderFloat3("##SunSpecular", &gizmos.sun.specular.x, minSpec, maxSpec);
+
         ImGui::EndChild();
     }
 }

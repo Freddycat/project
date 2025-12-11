@@ -1,18 +1,16 @@
 
-#include "Graphics.h"
-#include "global.h"
-
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <print>
 #include <iostream>
-#include <fstream>
-#include <sstream>
 #include <stdexcept>
 
 #define STB_INCLUDE_IMPLEMENTATION
 #define STB_INCLUDE_LINE_GLSL
 #include "stb_include.h"
+
+#include "Graphics.h"
+#include "global.h"
 
 using std::filesystem::path;
 
@@ -51,7 +49,7 @@ void Gfx::CheckGLError(const char *functionName)
         std::print("OpenGL Error in {}\n", functionName, ": ", error);
     }
 }
-// old paths way
+/* 
 GLuint Gfx::InitializeShaderFromPaths(const std::filesystem::path &vertexPath, const std::filesystem::path &fragmentPath)
 {
     // 1. Retrieve the vertex / fragment source code from filePath
@@ -96,7 +94,7 @@ GLuint Gfx::InitializeShaderFromPaths(const std::filesystem::path &vertexPath, c
     const char *vShaderCode = vertexCode.c_str();
     const char *fShaderCode = fragmentCode.c_str();
 }
-
+ */
 GLuint Gfx::CompileShader(const path &vertPath, const path &fragPath)
 {
 

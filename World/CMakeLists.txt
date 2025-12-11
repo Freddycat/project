@@ -2,6 +2,7 @@
 add_library(
     World
     World.cpp
+    worldLights.cpp
 )
 
 target_include_directories(World
@@ -15,6 +16,7 @@ target_include_directories(World
     ${CMAKE_SOURCE_DIR}/physics
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/include/glm
+    ${CMAKE_SOURCE_DIR}/include/assimp/include
 )
 
 target_link_libraries(
@@ -23,4 +25,5 @@ target_link_libraries(
     SDL3::SDL3
     EnTT::EnTT
     Graphics
+    Models
     helper)

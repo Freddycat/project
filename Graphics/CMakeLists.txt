@@ -6,6 +6,7 @@ add_library(
     shaders.cpp
     gizmos.cpp
 )
+add_subdirectory(Models)
 
 target_include_directories(Graphics PUBLIC
     ${CMAKE_SOURCE_DIR}
@@ -14,9 +15,15 @@ target_include_directories(Graphics PUBLIC
     ${CMAKE_SOURCE_DIR}/Graphics/Models
     ${CMAKE_SOURCE_DIR}/World
     ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/include/assimp
     ${CMAKE_SOURCE_DIR}/include/glm
     ${CMAKE_SOURCE_DIR}/include/SDL
     ${CMAKE_SOURCE_DIR}/include/stb
 )
 
-target_link_libraries(Graphics PUBLIC SDL3::SDL3)
+target_link_libraries(
+    Graphics 
+    PUBLIC
+    Models
+    SDL3::SDL3 
+    assimp)

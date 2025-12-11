@@ -2,8 +2,8 @@
 #extension GL_ARB_shading_language_include : enable
 #include "lights.glsl"
 
-in vec3 Normal;
 in vec3 FragPos;
+in vec3 Normal;
 in vec2 UV;
 
 struct Material {

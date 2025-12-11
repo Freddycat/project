@@ -20,5 +20,6 @@ target_include_directories(GUI PUBLIC
 target_link_libraries(
     GUI
     PRIVATE
+    Graphics
     Weapons
     EnTT::EnTT)

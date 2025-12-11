@@ -17,7 +17,7 @@ void Camera::SetCam()
      ); */
 
     glm::mat4 perspective = glm::perspective(
-        glm::radians(12.0f), g.set_width / g.set_height, 0.1f, 8000.0f);
+        glm::radians(12.0f), g.set_width / g.set_height, 1.0f, 8000.0f);
 
     glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.0, 1.0, 1.0));
 

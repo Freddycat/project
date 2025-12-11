@@ -1,7 +1,8 @@
 #ifndef WEAPON_EVENTS_H
 #define WEAPON_EVENTS_H
 
-#include "World.h"
+//#include "World.h"
+#include "playerCtx.h"
 #include "partenum.h"
 
 #include <entt/entt.hpp>

@@ -8,7 +8,7 @@ using glm::vec3;
 
 struct ColliderCtx
 {
-    entt::registry collidables;
+    entt::registry colliders;
 };
 
 struct PlaneCollider

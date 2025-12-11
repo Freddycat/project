@@ -11,18 +11,19 @@
 
 #include "GUI.h"
 #include "Graphics.h"
+#include "Render.h"
 #include "World.h"
 #include "camera.h"
+#include "drawFunctions.h"
 #include "global.h"
 #include "player.h"
 #include "primitives.h"
 #include "shaders.h"
-#include "Render.h"
-#include "drawFunctions.h"
 
 void render(float delta, Graphics &graphics, Camera &camera, Gizmos &gizmos,
             WorldCtx &ctx, World &world, Player &player, Gui &gui, Input &input,
-            entt::registry &colliders) {
+            entt::registry &colliders)
+{
     glClearColor(0.0, 0.1, 0.0, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -69,7 +70,7 @@ void render(float delta, Graphics &graphics, Camera &camera, Gizmos &gizmos,
             Line line;
             line.start.color = color;
             line.end.color = color;
-            line.start.pos = cube.center + vert.pos * cube.size;
+            line.start.pos = cube.pos + vert.pos * cube.size;
             line.end.pos = line.start.pos + vert.normal * scale;
             gizmos.lines.push_back(line);
         }
@@ -143,12 +144,22 @@ void render(float delta, Graphics &graphics, Camera &camera, Gizmos &gizmos,
     glDrawArrays(GL_LINES, 0, gizmos.line_points.size());
     Gfx::UnbindVAO();
 
-    // -- CUBES --
+    // ---------------------
+    // -- compressed stuff--
+    // ---------------------
 
+    Gfx::Use(graphics.shaders[SHADER_TRANSFORM]);
+    Draw::Lights::DrawLights(graphics, gizmos, camera);
+    player.models[0].Draw(graphics.shaders[SHADER_TRANSFORM], player.transforms[0]);
+
+    Gfx::Use(graphics.shaders[SHADER_SIZED]);
+    Draw::Lights::DrawLights(graphics, gizmos, camera);
     Draw::Shapes::DrawCubes(graphics, gizmos, camera);
     Draw::Shapes::DrawSpheres(graphics, gizmos, camera);
 
-    // -- SPHERES --
+    // ---------------------
+    // -- compressed stuff--
+    // ---------------------
 
     // -- CIRCLES --
     Gfx::Use(graphics.shaders[SHADER_SIZED]);
@@ -165,21 +176,21 @@ void render(float delta, Graphics &graphics, Camera &camera, Gizmos &gizmos,
     Gfx::UnbindVAO();
 
     // -- CAPSULES --
+    if (g.devMenu_on) {
+        Gfx::Use(graphics.shaders[SHADER_SCALE]);
+        Gfx::UseVAO(graphics.attribs[BUFF_CAPSULES]);
 
-    Gfx::Use(graphics.shaders[SHADER_SCALE]);
-    Gfx::UseVAO(graphics.attribs[BUFF_CAPSULES]);
-
-    if (!gizmos.capsules.empty()) {
-        glBindBuffer(GL_ARRAY_BUFFER, graphics.buffers[BUFF_CAPSULES]);
-        glBufferSubData(GL_ARRAY_BUFFER, 0,
-                        gizmos.capsules.size() * sizeof(Shape),
-                        gizmos.capsules.data());
+        if (!gizmos.capsules.empty()) {
+            glBindBuffer(GL_ARRAY_BUFFER, graphics.buffers[BUFF_CAPSULES]);
+            glBufferSubData(GL_ARRAY_BUFFER, 0,
+                            gizmos.capsules.size() * sizeof(Shape),
+                            gizmos.capsules.data());
+        }
+        glLineWidth(1.0f);
+        glDrawArraysInstanced(GL_LINES, 0, base_capsule.size(),
+                              gizmos.capsules.size());
+        Gfx::UnbindVAO();
     }
-    glLineWidth(1.0f);
-    glDrawArraysInstanced(GL_LINES, 0, base_capsule.size(),
-                          gizmos.capsules.size());
-    Gfx::UnbindVAO();
-
     // -- GROUND --
 
     Gfx::Use(graphics.shaders[SHADER_GROUND]);
@@ -193,26 +204,27 @@ void render(float delta, Graphics &graphics, Camera &camera, Gizmos &gizmos,
     Gfx::UnbindVAO();
 
     // -- GRASS --
+    if (g.enable_grass) {
+        Gfx::Use(graphics.shaders[SHADER_GRASS]);
+        Gfx::UseVAO(graphics.attribs[BUFF_GRASS]);
 
-    Gfx::Use(graphics.shaders[SHADER_GRASS]);
-    Gfx::UseVAO(graphics.attribs[BUFF_GRASS]);
+        if (!gizmos.grass.empty()) {
+            Gfx::SetFloat(graphics.shaders[SHADER_GRASS], "time", g.game_time);
+            Gfx::SetVec3(graphics.shaders[SHADER_GRASS], "characterPos",
+                         player.position);
+            glBindBuffer(GL_ARRAY_BUFFER, graphics.buffers[BUFF_GRASS]);
+            glBufferSubData(GL_ARRAY_BUFFER, 0,
+                            gizmos.grass.size() * sizeof(GrassBlade),
+                            gizmos.grass.data());
+        }
 
-    if (!gizmos.grass.empty()) {
-        Gfx::SetFloat(graphics.shaders[SHADER_GRASS], "time", g.game_time);
-        Gfx::SetVec3(graphics.shaders[SHADER_GRASS], "characterPos",
-                     player.position);
-        glBindBuffer(GL_ARRAY_BUFFER, graphics.buffers[BUFF_GRASS]);
-        glBufferSubData(GL_ARRAY_BUFFER, 0,
-                        gizmos.grass.size() * sizeof(GrassBlade),
-                        gizmos.grass.data());
+        glDrawArraysInstanced(GL_TRIANGLES, 0, base_triangle.size(),
+                              gizmos.grass.size());
+
+        Gfx::UnbindVAO();
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
     }
-
-    glDrawArraysInstanced(GL_TRIANGLES, 0, base_triangle.size(),
-                          gizmos.grass.size());
-
-    Gfx::UnbindVAO();
-
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
     // -- DEBUG --
     /*

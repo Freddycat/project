@@ -1,7 +1,7 @@
 #ifndef WEAPON_PARTS_H
 #define WEAPON_PARTS_H
 
-#include "World.h"
+//#include "World.h"
 #include <iostream>
 
 #include <entt/entt.hpp>

@@ -20,13 +20,11 @@ void DrawCubes(Graphics &graphics, Gizmos &gizmos, Camera &camera)
 {
 
     auto &shader = graphics.shaders[SHADER_SIZED];
-    Gfx::Use(graphics.shaders[SHADER_SIZED]);
+    Gfx::Use(shader);
 
     Material mat;
 
     SetMaterial(shader, mat);
-
-    Lights::DrawLights(graphics, gizmos, camera);
 
     Gfx::UseVAO(graphics.attribs[BUFF_CUBES]);
     if (!gizmos.cubes.empty()) {
@@ -64,13 +62,11 @@ void DrawSpheres(Graphics &graphics, Gizmos &gizmos, Camera &camera)
 {
 
     auto &shader = graphics.shaders[SHADER_SIZED];
-    Gfx::Use(graphics.shaders[SHADER_SIZED]);
+    Gfx::Use(shader);
 
     Material mat;
 
     SetMaterial(shader, mat);
-
-    Lights::DrawLights(graphics, gizmos, camera);
 
     Gfx::UseVAO(graphics.attribs[BUFF_SPHERES]);
 

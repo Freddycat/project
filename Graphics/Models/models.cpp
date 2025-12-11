@@ -1,10 +1,14 @@
-#include <print>
 #include "models.h"
+#include "gizmos.h"
+#include <print>
 
-void Model::Draw(GLuint &shader)
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
+
+void Model::Draw(GLuint &shader, Transform &transform)
 {
     for (unsigned int i = 0; i < meshes.size(); i++)
-        meshes[i].Draw(shader);
+        meshes[i].Draw(shader, transform);
 }
 
 void Model::LoadModel(string path)
@@ -12,27 +16,30 @@ void Model::LoadModel(string path)
     Assimp::Importer import;
     const aiScene *scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
-    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-    {
-        std::print("ERROR::ASSIMP::{}", import.GetErrorString());
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+        std::print("ERROR::ASSIMP::{}\n", import.GetErrorString());
         return;
     }
+
+    if (!scene || !scene->HasMeshes()) {
+        std::print("Failed to load model: {}\n", import.GetErrorString());
+    }
+
     directory = path.substr(0, path.find_last_of('/'));
 
     ProcessNode(scene->mRootNode, scene);
+    std::print("Loaded model with meshes: {}\n", meshes.size());
 }
 
 void Model::ProcessNode(aiNode *node, const aiScene *scene)
 {
     // process all the node's meshes (if any)
-    for (unsigned int i = 0; i < node->mNumMeshes; i++)
-    {
+    for (unsigned int i = 0; i < node->mNumMeshes; i++) {
         aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
         meshes.push_back(ProcessMesh(mesh, scene));
     }
     // then do the same for each of its children
-    for (unsigned int i = 0; i < node->mNumChildren; i++)
-    {
+    for (unsigned int i = 0; i < node->mNumChildren; i++) {
         ProcessNode(node->mChildren[i], scene);
     }
 }
@@ -46,20 +53,31 @@ Material Model::GetMeshMaterial(const aiMaterial *mtl)
     int i;
     unsigned int max = 1;
 
-    if (AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &color))
+    if (AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &color)) {
         mat.diffuse = {color.r, color.g, color.b};
+        glm::vec3 colorvec = vec3(color.r, color.g, color.b);
+        std::print("found color! {}\n", glm::to_string(colorvec));
+
+    } else
+        std::print("couldn't find color! d");
 
     if (AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_SPECULAR, &color))
         mat.specular = {color.r, color.g, color.b};
+    else
+        std::print("couldn't find color! s");
 
     if (AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_AMBIENT, &color))
         mat.ambient = {color.r, color.g, color.b};
+    else
+        std::print("couldn't find color! a");
 
     if (AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_EMISSIVE, &color))
         mat.emission = {color.r, color.g, color.b};
+    else
+        std::print("couldn't find color! e");
 
     if (AI_SUCCESS == aiGetMaterialFloatArray(mtl, AI_MATKEY_SHININESS, &f, &max))
-        mat.shininess = f;
+        mat.shine = f;
 
     if (AI_SUCCESS == aiGetMaterialIntegerArray(mtl, AI_MATKEY_ENABLE_WIREFRAME, &i, &max))
         mat.wireframe = (i != 0);
@@ -75,9 +93,9 @@ Mesh Model::ProcessMesh(aiMesh *mesh, const aiScene *scene)
     vector<Vertex> vertices;
     vector<unsigned int> indices;
     vector<Texture> textures;
+    vector<Material> materials;
 
-    for (unsigned int i = 0; i < mesh->mNumVertices; i++)
-    {
+    for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
         Vertex vertex;
         glm::vec3 vector; // we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
         // positions
@@ -86,8 +104,7 @@ Mesh Model::ProcessMesh(aiMesh *mesh, const aiScene *scene)
         vector.z = mesh->mVertices[i].z;
         vertex.pos = vector;
         // normals
-        if (mesh->HasNormals())
-        {
+        if (mesh->HasNormals()) {
             vector.x = mesh->mNormals[i].x;
             vector.y = mesh->mNormals[i].y;
             vector.z = mesh->mNormals[i].z;
@@ -102,14 +119,12 @@ Mesh Model::ProcessMesh(aiMesh *mesh, const aiScene *scene)
             vec.x = mesh->mTextureCoords[0][i].x;
             vec.y = mesh->mTextureCoords[0][i].y;
             vertex.uv = vec;
-        }
-        else
+        } else
             vertex.uv = glm::vec2(0.0f, 0.0f);
 
         vertices.push_back(vertex);
     }
-    for (unsigned int i = 0; i < mesh->mNumFaces; i++)
-    {
+    for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
         aiFace face = mesh->mFaces[i];
         // retrieve all indices of the face and store them in the indices vector
         for (unsigned int j = 0; j < face.mNumIndices; j++)
@@ -118,5 +133,9 @@ Mesh Model::ProcessMesh(aiMesh *mesh, const aiScene *scene)
 
     aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
 
-    return Mesh(vertices, indices, textures);
+    Material meshMat = GetMeshMaterial(material);
+
+    std::print("MeshMat color should be: {}\n", glm::to_string(meshMat.diffuse));
+
+    return Mesh(vertices, indices, textures, meshMat);
 }

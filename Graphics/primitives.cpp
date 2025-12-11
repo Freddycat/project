@@ -18,14 +18,17 @@ vector<Vertex> base_sphere;
 vector<vec3> base_cylinder;
 vector<vec3> base_capsule;
 vector<Vertex> base_plane;
+size_t max_players = 3;
 
-vec3 ComputeNormal(const vec3 &p1, const vec3 &p2, const vec3 &p3) {
-    vec3 normal = glm::normalize(glm::cross(p3 - p1, p2 - p1));
+vec3 ComputeNormal(const vec3 &p1, const vec3 &p2, const vec3 &p3)
+{
+    vec3 normal = glm::normalize(glm::cross(p2 - p1, p3 - p1));
 
     return normal;
 }
 
-void LoadBasics() {
+void LoadBasics()
+{
     int segments = 16;
     float size = 1.0f;
     float half = size / 2.0f;
@@ -51,31 +54,28 @@ void LoadBasics() {
         {0.5f, -0.5f, 0.5f},
         {0.5f, 0.5f, 0.5f},
         {-0.5f, 0.5f, 0.5f}};
-
+        
     int cubeIndices[36] = {
-        0, 1, 2, 2, 3, 0,  // Back face
-        4, 5, 6, 6, 7, 4,  // Front face
-        0, 4, 7, 7, 3, 0,  // Left face
-        1, 5, 6, 6, 2, 1,  // Right face
-        0, 1, 5, 5, 4, 0,  // Bottom face
-        3, 2, 6, 6, 7, 3}; // Top face
-
-    glm::vec3 faceNormals[6] = {
-        {0, 0, -1}, // Back
-        {0, 0, 1},  // Front
-        {-1, 0, 0}, // Left
-        {1, 0, 0},  // Right
-        {0, -1, 0}, // Bottom
-        {0, 1, 0}   // Top
-    };
+        // Bottom face (-Z)  ← z = -0.5
+        0, 3, 2, 2, 1, 0,
+        // Top face (+Z)     ← z = +0.5
+        4, 5, 6, 6, 7, 4,
+        // Front face (+X)   ← facing +X (forward)
+        1, 2, 6, 6, 5, 1,
+        // Back face (-X)    ← facing -X (backward)
+        0, 4, 7, 7, 3, 0,
+        // Right face (+Y)   ← facing +Y (right)
+        3, 7, 6, 6, 2, 3,
+        // Left face (-Y)    ← facing -Y (left)
+        0, 1, 5, 5, 4, 0};
 
     for (int i = 0; i < 36; i += 3) {
         glm::vec3 p1 = cubeVerts[cubeIndices[i + 0]];
         glm::vec3 p2 = cubeVerts[cubeIndices[i + 1]];
         glm::vec3 p3 = cubeVerts[cubeIndices[i + 2]];
 
-        vec3 n = faceNormals[i / 6];
-        // glm::vec3 n = ComputeNormal(p1, p2, p3);
+        //vec3 n = faceNormals[i / 6];
+        glm::vec3 n = ComputeNormal(p1, p2, p3);
 
         base_cube.push_back({p1, n});
         base_cube.push_back({p2, n});
@@ -87,7 +87,7 @@ void LoadBasics() {
         float theta = (2.0f * glm::pi<float>() * i) / segments;
         base_circle.push_back(glm::vec3(cos(theta), sin(theta), 0.0f));
     }
-    
+
     // sphere double halves for now
     /*
     for (int lat = 0; lat < rings / 2; ++lat) {

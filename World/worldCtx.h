@@ -1,5 +1,5 @@
-#ifndef WORLD_COLLIDABLES_H
-#define WORLD_COLLIDABLES_H
+#ifndef WORLD_COLLIDERS_H
+#define WORLD_COLLIDERS_H
 
 #include <glm/glm.hpp>
 
@@ -80,4 +80,4 @@ struct Beam
     WorldEffects effects = WorldEffects::NONE;
 };
 
-#endif // WORLD_COLLIDABLES_H
+#endif // WORLD_COLLIDERS_H

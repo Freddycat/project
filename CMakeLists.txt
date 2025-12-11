@@ -4,9 +4,11 @@ project(project)
 
 set(CMAKE_CXX_STANDARD 23)
 
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+#set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+
 set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
+
 add_subdirectory(include/assimp)
 
 add_subdirectory(include/SDL)
@@ -43,6 +45,7 @@ target_include_directories(
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     include
+    include/assimp/include
     include/entt
     include/glm
     include/imgui
@@ -57,6 +60,7 @@ target_link_libraries(project PUBLIC
     OpenGL::GL
     assimp
     Graphics
+    Models
     Render
     GUI
     physics
@@ -67,16 +71,15 @@ target_link_libraries(project PUBLIC
 )
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    set(SHADER_OUT_DIR ${CMAKE_BINARY_DIR}/Debug/shaders)
-    set(MAP_OUT_DIR ${CMAKE_BINARY_DIR}/Debug/maps)
+    set(SHADER_OUT_DIR_DBG ${CMAKE_BINARY_DIR}/Debug/shaders)
+    set(MAP_OUT_DIR_DBG ${CMAKE_BINARY_DIR}/Debug/maps)
+    set(ASSET_OUT_DIR_DBG ${CMAKE_BINARY_DIR}/Debug/assets)
+    set(SHADER_OUT_DIR ${CMAKE_BINARY_DIR}/Release/shaders)
+    set(MAP_OUT_DIR ${CMAKE_BINARY_DIR}/Release/maps)
+    set(ASSET_OUT_DIR ${CMAKE_BINARY_DIR}/Release/assets)
 
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
-
-else()
-    set(SHADER_OUT_DIR ${CMAKE_BINARY_DIR}/shaders)
-    set(MAP_OUT_DIR ${CMAKE_BINARY_DIR}/maps)
-endif()
 
 add_custom_target(copy_resources ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -87,4 +90,43 @@ add_custom_target(copy_resources ALL
     ${CMAKE_SOURCE_DIR}/World/maps
     ${MAP_OUT_DIR}
     COMMAND ${CMAKE_COMMAND} -E echo "Maps copied to ${MAP_OUT_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/Assets
+    ${Asset_OUT_DIR}
+    COMMAND ${CMAKE_COMMAND} -E echo "Assets copied to ${ASSET_OUT_DIR}"
+
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/Graphics/shaders
+    ${SHADER_OUT_DIR_DBG}
+    COMMAND ${CMAKE_COMMAND} -E echo "Shaders copied to ${SHADER_OUT_DIR_DBG}"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/World/maps
+    ${MAP_OUT_DIR_DBG}
+    COMMAND ${CMAKE_COMMAND} -E echo "Maps copied to ${MAP_OUT_DIR_DBG}"
+    ${CMAKE_SOURCE_DIR}/Assets
+    ${ASSET_OUT_DIR_DBG}
+    COMMAND ${CMAKE_COMMAND} -E echo "Assets copied to ${ASSET_OUT_DIR_DBG}"
 )
+
+else()
+    set(SHADER_OUT_DIR ${CMAKE_BINARY_DIR}/shaders)
+    set(MAP_OUT_DIR ${CMAKE_BINARY_DIR}/maps)
+    set(ASSET_OUT_DIR ${CMAKE_BINARY_DIR}/assets)
+
+add_custom_target(copy_resources ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/Graphics/shaders
+    ${SHADER_OUT_DIR}
+    COMMAND ${CMAKE_COMMAND} -E echo "Shaders copied to ${SHADER_OUT_DIR}"
+
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/World/maps
+    ${MAP_OUT_DIR}
+    COMMAND ${CMAKE_COMMAND} -E echo "Maps copied to ${MAP_OUT_DIR}"
+
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/Assets
+    ${ASSET_OUT_DIR}
+    COMMAND ${CMAKE_COMMAND} -E echo "Assets copied to ${ASSET_OUT_DIR}"
+)
+endif()
